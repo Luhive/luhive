@@ -25,7 +25,7 @@ client lands. The OTP decomposition (#10) follows once that path is stable.
 #1  Azure setup                 done: resources live, latency measured
 #2  packages/domain
  └─ #3  core-api skeleton
-     └─ #4  DEPLOY hello-world  ◄── hard platform gate
+     └─ #4  DEPLOY hello-world  ◄── gate PASSED, ~3ms to the database
          └─ #6  lib/person + lib/events in core
              └─ #7  people API slice
                  └─ #8  api-client + web wiring
@@ -144,16 +144,26 @@ is wired in #11 after the Azure resource exists.
 
 **Before any slice is written.** Same discipline as Stage 0 #5: prove the pipeline, then build on it.
 
-- [ ] Dockerfile, image pushed to ACR, Container App in North Europe
-- [ ] **Min replicas 1** — web calls core on every render and a Node cold start is a second or two
-- [ ] Secrets from Key Vault, pulled with the app's managed identity
-- [ ] **External ingress, for now.** Web is still on Netlify and cannot reach an internal address. The bearer check in `src/middleware/session.ts` is the only thing guarding core until web moves — see the note in `docs/spec/09`
-- [ ] `GET /health` responds from the deployed URL
-- [ ] **A real query runs**: one trivial `SELECT` against production through the pooler, from the deployed instance, with the latency logged
-- [ ] Record the measured Dublin-to-Dublin latency in `docs/spec/09` — it should be low single digits, and if it is not, something is misconfigured
-- [ ] **Throwaway smoke test from web:** one loader in `apps/web` that fetches core's `/health` and logs the round trip. It proves DNS, TLS and the bearer header work end to end before any slice is built, and it measures the Netlify-to-Azure hop — the number that decides whether web moves to Azure (`docs/spec/16`). Delete it when #8 lands
+- [x] Dockerfile, image pushed to ACR, Container App in North Europe
+- [x] **Min replicas 1** — web calls core on every render and a Node cold start is a second or two
+- [x] Secrets from Key Vault, pulled with the app's managed identity
+- [x] **External ingress, for now.** Web is still on Netlify and cannot reach an internal address. The bearer check in `src/middleware/session.ts` is the only thing guarding core until web moves — see the note in `docs/spec/09`
+- [x] `GET /health` responds from the deployed URL
+- [x] **A real query runs**: one trivial `SELECT` against production through the pooler, from the deployed instance, with the latency logged
+- [x] Record the measured Dublin-to-Dublin latency in `docs/spec/09` — it should be low single digits, and if it is not, something is misconfigured
+- [x] **Throwaway smoke test from web:** `apps/web/app/routes/api/core-health.tsx`, a loader that fetches core's `/health` and reports the round trip. `/health` is unauthenticated, so it covers DNS, TLS and reachability but says nothing about bearer auth. Its real purpose is measuring the Netlify-to-Azure hop — the number that decides whether web moves to Azure (`docs/spec/16`). Delete it and its line in `app/routes.ts` when #8 lands
 
 That last check is the one that matters. Container Apps plus Kysely plus the Supabase pooler across clouds is the combination most likely to surprise, and finding out after seven slices is expensive.
+
+**Gate passed 14 September 2026.** `https://core-api.nicefield-2b9a3355.northeurope.azurecontainerapps.io/health` returns exactly `{"status":"ok"}`, and a `select 1` from inside the deployed container runs in **about 3 ms** — 4.38, 3.71, 3.16, 2.92 — matching the 2.7–3.5 ms measured independently in #1. Resource names are in `docs/spec/09`.
+
+What the gate actually proved, beyond the latency:
+
+- The image builds in ACR rather than locally, so there is no arm64/amd64 problem and no local Docker dependency. `pnpm deploy --prod --legacy` is the line that makes a self-contained runtime folder out of a workspace package
+- All three secrets resolve from Key Vault through the user-assigned identity. `src/env.ts` validates `DATABASE_URL` at startup and throws, so a reachable `/health` is itself proof the secret plumbing works
+- Nothing holds a registry credential or a vault key. Two narrow roles on one identity, `AcrPull` and `Key Vault Secrets User`
+
+**The 278 ms cold connection is the one surprise.** First query on a fresh pool, against 3 ms warm. With `idleTimeoutMillis: 10_000` in `container.ts`, a sporadically-used service pays that repeatedly. Not changed yet — tracked in `docs/spec/16` with #8 as the trigger, when there is real traffic to size it against.
 
 ---
 
@@ -334,10 +344,97 @@ This is the entry point the pivot is actually about — *own the moment a person
 
 ## #11 · CI and observability
 
-- [ ] `pnpm -r typecheck` / `build` / `test` already cover `@luhive/core-api` once it is a workspace member — confirm it is picked up
-- [ ] Container build, ACR push and Container Apps deploy in CI, gated on tests
-- [ ] Error reporting wired to `app.onError`
-- [ ] Log per-request latency to the database, so the cross-cloud number from #1 stays visible rather than becoming folklore
+- [x] `pnpm -r typecheck` / `build` / `test` already cover `@luhive/core-api` once it is a workspace member — confirm it is picked up
+- [x] Container build, ACR push and Container Apps deploy in CI, gated on tests
+- [x] Error reporting wired to `app.onError`
+- [x] Log per-request latency to the database, so the cross-cloud number from #1 stays visible rather than becoming folklore
+- [x] **Somewhere for #6's service tests to run.** `docs/spec/13` makes a real
+  database the primary test level, and CI had none
+
+**The typecheck "baseline mismatch" was one stale hash.** `tracking_enabled`
+from `0001` widened the `communities` row type, and the error message
+`tsc-baseline` hashes embeds a column count — `... 7 more ...` became
+`... 8 more ...`. Same file, same error, new hash. Re-saved the baseline rather
+than fixing the underlying error, because it is in the frozen events module.
+Still 15 baselined errors, none added.
+
+**Two CI jobs, because validation is one shared database.** `checks` runs the
+workspace three ways. `database-tests` runs `*.db.test.ts` behind a
+`validation-database` concurrency group so runs queue instead of overlapping,
+applies `migrate:validation` first so the suite never fails with a confusing
+"relation does not exist", and skips on forked pull requests where secrets do
+not exist. Fixture identifiers come from `test/support/fixtures.ts` and carry a
+per-run suffix; two concurrent runs otherwise contend on the unique indexes
+over `(community_id, email)` and `(community_id, external_id)`.
+
+**It is slow, and that is the cost of the choice.** Validation is in Frankfurt
+and GitHub runners are not, so every query is a ~100 ms round trip — three
+trivial tests take 4.5 seconds. Fine for #6. Revisit before every slice has a
+service test; the fix is a Postgres service container with `migrations/`
+applied, which also removes the sharing problem.
+
+**The deploy gate is scoped, not the whole workspace.**
+`pnpm --filter "@luhive/core-api..."` also selects `@luhive/db` and
+`@luhive/domain`, so a breaking change in either fails before anything is
+built. Database tests are not repeated there — CI ran them on the pull request,
+and a second run would contend for the same validation database. Images build
+with `az acr build`, tagged with the commit SHA rather than a mutable `0.1.0`,
+and the workflow waits for the new revision to become `latestReadyRevision`
+before trusting `/health`, since mid-switch that endpoint can still be answered
+by the outgoing revision.
+
+**Nothing new holds a credential.** `azure/login` uses a federated OIDC
+credential, so there is no service principal secret in GitHub — the same
+posture #4 established for the runtime identity.
+
+### Three traps in the telemetry wiring, all of which fail silently
+
+Every one of these produced a process that started cleanly, served `/health`,
+logged correctly — and reported nothing. None of them would have been noticed
+without checking that a span was actually recording.
+
+**1. The initialiser has to be a preload.** `src/telemetry/start.ts` runs as
+`node --import ./dist/telemetry/start.js dist/index.js`. OpenTelemetry patches
+`pg` and `node:http` as they load, and a bundled ESM entry evaluates every
+external import before any of its own body — so `useAzureMonitor()` in module
+code runs after `pg` is already loaded. Confirmed by reading the import order
+in `dist/index.js`, which is why the entry is split. Moving it back to a normal
+import from `index.ts` is the change to not make.
+
+**2. `import` of a built-in bypasses the instrumentation hook.** OpenTelemetry
+patches through a CommonJS `require` hook, so `import { createServer } from
+"node:http"` is never intercepted: no server span, and therefore
+`recordException` has nothing to attach to. Fixed by
+`register("@opentelemetry/instrumentation/hook.mjs", …)` in the preload, with
+`@opentelemetry/instrumentation` pinned to the distro's own `0.221.0` — a
+second copy registers a second hook.
+
+**3. `samplingRatio` was being ignored entirely.** The distro picks its sampler
+by precedence, and a positive `tracesPerSecond` wins over `samplingRatio`. It
+defaults to **5**, so the configured `samplingRatio: 1` never applied and every
+span came back `NonRecordingSpan` — including in plain CommonJS with no
+bundling, which is how it was isolated. `tracesPerSecond: 0` is what makes
+`samplingRatio` take effect.
+
+Verified end to end: with a connection string, a request handler sees a
+recording `SpanImpl`; without one, no provider is registered, the distro is
+never even imported, and `recordException` no-ops. The startup line reports
+`telemetry: true | false`, so which state production is in is answerable from
+logs rather than assumed.
+
+**`db_ms` is Kysely's query time, not the whole story.** Kysely takes its
+`queryDurationMillis` around execution on an already-acquired connection, so it
+excludes pool wait and connection setup. That makes it exactly the 3 ms
+cross-cloud number, per request — and it means the 278 ms cold connection shows
+up as a gap between `duration_ms` and `db_ms` rather than inside `db_ms`. Good
+enough to size the `idleTimeoutMillis` decision at #8 with real traffic.
+
+**Remaining, and not doable from the repo:** the four GitHub secrets
+(`VALIDATION_DATABASE_URL`, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`,
+`AZURE_SUBSCRIPTION_ID`), a `luhive-ci-id` identity with `AcrPush` and
+Container Apps contributor plus a federated credential for this repo, and the
+Application Insights connection string added to Key Vault and referenced on the
+container app.
 
 ---
 

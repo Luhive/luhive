@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  ci:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,3 +25,41 @@ jobs:
       - run: pnpm -r --if-present typecheck
       - run: pnpm -r --if-present build
       - run: pnpm -r --if-present test
+
+  # Service tests run real SQL against the disposable validation project.
+  # Secrets are unavailable to forked pull requests, so those skip this job
+  # rather than failing on a missing connection string.
+  database-tests:
+    runs-on: ubuntu-latest
+    needs: checks
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    concurrency:
+      # Validation is one shared database. Queue runs, never overlap them.
+      group: validation-database
+      cancel-in-progress: false
+    env:
+      VALIDATION_DATABASE_URL: ${{ secrets.VALIDATION_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Require the validation connection string
+        run: |
+          if [ -z "$VALIDATION_DATABASE_URL" ]; then
+            echo "::error::VALIDATION_DATABASE_URL is not set. Add the disposable validation project's connection string as a repository secret."
+            exit 1
+          fi
+
+      - run: pnpm install --frozen-lockfile
+
+      # Keeps validation from drifting behind migrations/ and failing the
+      # suite with a confusing "relation does not exist".
+      - run: pnpm --filter @luhive/db migrate:validation
+
+      - run: pnpm --filter @luhive/core-api test:db

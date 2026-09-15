@@ -41,6 +41,10 @@ Do not edit:
    pnpm --filter @luhive/db test
    ```
 
+**CI also runs `migrate:validation`**, before `apps/core-api`'s service tests,
+so validation cannot drift behind `migrations/`. Step 4 above is still where a
+migration gets reviewed; CI only keeps the database current for tests.
+
 For destructive changes, prefer two migrations/deploys: stop using a column or
 table first, then remove it after old application versions can no longer reach
 it. Never edit an already-applied migration.

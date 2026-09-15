@@ -47,6 +47,12 @@ pnpm --filter @luhive/db migrate:validation   # apply
 pnpm --filter @luhive/db migrate:list         # inspect
 ```
 
-`PRODUCTION_DATABASE_URL` is read-only here; its one use is `pnpm --filter
-@luhive/db codegen`, which regenerates `src/db.types.ts` and
+`PRODUCTION_DATABASE_URL` is read-only to this tooling; its one use is `pnpm
+--filter @luhive/db codegen`, which regenerates `src/db.types.ts` and
 `src/supabase.types.ts` after a migration reaches production.
+
+Production is changed by the manual run documented in `../README.md`, and both
+databases record what has been applied in `public.kysely_migration`. Kysely reads
+only that table to decide what is pending, so a database that already has a
+migration's objects is baselined by inserting the row rather than running the
+file.

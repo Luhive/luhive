@@ -120,6 +120,7 @@ export type Database = {
           social_links: Json | null
           stats: Json | null
           tagline: string | null
+          tracking_enabled: boolean
           updated_at: string | null
           verified: boolean | null
         }
@@ -139,6 +140,7 @@ export type Database = {
           social_links?: Json | null
           stats?: Json | null
           tagline?: string | null
+          tracking_enabled?: boolean
           updated_at?: string | null
           verified?: boolean | null
         }
@@ -158,6 +160,7 @@ export type Database = {
           social_links?: Json | null
           stats?: Json | null
           tagline?: string | null
+          tracking_enabled?: boolean
           updated_at?: string | null
           verified?: boolean | null
         }
@@ -812,6 +815,104 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      people: {
+        Row: {
+          attributes: Json
+          community_id: string
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          external_id: string | null
+          id: string
+          last_seen_at: string | null
+          locale: string | null
+          name: string | null
+          plan: string | null
+          subscription_status: string | null
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          attributes?: Json
+          community_id: string
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          external_id?: string | null
+          id?: string
+          last_seen_at?: string | null
+          locale?: string | null
+          name?: string | null
+          plan?: string | null
+          subscription_status?: string | null
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          attributes?: Json
+          community_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          external_id?: string | null
+          id?: string
+          last_seen_at?: string | null
+          locale?: string | null
+          name?: string | null
+          plan?: string | null
+          subscription_status?: string | null
+          unsubscribed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "people_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      person_events: {
+        Row: {
+          community_id: string
+          id: string
+          occurred_at: string
+          person_id: string
+          properties: Json
+          type: string
+        }
+        Insert: {
+          community_id: string
+          id?: string
+          occurred_at?: string
+          person_id: string
+          properties?: Json
+          type: string
+        }
+        Update: {
+          community_id?: string
+          id?: string
+          occurred_at?: string
+          person_id?: string
+          properties?: Json
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_events_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_events_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

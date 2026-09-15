@@ -34,11 +34,11 @@
       "count": 1,
       "message": "Argument of type 'string | null | undefined' is not assignable to parameter of type 'string'."
     },
-    "83f6179409afc88165a738af3bfe63de70f0cef1": {
+    "52155b93f125b837b2529c236a651f071409c196": {
       "file": "app/modules/events/components/collaboration/collaboration-invite-dialog.tsx",
       "code": "TS2322",
       "count": 1,
-      "message": "Type '{ id: string; name: string; slug: string; logo_url: string | null; }[]' is not assignable to type '{ cover_url: string | null; created_at: string | null; created_by: string; description: string | null; id: string; is_show: boolean; logo_url: string | null; name: string; page_config: Json; ... 7 more ...; verified: boolean | null; }[]'."
+      "message": "Type '{ id: string; name: string; slug: string; logo_url: string | null; }[]' is not assignable to type '{ cover_url: string | null; created_at: string | null; created_by: string; description: string | null; id: string; is_show: boolean; logo_url: string | null; name: string; page_config: Json; ... 8 more ...; verified: boolean | null; }[]'."
     },
     "ee2ec007ed068e3a4785fd400a6332e1d576a41b": {
       "file": "app/modules/events/components/event-list/event-preview-sidebar.tsx",

@@ -8,7 +8,11 @@ alwaysApply: true
 This repo is migrating from a single React Router app to a workspace:
 `apps/web` (this code) · `apps/core-api` (new private backend) · `apps/integration-api` (public customer API).
 
-**Current work: `docs/stage-0-tasks.md`** — ordered, dependency-aware checklist. Task #5 is a hard gate; do not start other apps until web deploys.
+**Current work: `docs/stage-1-tasks.md`** — ordered, dependency-aware checklist. The #4 deploy gate has passed: `apps/core-api` runs on Azure Container Apps and reaches production in about 3 ms. Next is #6, the shared `upsertPerson` / `recordEvent` writers.
+
+Stage 0 is complete and archived in `docs/stage-0-tasks.md` — workspace, `apps/web`, `apps/integration-api`, `@luhive/db`, CI.
+
+**The query layer is Kysely.** Hand-written SQL migrations, the database is the source of truth, types are generated from it. Workflow in `packages/db/README.md`; never edit generated type files or an applied migration.
 
 **The spec is authoritative.** It is symlinked into this repo:
 

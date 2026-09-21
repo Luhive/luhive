@@ -1,28 +1,19 @@
 packages:
-  - "packages/*"
-  - "apps/*"
+  - packages/*
+  - apps/*
 
 # One version workspace-wide. Version skew across package boundaries breaks type
 # assignability, and the resulting error never says that is the cause.
 # zod and @supabase/supabase-js match apps/web's current specifiers, so adopting
 # `catalog:` there resolves to what it already has.
+#
+# kysely is pinned exactly, not ranged: its generated types are committed, so a
+# minor bump would change them without any file in the repo changing.
 catalog:
-  zod: ^4.1.12
+  '@supabase/supabase-js': ^2.75.0
   hono: ^4
-  "@supabase/supabase-js": ^2.75.0
-  kysely: ^0.29
-
-# @hookform/resolvers/zod imports `zod/v4/core` but declares no zod peer, so it
-# only resolves when zod happens to be hoisted above it. Moving the app into
-# apps/web changed that hoisting and broke the Netlify build. Declaring the peer
-# links zod into the package directly, independent of layout.
-packageExtensions:
-  "@hookform/resolvers":
-    peerDependencies:
-      zod: "*"
-    peerDependenciesMeta:
-      zod:
-        optional: true
+  kysely: 0.29.5
+  zod: ^4.1.12
 
 onlyBuiltDependencies:
   - '@tailwindcss/oxide'
@@ -30,3 +21,18 @@ onlyBuiltDependencies:
   - sharp
   - supabase
   - workerd
+
+# @hookform/resolvers/zod imports `zod/v4/core` but declares no zod peer, so it
+# only resolves when zod happens to be hoisted above it. Moving the app into
+# apps/web changed that hoisting and broke the Netlify build. Declaring the peer
+# links zod into the package directly, independent of layout.
+#
+# `pnpm add` rewrites this file and strips comments. If these are gone, restore
+# them rather than assuming the settings are self-explanatory.
+packageExtensions:
+  '@hookform/resolvers':
+    peerDependencies:
+      zod: '*'
+    peerDependenciesMeta:
+      zod:
+        optional: true

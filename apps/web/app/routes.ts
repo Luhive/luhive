@@ -117,6 +117,8 @@ export default [
   route("api/events/attenders-list", "routes/api/events/attenders-list.tsx"),
   route("api/events/invite", "routes/api/events/invite.tsx"),
   route("api/current-user", "routes/api/current-user.tsx"),
+  // TEMPORARY — remove with routes/api/core-health.tsx when #8 lands
+  route("api/core-health", "routes/api/core-health.tsx"),
   route("api/events/registration-state", "routes/api/events/registration-state.tsx"),
   route("api/events/event-statistics", "routes/api/events/event-statistics.tsx"),
   route(

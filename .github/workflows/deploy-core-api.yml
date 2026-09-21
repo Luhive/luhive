@@ -1,0 +1,130 @@
+name: Deploy core-api
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/core-api/**"
+      - "packages/db/**"
+      - "packages/domain/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/deploy-core-api.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-core-api
+  cancel-in-progress: false
+
+env:
+  RESOURCE_GROUP: luhive-prod-ne
+  REGISTRY: luhiveprodacr
+  CONTAINER_APP: core-api
+  IMAGE_REPOSITORY: core-api
+  HEALTH_URL: https://core-api.nicefield-2b9a3355.northeurope.azurecontainerapps.io/health
+
+jobs:
+  # Scoped to core's dependency closure — "@luhive/core-api..." also selects
+  # @luhive/db and @luhive/domain, so a breaking change in either fails here.
+  # Database tests are not repeated: CI ran them on the pull request, and this
+  # would contend with it for the one shared validation database.
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter "@luhive/core-api..." --if-present typecheck
+      - run: pnpm --filter "@luhive/core-api..." --if-present build
+      - run: pnpm --filter "@luhive/core-api..." --if-present test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: gate
+    permissions:
+      contents: read
+      # Federated credentials, so no service principal secret is stored here.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: image
+        run: |
+          echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "suffix=${GITHUB_SHA:0:7}-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install the containerapp extension
+        run: |
+          az config set extension.use_dynamic_install=yes_without_prompt
+          az extension add --name containerapp --upgrade --only-show-errors
+
+      # Built in ACR, not on the runner: no Docker daemon, no registry
+      # credential, and no architecture mismatch. The build context is the repo
+      # root because the build needs the workspace lockfile.
+      - name: Build the image in ACR
+        run: |
+          az acr build \
+            --registry "$REGISTRY" \
+            --file apps/core-api/Dockerfile \
+            --image "${IMAGE_REPOSITORY}:${{ steps.image.outputs.tag }}" \
+            .
+
+      - name: Deploy a new revision
+        run: |
+          az containerapp update \
+            --name "$CONTAINER_APP" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "${REGISTRY}.azurecr.io/${IMAGE_REPOSITORY}:${{ steps.image.outputs.tag }}" \
+            --revision-suffix "${{ steps.image.outputs.suffix }}" \
+            --output none
+
+      # /health alone could be answered by the outgoing revision mid-switch, so
+      # confirm the new revision is the one serving before trusting it.
+      - name: Wait for the new revision to take traffic
+        run: |
+          expected="${CONTAINER_APP}--${{ steps.image.outputs.suffix }}"
+          for attempt in $(seq 1 30); do
+            ready=$(az containerapp show \
+              --name "$CONTAINER_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query properties.latestReadyRevisionName -o tsv)
+            if [ "$ready" = "$expected" ]; then
+              echo "$expected is ready"
+              exit 0
+            fi
+            echo "attempt $attempt: latest ready revision is '$ready', waiting for '$expected'"
+            sleep 10
+          done
+          echo "::error::$expected never became the latest ready revision"
+          exit 1
+
+      - name: Smoke test the deployed health endpoint
+        run: |
+          for attempt in $(seq 1 10); do
+            body=$(curl --silent --show-error --max-time 10 "$HEALTH_URL" || true)
+            if [ "$body" = '{"status":"ok"}' ]; then
+              echo "health check passed"
+              exit 0
+            fi
+            echo "attempt $attempt: unexpected health response '$body'"
+            sleep 5
+          done
+          echo "::error::$HEALTH_URL did not return {\"status\":\"ok\"}"
+          exit 1

@@ -88,6 +88,7 @@ export interface Communities {
   social_links: Json | null;
   stats: Generated<Json | null>;
   tagline: string | null;
+  tracking_enabled: Generated<boolean>;
   updated_at: Generated<Timestamp | null>;
   verified: Generated<boolean | null>;
 }
@@ -295,6 +296,34 @@ export interface GoogleFormsTokens {
   user_id: string;
 }
 
+export interface People {
+  attributes: Generated<Json>;
+  community_id: string;
+  created_at: Generated<Timestamp>;
+  /**
+   * Soft delete. Rows are retired by stamping this, never removed.
+   */
+  deleted_at: Timestamp | null;
+  email: string | null;
+  external_id: string | null;
+  id: Generated<string>;
+  last_seen_at: Timestamp | null;
+  locale: string | null;
+  name: string | null;
+  plan: string | null;
+  subscription_status: string | null;
+  unsubscribed_at: Timestamp | null;
+}
+
+export interface PersonEvents {
+  community_id: string;
+  id: Generated<string>;
+  occurred_at: Generated<Timestamp>;
+  person_id: string;
+  properties: Generated<Json>;
+  type: string;
+}
+
 export interface Profiles {
   avatar_url: string | null;
   bio: string | null;
@@ -339,6 +368,8 @@ export interface DB {
   event_visits: EventVisits;
   events: Events;
   google_forms_tokens: GoogleFormsTokens;
+  people: People;
+  person_events: PersonEvents;
   profiles: Profiles;
   sent_reminders: SentReminders;
   telegram_users: TelegramUsers;

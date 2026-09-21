@@ -1,0 +1,20 @@
+{
+  "name": "@luhive/domain",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/result.ts",
+    "./v1/*": "./src/v1/*.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.10"
+  }
+}

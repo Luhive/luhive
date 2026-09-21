@@ -28,10 +28,12 @@ Do not edit:
    pnpm --filter @luhive/db migrate:list
    ```
 
-5. Review the result, then apply the **same reviewed SQL file** to production
-   through the deliberate production process. Stage 0 intentionally has no
-   production migration command; never point `VALIDATION_DATABASE_URL` at it.
-6. After production has the new schema, regenerate and commit both type files:
+5. Review the result, then apply the **same reviewed SQL file** to production by
+   the manual run below. There is deliberately no production migration command;
+   never point `VALIDATION_DATABASE_URL` at it.
+6. After production has the new schema, regenerate and commit both type files.
+   `codegen:supabase` uses `--project-id` derived from `PRODUCTION_DATABASE_URL`
+   (a one-time `supabase login`, no Docker):
 
    ```sh
    pnpm --filter @luhive/db codegen
@@ -39,9 +41,72 @@ Do not edit:
    pnpm --filter @luhive/db test
    ```
 
+**CI also runs `migrate:validation`**, before `apps/core-api`'s service tests,
+so validation cannot drift behind `migrations/`. Step 4 above is still where a
+migration gets reviewed; CI only keeps the database current for tests.
+
 For destructive changes, prefer two migrations/deploys: stop using a column or
 table first, then remove it after old application versions can no longer reach
 it. Never edit an already-applied migration.
+
+## Applying a migration to production
+
+A deliberate manual run, so every production schema change is something a person
+decided to do. Four steps, from `packages/db/`.
+
+1. Confirm the target is production and that the migration is not already there:
+
+   ```sh
+   psql "$PRODUCTION_DATABASE_URL" -c "select current_database();"
+   psql "$PRODUCTION_DATABASE_URL" -c "select name from public.kysely_migration order by name;"
+   ```
+
+2. Apply the reviewed file byte-for-byte as it sits in git, in one transaction so
+   a failure leaves nothing behind:
+
+   ```sh
+   psql "$PRODUCTION_DATABASE_URL" -v ON_ERROR_STOP=1 --single-transaction \
+     -f migrations/0001_add_people_schema.sql
+   ```
+
+3. Record it, so the ledger answers "what is applied to production":
+
+   ```sql
+   INSERT INTO public.kysely_migration (name, "timestamp")
+   VALUES ('0001_add_people_schema',
+           to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+   ```
+
+4. Verify the objects exist and RLS is where you expect, then run `codegen`.
+
+If step 2 fails nothing was applied: fix the SQL, re-validate, and start over
+with a new attempt at the same file.
+
+### Two ways production differs from validation
+
+**Production auto-enables RLS.** It has an `ensure_rls` event trigger that fires
+on `CREATE TABLE` in `public` and enables row level security. The validation
+project has no such trigger. A migration creating a table that must not have RLS
+has to `DISABLE ROW LEVEL SECURITY` *after* the `CREATE TABLE`, and that line
+will look like a no-op when you test it on validation.
+
+**Default privileges are permissive.** `public` grants all on new tables to
+`anon` and `authenticated`, so a new table is reachable through PostgREST unless
+the migration revokes them.
+
+### Baselining a database that already has the schema
+
+Kysely decides what to run purely from `public.kysely_migration`; it has no
+command to mark a migration as already applied. For a database that already
+contains a migration's objects — a long-lived development database, or
+production before it was tracked — insert the row by hand instead of running the
+file. The `name` is the filename without `.sql`:
+
+```sql
+INSERT INTO public.kysely_migration (name, "timestamp")
+VALUES ('0000_baseline',
+        to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+```
 
 ## Type exports
 

@@ -1,0 +1,35 @@
+{
+  "name": "@luhive/core-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "start": "node --import ./dist/telemetry/start.js dist/index.js",
+    "test": "vitest run",
+    "test:db": "vitest run --config vitest.integration.config.ts",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@azure/monitor-opentelemetry": "^1.20.0",
+    "@hono/node-server": "^2.1.1",
+    "@luhive/db": "workspace:*",
+    "@luhive/domain": "workspace:*",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/instrumentation": "0.221.0",
+    "@supabase/supabase-js": "catalog:",
+    "hono": "catalog:",
+    "kysely": "catalog:",
+    "pg": "^8.23.0",
+    "pino": "^10.3.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.21",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

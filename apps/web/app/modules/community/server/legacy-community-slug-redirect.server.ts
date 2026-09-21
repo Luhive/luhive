@@ -9,6 +9,7 @@ import { Routes } from "~/shared/lib/routing/routes";
  */
 const LEGACY_COMMUNITY_SLUG_ALIASES: Record<string, string> = {
   "enhance-ventures": "innovation-wednesdays",
+  "cursor-baku": "spacexai-baku",
 };
 
 /**

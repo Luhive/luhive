@@ -387,6 +387,39 @@ by the outgoing revision.
 credential, so there is no service principal secret in GitHub — the same
 posture #4 established for the runtime identity.
 
+### The federated credential subject is not what the documentation shows
+
+The repository emits **immutable OIDC subjects**, so the subject claim is
+
+```
+repo:Luhive@236995820/luhive@1075537951:ref:refs/heads/main
+```
+
+not `repo:Luhive/luhive:ref:refs/heads/main`. Those numbers are the owner id
+and the repository id. Azure compares the subject as a literal string, so a
+credential created from the name-based form in every tutorial fails with
+`AADSTS700213: No matching federated identity record found`, naming neither
+the cause nor the setting.
+
+Check it rather than assume it — the setting is per repository:
+
+```sh
+gh api repos/Luhive/luhive/actions/oidc/customization/sub
+# {"use_default":true,"use_immutable_subject":true,
+#  "sub_claim_prefix":"repo:Luhive@236995820/luhive@1075537951"}
+```
+
+**Use the immutable form; do not turn the setting off to make the tutorial
+work.** It exists for exactly the thing we did on 22 September — renaming
+`luhive-mvp` to `luhive`. With name-based subjects, whoever creates a
+repository at the freed-up old name can mint tokens that satisfy a stale
+federated credential. Ids cannot be squatted, so the ID form is both safer and
+more durable: a future rename or transfer will not invalidate it.
+
+The token carries `job_workflow_ref` too. Matching on anything beyond
+`subject`, `issuer` and `audience` needs Azure's flexible federated identity
+credentials, which is more machinery than one branch-scoped subject deserves.
+
 ### Three traps in the telemetry wiring, all of which fail silently
 
 Every one of these produced a process that started cleanly, served `/health`,
@@ -429,12 +462,37 @@ cross-cloud number, per request — and it means the 278 ms cold connection show
 up as a gap between `duration_ms` and `db_ms` rather than inside `db_ms`. Good
 enough to size the `idleTimeoutMillis` decision at #8 with real traffic.
 
-**Remaining, and not doable from the repo:** the four GitHub secrets
-(`VALIDATION_DATABASE_URL`, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`,
-`AZURE_SUBSCRIPTION_ID`), a `luhive-ci-id` identity with `AcrPush` and
-Container Apps contributor plus a federated credential for this repo, and the
-Application Insights connection string added to Key Vault and referenced on the
-container app.
+**`AcrPush` is not enough for the build step.** `az acr build` does not just
+push an image, it queues an ACR Task, which needs
+`Microsoft.ContainerRegistry/registries/scheduleRun/action`. That action is in
+`Contributor` and not in `AcrPush`. Either grant `Contributor` scoped to the
+registry resource, or define a custom role with `scheduleRun/action` plus the
+`AcrPush` data actions. Scope both CI assignments to the individual resource,
+never the resource group.
+
+### Where this stands, 23 September
+
+- `checks` passes on a runner — the first time any of Stage 1 has been
+  verified outside a laptop. `--frozen-lockfile`, typecheck, build, 56 tests,
+  1m29s
+- `database-tests` reached its preflight guard and stopped with the message it
+  was written to produce. It has not yet run against validation
+- The deploy `gate` passes in 45s, and `azure/login` now fails at subject
+  matching rather than missing values — so the three Azure secrets resolve and
+  the identity is found. The subject is the one thing left
+- The deployed revision is still the one pushed by hand at #4
+
+**Still not doable from the repo:** correcting the federated credential to the
+immutable subject, and adding the Application Insights connection string to
+Key Vault and referencing it on the container app.
+
+**Unexplained, and worth remembering if it recurs.** The Stage 1 commits were
+pushed on 21 September and produced no CI run at all — not on the branch push,
+not on the pull request, not on the merge to `main`. Actions was enabled, all
+actions allowed, the workflow `active`, the repo public, and no commit carried
+a skip marker. CI has triggered normally since. No cause was found, so treat a
+missing run as possible rather than impossible, and check that a run exists
+before believing a green branch.
 
 ---
 

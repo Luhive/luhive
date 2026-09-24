@@ -1,0 +1,36 @@
+---
+description: Naming and readability conventions for all apps and shared packages
+alwaysApply: true
+---
+
+# Naming and readability
+
+Applies to handwritten code across all apps and shared packages. Preserve names required by databases, external APIs, generated code, and frameworks.
+
+1. **Name the concept accurately.** Use established domain terms for business concepts and established technical terms for infrastructure. Do not imply ownership, verification, permission, or guarantees the code does not establish.
+
+2. **Use one name for one concept.** Reuse the vocabulary already established in the domain. Do not alternate between `person`, `user`, `member`, and `account` unless they represent different things.
+
+3. **Make actions explicit.** Functions performing work use a verb and an object: `createPerson`, `publishEvent`, `fillMissingPersonDetails`. Names should reveal meaningful side effects. A function named `findPerson` must not create one.
+
+4. **Keep operation contracts consistent.**
+   - `find`: absence is a normal outcome.
+   - `get`: return the requested value or report its absence through the layer's established error convention.
+   - `list`: return a collection; an empty collection is normal.
+   - `create`, `update`, `delete`: describe the corresponding change.
+   - `record`: append a fact or occurrence.
+   - Prefer domain actions such as `joinCommunity` when they explain the operation better than CRUD terminology.
+
+5. **Make predicates read naturally.** Prefer affirmative questions: `isActive`, `hasAccount`, `canEdit`, `shouldRetry`. Natural predicates such as `policy.covers(vehicle)` are also valid. Use names like `isLinkedToDifferentAccount` when comparison matters.
+
+6. **Use nouns for values and types.** Prefer `Person`, `Membership`, and `Invitation`. Avoid filler such as `PersonInfo` when it adds no distinction. Keep meaningful role suffixes such as `Command`, `Response`, and `Props`. Do not prefix interfaces with `I`.
+
+7. **Include the context needed at the call site.** Use singular names for individual values and plural names for collections. Include units and meaningful distinctions: `timeoutMs`, `normalizedEmail`, `peopleByEmail`. Avoid repeating context already supplied by the containing object.
+
+8. **Prefer recognizable words.** Avoid invented abbreviations and shortened spellings. Established terms such as `id`, `url`, and `db` are fine. Short local names are acceptable when their meaning is immediately clear; exported names need more context.
+
+9. **Extract meaningful concepts, not every expression.** Name a condition or operation when doing so explains a business rule or simplifies the caller. Keep straightforward checks inline. Comments should explain reasons, constraints, and surprising behavior.
+
+10. **Follow local syntax conventions.** Use camelCase for ordinary variables and functions, PascalCase for types and React components, and `use…` for React hooks. Preserve database and wire-field casing. Event handlers may use `handle…`, and callback props may use `on…`.
+
+Apply these rules to new and materially changed code. Avoid unrelated renaming.

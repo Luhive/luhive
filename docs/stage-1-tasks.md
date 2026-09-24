@@ -26,7 +26,7 @@ client lands. The OTP decomposition (#10) follows once that path is stable.
 #2  packages/domain
  └─ #3  core-api skeleton
      └─ #4  DEPLOY hello-world  ◄── gate PASSED, ~3ms to the database
-         └─ #6  lib/person + lib/events in core
+         └─ #6  lib/person + lib/person-event   done
              └─ #7  people API slice
                  └─ #8  api-client + web wiring
                      └─ #9  join + registration → core
@@ -227,28 +227,50 @@ Per-community `unsubscribed_at` is not the same as the platform-wide `suppressio
 
 ---
 
-## #6 · `lib/person.ts` and `lib/events.ts`
+## #6 · `lib/person.ts` and `lib/person-event.ts`
 
 Cross-slice writers in `apps/core-api/src/lib/`. Four callers by definition —
 registration, community join, check-in, and integration's forwarded writes — so
 extracting them is not premature. Start only after #4 proves the deployed
 runtime and database connection.
 
-- [ ] `upsertPerson(trx, cmd)` — find by `(community_id, external_id)`, else
-  email, else insert; merge an anonymous email-only person when the account
-  becomes known; returns the person
-- [ ] `recordEvent(trx, cmd)` — append-only insert, the single chokepoint for
-  the event-type union
-- [ ] Both take a Kysely transaction, never a pool, so the calling service owns
+- [x] `resolvePerson(transaction, command)` — find by
+  `(community_id, external_id)`, else email, else insert; merge an anonymous
+  email-only person when the account becomes known; returns the person
+- [x] `recordPersonEvent(transaction, command)` — append-only insert, the single
+  chokepoint for the event-type union
+- [x] Both take a Kysely transaction, never a pool, so the calling service owns
   atomicity
-- [ ] `recordEvent` verifies the person belongs to the supplied `community_id`
-  and **rejects identity fields in `properties`**. Events reference `person_id`
-  and join; erasure must not require archaeology across event JSON
-- [ ] `EventType` union in one place: `event_registered`,
-  `event_checked_in`, `community_joined`, plus the email types for Stage 2
-- [ ] Real-database tests inside rolled-back transactions cover normalization,
+- [x] `recordPersonEvent` verifies the person belongs to the supplied
+  `community_id` and **rejects identity fields in `properties`**. Events
+  reference `person_id` and join; erasure must not require archaeology across
+  event JSON
+- [x] `PersonEventType` union in one place: `event_registered`,
+  `event_checked_in`, `community_joined`, plus the email types for Stage 2.
+  Not `EventType` — the generated calendar enum in `@luhive/db` already has
+  that name
+- [x] Real-database tests inside rolled-back transactions cover normalization,
   anonymous-to-account merge, conflicting identities, tenant mismatch, and
   preservation of `unsubscribed_at` / `deleted_at`
+
+**Verified:** core typecheck and all 28 fast tests pass; all 12 database tests
+pass against validation, 9 of them for the two writers. Each test creates its
+own community inside the rolled-back transaction, borrowing an existing
+`auth.users` row as `created_by` because tests cannot create auth users.
+
+**Deliberately narrow.** `resolvePerson` takes `external_id`, `email` and
+`name` only. `locale`, `plan`, `subscription_status`, `last_seen_at` and
+`attributes` return when a caller sends them — #7, since `PersonRequest`
+already carries the first four, and the Enverson import for `attributes`.
+
+**Returning a failure inside a transaction commits it.** Kysely rolls back only
+on a throw. Callers resolve the person before writing anything else, and throw
+if a later step fails — see the worked example in `docs/spec/05a`.
+
+**Concurrent first sightings are not locked.** Two requests creating the same
+new person at once: one hits the unique constraint, its transaction rolls back,
+and the caller gets `internal_error`. No duplicate row is possible. Revisit if
+it shows up in logs.
 
 **No temporary web version.** `apps/web` keeps its existing writes until #9
 switches each command to core. Do not add Kysely/`pg` to the Netlify app and do
@@ -289,11 +311,11 @@ The full command APIs consume #6. Core services call the shared writers directly
 they do not make HTTP calls to the people route from inside core.
 
 - [ ] `slices/community/` in core — join command wrapping
-  `community_members` insert + `upsertPerson` +
-  `recordEvent('community_joined')` in **one transaction**
+  `community_members` insert + `resolvePerson` +
+  `recordPersonEvent('community_joined')` in **one transaction**
 - [ ] `slices/registration/` in core — event-registration command wrapping the
-  relevant membership/registration insert + `upsertPerson` +
-  `recordEvent('event_registered')` in **one transaction**
+  relevant membership/registration insert + `resolvePerson` +
+  `recordPersonEvent('event_registered')` in **one transaction**
 - [ ] Core routes authenticate, validate, call their service, and return the
   shared `Result<T>` envelope; no SQL or business rules in route handlers
 - [ ] `apps/web/app/modules/community/data/community.api.ts` and

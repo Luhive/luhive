@@ -13,7 +13,7 @@
     "create-key": "tsx scripts/create-key.ts"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.9.0",
+    "@hono/zod-validator": "catalog:",
     "@supabase/supabase-js": "catalog:",
     "hono": "catalog:",
     "zod": "catalog:"

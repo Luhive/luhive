@@ -27,7 +27,7 @@ client lands. The OTP decomposition (#10) follows once that path is stable.
  └─ #3  core-api skeleton
      └─ #4  DEPLOY hello-world  ◄── gate PASSED, ~3ms to the database
          └─ #6  lib/person + lib/person-event   done
-             └─ #7  people API slice
+             └─ #7  people API slice              done, not mounted
                  └─ #8  api-client + web wiring
                      └─ #9  join + registration → core
                          └─ #9b one-time reconciliation backfill
@@ -258,10 +258,13 @@ pass against validation, 9 of them for the two writers. Each test creates its
 own community inside the rolled-back transaction, borrowing an existing
 `auth.users` row as `created_by` because tests cannot create auth users.
 
-**Deliberately narrow.** `resolvePerson` takes `external_id`, `email` and
-`name` only. `locale`, `plan`, `subscription_status`, `last_seen_at` and
-`attributes` return when a caller sends them — #7, since `PersonRequest`
-already carries the first four, and the Enverson import for `attributes`.
+**Three update rules on an existing person.** Identity and name are filled
+only when empty, so a known person is never relinked or renamed. `locale`,
+`plan` and `subscription_status` are the sender's current state: a sent value
+replaces the stored one, null means not sent. Stage 5 gates Enverson chat on
+`subscription_status = active`, so a cancellation must overwrite. `last_seen_at`
+keeps the later of the two, because batches arrive out of order. `attributes`
+returns with the Enverson import, its first caller.
 
 **Returning a failure inside a transaction commits it.** Kysely rolls back only
 on a throw. Callers resolve the person before writing anything else, and throw
@@ -283,14 +286,35 @@ not duplicate these rules with supabase-js.
 First real API slice, after the deployed hello-world gate. Four files, per
 `docs/spec/04` and the worked example in `05a`.
 
-- [ ] `slices/people/routes.ts` — handlers inline, thin: validate, call, respond
-- [ ] `slices/people/contracts.ts` — `UpsertPersonCommand` = `PersonRequest.extend({ communityId })`
-- [ ] `slices/people/person.service.ts` — class, constructor-injected `db`,
+- [x] `slices/people/routes.ts` — handlers inline, thin: validate, call, respond
+- [x] `slices/people/contracts.ts` — `UpsertPersonCommand` = `PersonRequest.extend({ communityId })`
+- [x] `slices/people/person.service.ts` — class, constructor-injected `db`,
   calls the #6 writer, normal `async` methods, no Hono imports
-- [ ] `slices/people/person.mapper.ts` — `Selectable<Person>` → `PersonResponse`
-- [ ] `slices/people/person.test.ts` — service tests inside a rolled-back transaction
-- [ ] Route tests cover bearer auth, request validation, tenant injection from
-  credentials, and the `Result<T>` wire envelope
+- [x] `slices/people/person.mapper.ts` — `Selectable<Person>` → `PersonResponse`
+- [x] Service tests inside a rolled-back transaction —
+  `test/person.service.db.test.ts`, beside the other database tests rather than
+  in the slice folder, because the two vitest configs select by `test/**`
+- [x] Route tests cover bearer auth, request validation, tenant injection from
+  credentials, and the `Result<T>` wire envelope — `test/people.routes.test.ts`
+
+**Verified:** core typecheck, 33 fast tests and 16 database tests pass against
+validation.
+
+**Built, not mounted.** The route reads `communityId` from the request context
+(`CommunityEnv`). Nothing sets it in production yet: a user session does not
+name one community, and the credential that does — integration-to-core, spec
+07 — is Stage 3. The route tests set it with a stand-in middleware. Mount the
+slice in `app.ts` when that credential lands. #9 does not need the route: its
+services call `resolvePerson` directly.
+
+**Two small `lib/` additions #9 will reuse.** `runInTransaction` joins an open
+transaction instead of opening a nested one, which Kysely throws on — that is
+what lets a service run inside a rolled-back test transaction. `validateJson`
+wraps `zValidator` so a bad body gets the `invalid_query` envelope with
+`fields`, not zod's raw error.
+
+One person per call. The batch upsert in spec 08 belongs to the public `/v1`
+endpoint in Stage 3.
 
 **The mapper is not optional here, and #9 of Stage 0 explains why.** Kysely's timestamps are `ColumnType<Date, …>` because that is what `pg` returns; `PersonResponse` declares ISO strings. The mapper converts. A wire type derived from the entity would be a lie about the runtime shape — that discovery cost 43 extra typecheck errors last stage.
 

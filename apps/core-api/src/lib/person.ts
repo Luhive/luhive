@@ -9,19 +9,25 @@ export type ResolvePersonCommand = {
   external_id: string | null;
   email: string | null;
   name: string | null;
+  locale?: string | null;
+  plan?: string | null;
+  subscription_status?: string | null;
+  last_seen_at?: Date | null;
 };
+
+type PersonDetails = Required<ResolvePersonCommand>;
 
 /**
  * Finds the person by external id, then by email, and creates one if neither
- * matches. An existing person only has empty fields filled in, so opt-outs
- * and retirements are never undone.
+ * matches. `unsubscribed_at` and `deleted_at` are never written here, so
+ * opt-outs and retirements are never undone.
  */
 export async function resolvePerson(
   transaction: Transaction<DB>,
   command: ResolvePersonCommand,
 ): Promise<Result<Person>> {
-  const normalizedCommand = normalizePersonDetails(command);
-  const { community_id, external_id, email } = normalizedCommand;
+  const details = normalizePersonDetails(command);
+  const { community_id, external_id, email } = details;
 
   const personWithExternalId = await findPersonByExternalId(transaction, community_id, external_id);
   const personWithEmail = await findPersonByEmail(transaction, community_id, email);
@@ -30,9 +36,7 @@ export async function resolvePerson(
     if (personWithEmail && personWithEmail.id !== personWithExternalId.id) {
       return Result.failure("conflict", { message: "email is linked to a different person" });
     }
-    return Result.success(
-      await fillMissingPersonDetails(transaction, personWithExternalId, normalizedCommand),
-    );
+    return Result.success(await updatePersonDetails(transaction, personWithExternalId, details));
   }
 
   if (personWithEmail) {
@@ -40,20 +44,23 @@ export async function resolvePerson(
       return Result.failure("conflict", { message: "email is linked to a different account" });
     }
     // An email-only person gains the account's external id here.
-    return Result.success(
-      await fillMissingPersonDetails(transaction, personWithEmail, normalizedCommand),
-    );
+    return Result.success(await updatePersonDetails(transaction, personWithEmail, details));
   }
 
-  return Result.success(await createPerson(transaction, normalizedCommand));
+  return Result.success(await createPerson(transaction, details));
 }
 
 /** The unique key on `(community_id, email)` depends on emails being stored in this form. */
-function normalizePersonDetails(command: ResolvePersonCommand): ResolvePersonCommand {
+function normalizePersonDetails(command: ResolvePersonCommand): PersonDetails {
   return {
-    ...command,
+    community_id: command.community_id,
+    external_id: command.external_id,
     email: command.email?.trim().toLowerCase() || null,
     name: command.name?.trim() || null,
+    locale: command.locale ?? null,
+    plan: command.plan ?? null,
+    subscription_status: command.subscription_status ?? null,
+    last_seen_at: command.last_seen_at ?? null,
   };
 }
 
@@ -93,36 +100,44 @@ async function findPersonByEmail(
     .executeTakeFirst();
 }
 
-function createPerson(
-  transaction: Transaction<DB>,
-  command: ResolvePersonCommand,
-): Promise<Person> {
+function createPerson(transaction: Transaction<DB>, details: PersonDetails): Promise<Person> {
   return transaction
     .insertInto("people")
-    .values({
-      community_id: command.community_id,
-      external_id: command.external_id,
-      email: command.email,
-      name: command.name,
-    })
+    .values(details)
     .returningAll()
     .executeTakeFirstOrThrow();
 }
 
-/** Only empty columns are written, so nothing a person already has is replaced. */
-function fillMissingPersonDetails(
+/**
+ * Identity and name are only filled when empty, so a known person is never
+ * relinked or renamed. Locale, plan and subscription status are the sender's
+ * current state, so a sent value replaces the stored one; null means not sent.
+ */
+function updatePersonDetails(
   transaction: Transaction<DB>,
   person: Person,
-  command: ResolvePersonCommand,
+  details: PersonDetails,
 ): Promise<Person> {
   return transaction
     .updateTable("people")
     .set({
-      external_id: person.external_id ?? command.external_id,
-      email: person.email ?? command.email,
-      name: person.name ?? command.name,
+      external_id: person.external_id ?? details.external_id,
+      email: person.email ?? details.email,
+      name: person.name ?? details.name,
+      locale: details.locale ?? person.locale,
+      plan: details.plan ?? person.plan,
+      subscription_status: details.subscription_status ?? person.subscription_status,
+      last_seen_at: pickLaterDate(person.last_seen_at, details.last_seen_at),
     })
     .where("id", "=", person.id)
     .returningAll()
     .executeTakeFirstOrThrow();
+}
+
+/** Batches can arrive out of order, so an older report must not move `last_seen_at` back. */
+function pickLaterDate(stored: Date | null, reported: Date | null): Date | null {
+  if (stored === null) return reported;
+  if (reported === null) return stored;
+  if (reported > stored) return reported;
+  return stored;
 }

@@ -26,7 +26,9 @@ export function createApp(deps: AppDependencies) {
 
   app.use("*", sessionMiddleware(deps.verifyToken));
 
-  // Feature routes are mounted here with app.route() after the deployment gate.
+  // Feature routes are mounted here with app.route(). `slices/people` is not
+  // mounted yet: it needs a credential that resolves to one community, and the
+  // integration-to-core service credential arrives in Stage 3.
 
   app.notFound((c) => respond(c, Result.failure("not_found")));
   app.onError(errorHandler(deps.logger));

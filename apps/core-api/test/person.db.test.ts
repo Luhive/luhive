@@ -1,27 +1,13 @@
-import { sql, type Transaction } from "kysely";
+import type { Transaction } from "kysely";
 import type { DB } from "@luhive/db";
 import { afterAll, describe, expect, it } from "vitest";
 import { recordPersonEvent } from "../src/lib/person-event";
 import { resolvePerson } from "../src/lib/person";
+import { createTestCommunity } from "./support/community";
 import { closeTestDb, inRolledBackTx } from "./support/database";
 import { testEmail, testExternalId } from "./support/fixtures";
 
 afterAll(closeTestDb);
-
-/** `communities.created_by` references `auth.users`, so borrow an existing user. */
-async function createTestCommunity(transaction: Transaction<DB>) {
-  const creator = await sql<{ id: string }>`select id from auth.users limit 1`.execute(transaction);
-  const creatorId = creator.rows[0]?.id;
-  if (creatorId === undefined) throw new Error("validation has no auth.users row to own a community");
-
-  const slug = testExternalId("community");
-  const community = await transaction
-    .insertInto("communities")
-    .values({ name: slug, slug, created_by: creatorId })
-    .returning("id")
-    .executeTakeFirstOrThrow();
-  return community.id;
-}
 
 async function createTestPerson(transaction: Transaction<DB>, community_id: string) {
   const result = await resolvePerson(transaction, {
@@ -111,6 +97,55 @@ describe("resolvePerson", () => {
       });
 
       expect(result).toMatchObject({ ok: false, error: { code: "conflict" } });
+    });
+  });
+
+  it("keeps the stored name but replaces plan and subscription status with the sent ones", async () => {
+    await inRolledBackTx(async (transaction) => {
+      const communityId = await createTestCommunity(transaction);
+      const person = await createTestPerson(transaction, communityId);
+      await resolvePerson(transaction, {
+        community_id: communityId,
+        external_id: person.external_id,
+        email: null,
+        name: null,
+        plan: "pro",
+        subscription_status: "active",
+      });
+
+      const again = await resolvePerson(transaction, {
+        community_id: communityId,
+        external_id: person.external_id,
+        email: null,
+        name: "Another Name",
+        plan: null,
+        subscription_status: "cancelled",
+      });
+
+      expect(again).toMatchObject({
+        ok: true,
+        data: { name: "Test Person", plan: "pro", subscription_status: "cancelled" },
+      });
+    });
+  });
+
+  it("does not move last_seen_at back when an older report arrives", async () => {
+    await inRolledBackTx(async (transaction) => {
+      const communityId = await createTestCommunity(transaction);
+      const person = await createTestPerson(transaction, communityId);
+      const later = new Date("2026-06-01T00:00:00Z");
+      const earlier = new Date("2026-01-01T00:00:00Z");
+      const identity = {
+        community_id: communityId,
+        external_id: person.external_id,
+        email: null,
+        name: null,
+      };
+
+      await resolvePerson(transaction, { ...identity, last_seen_at: later });
+      const again = await resolvePerson(transaction, { ...identity, last_seen_at: earlier });
+
+      expect(again).toMatchObject({ ok: true, data: { last_seen_at: later } });
     });
   });
 

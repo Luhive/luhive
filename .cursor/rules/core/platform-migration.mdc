@@ -8,7 +8,7 @@ alwaysApply: true
 This repo is migrating from a single React Router app to a workspace:
 `apps/web` (this code) · `apps/core-api` (new private backend) · `apps/integration-api` (public customer API).
 
-**Current work: `docs/stage-1-tasks.md`** — ordered, dependency-aware checklist. The #4 deploy gate has passed: `apps/core-api` runs on Azure Container Apps and reaches production in about 3 ms. #6 is done: the shared `resolvePerson` / `recordPersonEvent` writers live in `apps/core-api/src/lib/`. Next is #7, the `people` API slice.
+**Current work: `docs/stage-1-tasks.md`** — ordered, dependency-aware checklist. The #4 deploy gate has passed: `apps/core-api` runs on Azure Container Apps and reaches production in about 3 ms. #6 is done: the shared `resolvePerson` / `recordPersonEvent` writers live in `apps/core-api/src/lib/`. #7 is done: the `people` slice is built and tested but not mounted until a community-scoped credential exists. Next is #8, `packages/api-client`.
 
 Stage 0 is complete and archived in `docs/stage-0-tasks.md` — workspace, `apps/web`, `apps/integration-api`, `@luhive/db`, CI.
 

@@ -26,8 +26,8 @@ client lands. The OTP decomposition (#10) follows once that path is stable.
 #2  packages/domain
  └─ #3  core-api skeleton
      └─ #4  DEPLOY hello-world  ◄── gate PASSED, ~3ms to the database
-         └─ #6  lib/person + lib/events in core
-             └─ #7  people API slice
+         └─ #6  lib/person + lib/person-event   done
+             └─ #7  people API slice              done, not mounted
                  └─ #8  api-client + web wiring
                      └─ #9  join + registration → core
                          └─ #9b one-time reconciliation backfill
@@ -227,28 +227,53 @@ Per-community `unsubscribed_at` is not the same as the platform-wide `suppressio
 
 ---
 
-## #6 · `lib/person.ts` and `lib/events.ts`
+## #6 · `lib/person.ts` and `lib/person-event.ts`
 
 Cross-slice writers in `apps/core-api/src/lib/`. Four callers by definition —
 registration, community join, check-in, and integration's forwarded writes — so
 extracting them is not premature. Start only after #4 proves the deployed
 runtime and database connection.
 
-- [ ] `upsertPerson(trx, cmd)` — find by `(community_id, external_id)`, else
-  email, else insert; merge an anonymous email-only person when the account
-  becomes known; returns the person
-- [ ] `recordEvent(trx, cmd)` — append-only insert, the single chokepoint for
-  the event-type union
-- [ ] Both take a Kysely transaction, never a pool, so the calling service owns
+- [x] `resolvePerson(transaction, command)` — find by
+  `(community_id, external_id)`, else email, else insert; merge an anonymous
+  email-only person when the account becomes known; returns the person
+- [x] `recordPersonEvent(transaction, command)` — append-only insert, the single
+  chokepoint for the event-type union
+- [x] Both take a Kysely transaction, never a pool, so the calling service owns
   atomicity
-- [ ] `recordEvent` verifies the person belongs to the supplied `community_id`
-  and **rejects identity fields in `properties`**. Events reference `person_id`
-  and join; erasure must not require archaeology across event JSON
-- [ ] `EventType` union in one place: `event_registered`,
-  `event_checked_in`, `community_joined`, plus the email types for Stage 2
-- [ ] Real-database tests inside rolled-back transactions cover normalization,
+- [x] `recordPersonEvent` verifies the person belongs to the supplied
+  `community_id` and **rejects identity fields in `properties`**. Events
+  reference `person_id` and join; erasure must not require archaeology across
+  event JSON
+- [x] `PersonEventType` union in one place: `event_registered`,
+  `event_checked_in`, `community_joined`, plus the email types for Stage 2.
+  Not `EventType` — the generated calendar enum in `@luhive/db` already has
+  that name
+- [x] Real-database tests inside rolled-back transactions cover normalization,
   anonymous-to-account merge, conflicting identities, tenant mismatch, and
   preservation of `unsubscribed_at` / `deleted_at`
+
+**Verified:** core typecheck and all 28 fast tests pass; all 12 database tests
+pass against validation, 9 of them for the two writers. Each test creates its
+own community inside the rolled-back transaction, borrowing an existing
+`auth.users` row as `created_by` because tests cannot create auth users.
+
+**Three update rules on an existing person.** Identity and name are filled
+only when empty, so a known person is never relinked or renamed. `locale`,
+`plan` and `subscription_status` are the sender's current state: a sent value
+replaces the stored one, null means not sent. Stage 5 gates Enverson chat on
+`subscription_status = active`, so a cancellation must overwrite. `last_seen_at`
+keeps the later of the two, because batches arrive out of order. `attributes`
+returns with the Enverson import, its first caller.
+
+**Returning a failure inside a transaction commits it.** Kysely rolls back only
+on a throw. Callers resolve the person before writing anything else, and throw
+if a later step fails — see the worked example in `docs/spec/05a`.
+
+**Concurrent first sightings are not locked.** Two requests creating the same
+new person at once: one hits the unique constraint, its transaction rolls back,
+and the caller gets `internal_error`. No duplicate row is possible. Revisit if
+it shows up in logs.
 
 **No temporary web version.** `apps/web` keeps its existing writes until #9
 switches each command to core. Do not add Kysely/`pg` to the Netlify app and do
@@ -261,14 +286,35 @@ not duplicate these rules with supabase-js.
 First real API slice, after the deployed hello-world gate. Four files, per
 `docs/spec/04` and the worked example in `05a`.
 
-- [ ] `slices/people/routes.ts` — handlers inline, thin: validate, call, respond
-- [ ] `slices/people/contracts.ts` — `UpsertPersonCommand` = `PersonRequest.extend({ communityId })`
-- [ ] `slices/people/person.service.ts` — class, constructor-injected `db`,
+- [x] `slices/people/routes.ts` — handlers inline, thin: validate, call, respond
+- [x] `slices/people/contracts.ts` — `UpsertPersonCommand` = `PersonRequest.extend({ communityId })`
+- [x] `slices/people/person.service.ts` — class, constructor-injected `db`,
   calls the #6 writer, normal `async` methods, no Hono imports
-- [ ] `slices/people/person.mapper.ts` — `Selectable<Person>` → `PersonResponse`
-- [ ] `slices/people/person.test.ts` — service tests inside a rolled-back transaction
-- [ ] Route tests cover bearer auth, request validation, tenant injection from
-  credentials, and the `Result<T>` wire envelope
+- [x] `slices/people/person.mapper.ts` — `Selectable<Person>` → `PersonResponse`
+- [x] Service tests inside a rolled-back transaction —
+  `test/person.service.db.test.ts`, beside the other database tests rather than
+  in the slice folder, because the two vitest configs select by `test/**`
+- [x] Route tests cover bearer auth, request validation, tenant injection from
+  credentials, and the `Result<T>` wire envelope — `test/people.routes.test.ts`
+
+**Verified:** core typecheck, 33 fast tests and 16 database tests pass against
+validation.
+
+**Built, not mounted.** The route reads `communityId` from the request context
+(`CommunityEnv`). Nothing sets it in production yet: a user session does not
+name one community, and the credential that does — integration-to-core, spec
+07 — is Stage 3. The route tests set it with a stand-in middleware. Mount the
+slice in `app.ts` when that credential lands. #9 does not need the route: its
+services call `resolvePerson` directly.
+
+**Two small `lib/` additions #9 will reuse.** `runInTransaction` joins an open
+transaction instead of opening a nested one, which Kysely throws on — that is
+what lets a service run inside a rolled-back test transaction. `validateJson`
+wraps `zValidator` so a bad body gets the `invalid_query` envelope with
+`fields`, not zod's raw error.
+
+One person per call. The batch upsert in spec 08 belongs to the public `/v1`
+endpoint in Stage 3.
 
 **The mapper is not optional here, and #9 of Stage 0 explains why.** Kysely's timestamps are `ColumnType<Date, …>` because that is what `pg` returns; `PersonResponse` declares ISO strings. The mapper converts. A wire type derived from the entity would be a lie about the runtime shape — that discovery cost 43 extra typecheck errors last stage.
 
@@ -289,11 +335,11 @@ The full command APIs consume #6. Core services call the shared writers directly
 they do not make HTTP calls to the people route from inside core.
 
 - [ ] `slices/community/` in core — join command wrapping
-  `community_members` insert + `upsertPerson` +
-  `recordEvent('community_joined')` in **one transaction**
+  `community_members` insert + `resolvePerson` +
+  `recordPersonEvent('community_joined')` in **one transaction**
 - [ ] `slices/registration/` in core — event-registration command wrapping the
-  relevant membership/registration insert + `upsertPerson` +
-  `recordEvent('event_registered')` in **one transaction**
+  relevant membership/registration insert + `resolvePerson` +
+  `recordPersonEvent('event_registered')` in **one transaction**
 - [ ] Core routes authenticate, validate, call their service, and return the
   shared `Result<T>` envelope; no SQL or business rules in route handlers
 - [ ] `apps/web/app/modules/community/data/community.api.ts` and
@@ -387,6 +433,39 @@ by the outgoing revision.
 credential, so there is no service principal secret in GitHub — the same
 posture #4 established for the runtime identity.
 
+### The federated credential subject is not what the documentation shows
+
+The repository emits **immutable OIDC subjects**, so the subject claim is
+
+```
+repo:Luhive@236995820/luhive@1075537951:ref:refs/heads/main
+```
+
+not `repo:Luhive/luhive:ref:refs/heads/main`. Those numbers are the owner id
+and the repository id. Azure compares the subject as a literal string, so a
+credential created from the name-based form in every tutorial fails with
+`AADSTS700213: No matching federated identity record found`, naming neither
+the cause nor the setting.
+
+Check it rather than assume it — the setting is per repository:
+
+```sh
+gh api repos/Luhive/luhive/actions/oidc/customization/sub
+# {"use_default":true,"use_immutable_subject":true,
+#  "sub_claim_prefix":"repo:Luhive@236995820/luhive@1075537951"}
+```
+
+**Use the immutable form; do not turn the setting off to make the tutorial
+work.** It exists for exactly the thing we did on 22 September — renaming
+`luhive-mvp` to `luhive`. With name-based subjects, whoever creates a
+repository at the freed-up old name can mint tokens that satisfy a stale
+federated credential. Ids cannot be squatted, so the ID form is both safer and
+more durable: a future rename or transfer will not invalidate it.
+
+The token carries `job_workflow_ref` too. Matching on anything beyond
+`subject`, `issuer` and `audience` needs Azure's flexible federated identity
+credentials, which is more machinery than one branch-scoped subject deserves.
+
 ### Three traps in the telemetry wiring, all of which fail silently
 
 Every one of these produced a process that started cleanly, served `/health`,
@@ -429,12 +508,37 @@ cross-cloud number, per request — and it means the 278 ms cold connection show
 up as a gap between `duration_ms` and `db_ms` rather than inside `db_ms`. Good
 enough to size the `idleTimeoutMillis` decision at #8 with real traffic.
 
-**Remaining, and not doable from the repo:** the four GitHub secrets
-(`VALIDATION_DATABASE_URL`, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`,
-`AZURE_SUBSCRIPTION_ID`), a `luhive-ci-id` identity with `AcrPush` and
-Container Apps contributor plus a federated credential for this repo, and the
-Application Insights connection string added to Key Vault and referenced on the
-container app.
+**`AcrPush` is not enough for the build step.** `az acr build` does not just
+push an image, it queues an ACR Task, which needs
+`Microsoft.ContainerRegistry/registries/scheduleRun/action`. That action is in
+`Contributor` and not in `AcrPush`. Either grant `Contributor` scoped to the
+registry resource, or define a custom role with `scheduleRun/action` plus the
+`AcrPush` data actions. Scope both CI assignments to the individual resource,
+never the resource group.
+
+### Where this stands, 23 September
+
+- `checks` passes on a runner — the first time any of Stage 1 has been
+  verified outside a laptop. `--frozen-lockfile`, typecheck, build, 56 tests,
+  1m29s
+- `database-tests` reached its preflight guard and stopped with the message it
+  was written to produce. It has not yet run against validation
+- The deploy `gate` passes in 45s, and `azure/login` now fails at subject
+  matching rather than missing values — so the three Azure secrets resolve and
+  the identity is found. The subject is the one thing left
+- The deployed revision is still the one pushed by hand at #4
+
+**Still not doable from the repo:** correcting the federated credential to the
+immutable subject, and adding the Application Insights connection string to
+Key Vault and referencing it on the container app.
+
+**Unexplained, and worth remembering if it recurs.** The Stage 1 commits were
+pushed on 21 September and produced no CI run at all — not on the branch push,
+not on the pull request, not on the merge to `main`. Actions was enabled, all
+actions allowed, the workflow `active`, the repo public, and no commit carried
+a skip marker. CI has triggered normally since. No cause was found, so treat a
+missing run as possible rather than impossible, and check that a run exists
+before believing a green branch.
 
 ---
 

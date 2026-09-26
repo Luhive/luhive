@@ -1,7 +1,8 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
-import { LandingHeroDashboard } from "./landing-hero-dashboard";
 import { BookACallButton } from "./book-a-call-button";
+import { DiscoverCommunitiesLink } from "./discover-communities-link";
+import { LandingHeroDashboard } from "./landing-hero-dashboard";
 
 export function LandingAbout() {
   const { t } = useTranslation('landing');
@@ -28,28 +29,22 @@ export function LandingAbout() {
         </p>
 
         <div className="flex flex-col gap-5">
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
             <BookACallButton />
+            <div
+              aria-hidden
+              className="flex items-center gap-3 text-xs text-muted-foreground/70"
+            >
+              <span className="h-px w-12 bg-gradient-to-r from-transparent to-foreground/25" />
+              {t("hero.ctaSeparator")}
+              <span className="h-px w-12 bg-gradient-to-l from-transparent to-foreground/25" />
+            </div>
+            <DiscoverCommunitiesLink />
           </div>
 
           <div className="mx-auto mt-5 md:mt-0 w-full overflow-hidden">
             <LandingHeroDashboard />
           </div>
-
-          {/* <div className="flex justify-center mt-8">
-            <a
-              href="https://luhive.com/hub"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-base font-medium text-[#FF6D23] hover:text-[#E55A1A] transition-colors duration-200 group"
-              onClick={() => AnalyticsEvents.discoverHubClick("About V2")}
-            >
-              <span className="text-md lg:text-lg font-medium underlines">
-                Discover Hub
-              </span>
-              <Globe className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-1" />
-            </a>
-          </div> */}
         </div>
       </div>
     </section>

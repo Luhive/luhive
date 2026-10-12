@@ -40,7 +40,6 @@ export function ExploreEventsSection({
       <HubSectionHeader
         id={HEADING_ID}
         title="Explore Events"
-        toggleSize="lg"
         isExpanded={isExpanded}
         onToggle={isSearching ? undefined : toggle}
         controlsId={LIST_ID}

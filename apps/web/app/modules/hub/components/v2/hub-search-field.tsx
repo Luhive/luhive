@@ -31,7 +31,7 @@ export function HubSearchField({ value, onValueChange, className }: HubSearchFie
   return (
     <label
       className={cn(
-        "group/search flex h-11 min-w-0 cursor-text items-center gap-[10px] overflow-hidden rounded-[44px] bg-[#f6f6f6] pl-4 pr-[14px] md:h-[52px]",
+        "group/search flex h-11 min-w-0 cursor-text items-center gap-2 overflow-hidden rounded-[44px] bg-[#f6f6f6] pl-4 pr-[14px]",
         "shadow-[inset_0_0_0_1px_transparent] transition-[background-color,box-shadow] duration-200 ease-out-strong",
         "hover:bg-[#f1f1f1] focus-within:bg-white focus-within:shadow-[inset_0_0_0_1px_rgba(17,17,17,0.12),0_6px_18px_-8px_rgba(0,0,0,0.12)]",
         className,
@@ -41,8 +41,8 @@ export function HubSearchField({ value, onValueChange, className }: HubSearchFie
         <img
           src={searchIcon}
           alt=""
-          width={18.1667}
-          height={18.1667}
+          width={17.8667}
+          height={17.8667}
           className="block max-w-none -scale-x-100"
         />
       </span>
@@ -60,7 +60,7 @@ export function HubSearchField({ value, onValueChange, className }: HubSearchFie
         }}
         placeholder="Search"
         autoComplete="off"
-        className="h-full min-w-0 flex-1 bg-transparent text-[16px] font-medium leading-normal text-[#111] outline-none placeholder:text-[#8c8e9a] [&::-webkit-search-cancel-button]:appearance-none"
+        className="h-full min-w-0 flex-1 bg-transparent text-[16px] font-medium leading-normal md:text-[14px] md:font-normal text-[#111] outline-none placeholder:text-[#8c8e9a] [&::-webkit-search-cancel-button]:appearance-none"
       />
       <button
         type="button"

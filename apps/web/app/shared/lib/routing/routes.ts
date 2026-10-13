@@ -114,6 +114,9 @@ export class Routes {
       registrationConfirmation: `${API_BASE}/events/registration-confirmation`,
       checkIn: `${API_BASE}/events/check-in`,
     },
+    hub: {
+      eventPreview: (eventId: string) => `${API_BASE}/hub/events/${eventId}/preview`,
+    },
     community: {
       join: `${API_BASE}/join-community`,
       updateMemberRole: `${API_BASE}/community/update-member-role`,

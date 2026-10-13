@@ -13,6 +13,25 @@ export type HubEventSummary = {
   communityName: string;
 };
 
+export type HubEventPreview = HubEventSummary & {
+  description: string | null;
+  priceMinor: number | null;
+  currency: string;
+  locationAddress: string | null;
+  isOnline: boolean;
+  communityLogoUrl: string | null;
+  isCommunityVerified: boolean;
+};
+
+export type HubEventPreviewResponse = {
+  preview: HubEventPreview | null;
+};
+
+/** History state carried while an event preview is open on /hubv2. */
+export type HubEventPreviewLocationState = {
+  hubEventSummary: HubEventSummary;
+};
+
 /** Loader return shape for /hubv2; each section streams independently. */
 export type HubV2LoaderData = {
   viewer: Promise<UserData>;

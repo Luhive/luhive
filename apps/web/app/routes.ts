@@ -120,6 +120,7 @@ export default [
   route("api/events/attenders-list", "routes/api/events/attenders-list.tsx"),
   route("api/events/invite", "routes/api/events/invite.tsx"),
   route("api/current-user", "routes/api/current-user.tsx"),
+  route("api/hub/events/:eventId/preview", "routes/api/hub/event-preview.tsx"),
   route("api/events/registration-state", "routes/api/events/registration-state.tsx"),
   route("api/events/event-statistics", "routes/api/events/event-statistics.tsx"),
   route("api/events/event-revenue", "routes/api/events/event-revenue.tsx"),

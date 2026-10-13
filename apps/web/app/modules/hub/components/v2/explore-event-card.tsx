@@ -1,6 +1,8 @@
 import { Link } from "react-router";
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
+import { useEventPreviewSelection } from "~/modules/hub/hooks/use-event-preview-selection";
+import { usePrefetchHubEventPreview } from "~/modules/hub/hooks/use-hub-event-preview-query";
 import {
   formatEventDateLabel,
   formatEventTimeRange,
@@ -15,12 +17,29 @@ type ExploreEventCardProps = {
   isPast?: boolean;
 };
 
+function isPlainLeftClick(event: MouseEvent<HTMLAnchorElement>) {
+  return (
+    event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
+  );
+}
+
 export function ExploreEventCard({ event, riseDelayMs, isPast = false }: ExploreEventCardProps) {
+  const { openPreview } = useEventPreviewSelection();
+  const prefetchPreview = usePrefetchHubEventPreview();
+  const warmPreview = () => prefetchPreview(event.id);
+
   return (
     <Link
       to={Routes.community.event(event.communitySlug, event.slug)}
-      prefetch="intent"
-      viewTransition
+      onClick={(clickEvent) => {
+        if (!isPlainLeftClick(clickEvent)) return;
+        clickEvent.preventDefault();
+        openPreview(event);
+      }}
+      onPointerEnter={warmPreview}
+      onFocus={warmPreview}
+      onTouchStart={warmPreview}
+      aria-haspopup="dialog"
       style={{ "--rise-delay": `${riseDelayMs}ms` } as CSSProperties}
       className="animate-hub-rise group flex min-w-0 flex-col gap-4 rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-4 sm:gap-5"
     >

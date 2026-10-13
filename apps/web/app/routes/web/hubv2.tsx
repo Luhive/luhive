@@ -6,6 +6,7 @@ import { Await, useLoaderData } from "react-router";
 import type { HubV2LoaderData } from "~/modules/hub/model/hub-v2-types";
 import { HubV2Navigation } from "~/modules/hub/components/v2/hub-v2-navigation";
 import { HubAccountActions } from "~/modules/hub/components/v2/hub-account-actions";
+import { HubV2Footer } from "~/modules/hub/components/v2/hub-v2-footer";
 import { HubSectionHeader } from "~/modules/hub/components/v2/hub-section-header";
 import { ExploreCommunitiesSection } from "~/modules/hub/components/v2/explore-communities-section";
 import { ExploreEventsSection } from "~/modules/hub/components/v2/explore-events-section";
@@ -15,6 +16,23 @@ import {
   EventGridSkeleton,
 } from "~/modules/hub/components/v2/hub-skeletons";
 import { normalizeSearchQuery } from "~/modules/hub/utils/matches-search-query";
+import { EventPreviewDrawer } from "~/modules/hub/components/v2/event-preview-drawer";
+import { isEventPreviewChange } from "~/modules/hub/utils/is-event-preview-change";
+
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  currentUrl: URL;
+  nextUrl: URL;
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}) {
+  if (!formMethod && isEventPreviewChange(currentUrl, nextUrl)) return false;
+  return defaultShouldRevalidate;
+}
 
 export default function HubV2Page() {
   const { viewer, communities, upcomingEvents, pastEvents } = useLoaderData<HubV2LoaderData>();
@@ -22,7 +40,7 @@ export default function HubV2Page() {
   const normalizedQuery = normalizeSearchQuery(useDeferredValue(searchQuery));
 
   return (
-    <div className="min-h-screen bg-white font-inter text-[#111] antialiased">
+    <div className="flex min-h-screen flex-col bg-white font-inter text-[#111] antialiased">
       <HubV2Navigation
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
@@ -33,7 +51,7 @@ export default function HubV2Page() {
         }
       />
 
-      <main className="mx-auto flex w-full max-w-[1040px] flex-col gap-16 px-5 pb-24 pt-6 sm:gap-20 md:pt-10 lg:gap-[104px] lg:pb-32">
+      <main className="mx-auto flex w-full max-w-[1040px] flex-1 flex-col gap-16 px-5 pb-24 pt-6 sm:gap-20 md:pt-10 lg:gap-[104px] lg:pb-32">
         <Suspense
           fallback={
             <div className={sectionClassName}>
@@ -68,6 +86,9 @@ export default function HubV2Page() {
           </Await>
         </Suspense>
       </main>
+
+      <HubV2Footer />
+      <EventPreviewDrawer />
     </div>
   );
 }

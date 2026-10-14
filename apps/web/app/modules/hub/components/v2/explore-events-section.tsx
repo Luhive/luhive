@@ -6,6 +6,7 @@ import {
   sectionClassName,
 } from "~/modules/hub/components/v2/hub-grid-layout";
 import { HubSectionHeader } from "~/modules/hub/components/v2/hub-section-header";
+import { NoUpcomingEventsNotice } from "~/modules/hub/components/v2/no-upcoming-events-notice";
 import { PastEventsBlock } from "~/modules/hub/components/v2/past-events-block";
 import { useSectionExpansion } from "~/modules/hub/hooks/use-section-expansion";
 import { getRiseDelayMs } from "~/modules/hub/utils/get-rise-delay-ms";
@@ -32,27 +33,40 @@ export function ExploreEventsSection({
   const matches = upcomingEvents.filter((event) =>
     matchesSearchQuery(normalizedQuery, [event.title, event.locationName, event.communityName]),
   );
+  const hasUpcomingEvents = upcomingEvents.length > 0;
   const isShowingAll = isExpanded || isSearching;
   const visible = isShowingAll ? matches : matches.slice(0, PREVIEW_COUNT);
+  const shouldShowPastEvents = isShowingAll || !hasUpcomingEvents;
+
+  let pastEmptyMessage: string | null = null;
+  if (!hasUpcomingEvents) {
+    pastEmptyMessage = isSearching ? "No events match your search." : "No past events yet.";
+  } else if (!isSearching) {
+    pastEmptyMessage = "No past events yet.";
+  }
 
   return (
     <section ref={sectionRef} aria-labelledby={HEADING_ID} className={sectionClassName}>
       <HubSectionHeader
         id={HEADING_ID}
         title="Explore Events"
-        toggleSize="lg"
         isExpanded={isExpanded}
-        onToggle={isSearching ? undefined : toggle}
+        onToggle={isSearching || !hasUpcomingEvents ? undefined : toggle}
         controlsId={LIST_ID}
       />
 
-      <div id={LIST_ID} className="flex w-full flex-col gap-10 sm:gap-14">
-        {visible.length === 0 ? (
-          <HubEmptyMessage>
-            {isSearching
-              ? "No upcoming events match your search."
-              : "No upcoming events right now. See all to browse past events."}
-          </HubEmptyMessage>
+      <div
+        id={LIST_ID}
+        className={
+          hasUpcomingEvents
+            ? "flex w-full flex-col gap-10 sm:gap-14"
+            : "flex w-full flex-col gap-8 sm:gap-10"
+        }
+      >
+        {!hasUpcomingEvents ? (
+          isSearching ? null : <NoUpcomingEventsNotice />
+        ) : visible.length === 0 ? (
+          <HubEmptyMessage>No upcoming events match your search.</HubEmptyMessage>
         ) : (
           <div className={eventGridClassName}>
             {visible.map((event, index) => (
@@ -65,8 +79,13 @@ export function ExploreEventsSection({
           </div>
         )}
 
-        {isShowingAll && (
-          <PastEventsBlock pastEvents={pastEvents} normalizedQuery={normalizedQuery} />
+        {shouldShowPastEvents && (
+          <PastEventsBlock
+            pastEvents={pastEvents}
+            normalizedQuery={normalizedQuery}
+            emptyMessage={pastEmptyMessage}
+            isLeading={!hasUpcomingEvents}
+          />
         )}
       </div>
     </section>

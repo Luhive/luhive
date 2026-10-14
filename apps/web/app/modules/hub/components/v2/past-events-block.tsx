@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Await } from "react-router";
 import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
 import { ExploreEventCard } from "~/modules/hub/components/v2/explore-event-card";
+import { HubEmptyMessage } from "~/modules/hub/components/v2/hub-empty-message";
 import { eventGridClassName } from "~/modules/hub/components/v2/hub-grid-layout";
 import { EventGridSkeleton } from "~/modules/hub/components/v2/hub-skeletons";
 import { getRiseDelayMs } from "~/modules/hub/utils/get-rise-delay-ms";
@@ -10,22 +11,24 @@ import { matchesSearchQuery } from "~/modules/hub/utils/matches-search-query";
 type PastEventsBlockProps = {
   pastEvents: Promise<HubEventSummary[]>;
   normalizedQuery: string;
+  /** Shown when no past event matches; null renders nothing. */
+  emptyMessage: string | null;
+  isLeading?: boolean;
 };
 
 type PastEventsGridProps = {
   events: HubEventSummary[];
   normalizedQuery: string;
+  emptyMessage: string | null;
 };
 
-function PastEventsGrid({ events, normalizedQuery }: PastEventsGridProps) {
+function PastEventsGrid({ events, normalizedQuery, emptyMessage }: PastEventsGridProps) {
   const matches = events.filter((event) =>
     matchesSearchQuery(normalizedQuery, [event.title, event.locationName, event.communityName]),
   );
 
   if (matches.length === 0) {
-    return normalizedQuery ? null : (
-      <p className="animate-hub-rise text-[15px] text-[#8c8e9a]">No past events yet.</p>
-    );
+    return emptyMessage ? <HubEmptyMessage>{emptyMessage}</HubEmptyMessage> : null;
   }
 
   return (
@@ -56,9 +59,14 @@ function PastEventsDivider() {
   );
 }
 
-export function PastEventsBlock({ pastEvents, normalizedQuery }: PastEventsBlockProps) {
+export function PastEventsBlock({
+  pastEvents,
+  normalizedQuery,
+  emptyMessage,
+  isLeading = false,
+}: PastEventsBlockProps) {
   return (
-    <div className="pt-2 sm:pt-4">
+    <div className={isLeading ? undefined : "pt-2 sm:pt-4"}>
       <Suspense
         fallback={
           <div className="flex flex-col gap-6 sm:gap-8">
@@ -68,7 +76,13 @@ export function PastEventsBlock({ pastEvents, normalizedQuery }: PastEventsBlock
         }
       >
         <Await resolve={pastEvents}>
-          {(events) => <PastEventsGrid events={events} normalizedQuery={normalizedQuery} />}
+          {(events) => (
+            <PastEventsGrid
+              events={events}
+              normalizedQuery={normalizedQuery}
+              emptyMessage={emptyMessage}
+            />
+          )}
         </Await>
       </Suspense>
     </div>

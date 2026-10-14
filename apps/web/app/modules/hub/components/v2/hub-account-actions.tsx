@@ -23,12 +23,12 @@ export function HubAccountActions({ viewer }: HubAccountActionsProps) {
   const bookingUrl = useCalBookingUrl();
 
   return (
-    <div className="flex items-center gap-[10px] md:gap-[14px]">
+    <div className="flex items-center gap-[10px]">
       <a
         href={bookingUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className={`flex h-11 items-center justify-center gap-1.5 overflow-hidden rounded-[44px] bg-black px-4 text-[15px] font-medium leading-normal text-white hover:bg-[#262626] md:h-[52px] md:px-5 md:text-[16px] ${pillPress}`}
+        className={`flex h-11 items-center justify-center gap-1.5 overflow-hidden rounded-[44px] bg-black px-4 text-[15px] font-medium leading-normal text-white hover:bg-[#262626] md:text-[14px] ${pillPress}`}
       >
         <Plus className="size-4 sm:hidden" strokeWidth={2.25} aria-hidden />
         <span className="sm:hidden">Create</span>
@@ -40,7 +40,7 @@ export function HubAccountActions({ viewer }: HubAccountActionsProps) {
           to={Routes.profile}
           prefetch="intent"
           aria-label="Your profile"
-          className={`flex size-11 items-center justify-center overflow-hidden rounded-[44px] bg-[#f6f6f6] hover:bg-[#efefef] md:size-[52px] ${pillPress}`}
+          className={`flex size-11 items-center justify-center overflow-hidden rounded-[44px] bg-[#f6f6f6] hover:bg-[#efefef] ${pillPress}`}
         >
           {viewer.avatar_url ? (
             <img
@@ -49,7 +49,7 @@ export function HubAccountActions({ viewer }: HubAccountActionsProps) {
               className="size-full object-cover"
             />
           ) : (
-            <img src={userIcon} alt="" width={24} height={24} className="block max-w-none" />
+            <img src={userIcon} alt="" width={20} height={20} className="block max-w-none" />
           )}
         </Link>
       ) : (
@@ -57,9 +57,9 @@ export function HubAccountActions({ viewer }: HubAccountActionsProps) {
           to={Routes.login}
           onClick={rememberReturnPath}
           aria-label="Sign in"
-          className={`flex size-11 items-center justify-center overflow-hidden rounded-[44px] bg-[#f6f6f6] hover:bg-[#efefef] md:size-[52px] ${pillPress}`}
+          className={`flex size-11 items-center justify-center overflow-hidden rounded-[44px] bg-[#f6f6f6] hover:bg-[#efefef] ${pillPress}`}
         >
-          <img src={userIcon} alt="" width={24} height={24} className="block max-w-none" />
+          <img src={userIcon} alt="" width={20} height={20} className="block max-w-none" />
         </Link>
       )}
     </div>

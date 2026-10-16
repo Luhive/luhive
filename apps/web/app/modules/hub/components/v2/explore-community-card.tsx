@@ -21,10 +21,11 @@ export function ExploreCommunityCard({ community, riseDelayMs }: ExploreCommunit
       to={href}
       prefetch="intent"
       viewTransition
+      data-hub-control
       style={{ "--rise-delay": `${riseDelayMs}ms` } as CSSProperties}
       className="animate-hub-rise group block h-full rounded-[26px] outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-2"
     >
-      <div className="flex h-full flex-col overflow-clip rounded-[26px] bg-[#f6f6f6] p-1 shadow-[0px_16px_32px_-10px_rgba(0,0,0,0.1)] transition-[transform,background-color] duration-200 ease-out group-hover:bg-[#ececee] group-active:scale-[0.985] group-active:duration-150">
+      <div className="flex h-full flex-col overflow-clip rounded-[26px] bg-[#f6f6f6] p-1 shadow-[0px_16px_32px_-10px_rgba(0,0,0,0.1)] [transition:background-color_200ms_var(--ease-standard),transform_150ms_var(--ease-out-strong)] group-hover:bg-[#ececee] group-active:scale-[0.985]">
         <div className="flex flex-1 flex-col gap-[34px] rounded-[24px] bg-white p-4 drop-shadow-[0px_4px_7px_rgba(0,0,0,0.05)]">
           <div className="flex items-start justify-between">
             <div className="relative size-12 shrink-0 overflow-hidden rounded-[8px]">
@@ -45,7 +46,7 @@ export function ExploreCommunityCard({ community, riseDelayMs }: ExploreCommunit
                 className="pointer-events-none absolute inset-0 rounded-[8px] shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.08)]"
               />
             </div>
-            <span className="flex size-9 items-center justify-center rounded-full bg-[#f5f5f7] p-1 transition-colors duration-200 ease-out group-hover:bg-[#ebebee]">
+            <span className="flex size-9 items-center justify-center rounded-full bg-[#f5f5f7] p-1 transition-colors duration-200 ease-standard group-hover:bg-[#ebebee]">
               <img
                 src={arrowUpRight}
                 alt=""

@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { Instagram, Linkedin, Mail } from "lucide-react";
 import { useCalBookingUrl } from "~/shared/hooks/use-cal-booking-url";
 import { Routes } from "~/shared/lib/routing/routes";
+import { safeAreaGutterClassName } from "~/modules/hub/components/v2/hub-grid-layout";
 import luhiveMark from "~/assets/images/hub-v2/luhive-mark.svg";
 
 const SOCIAL_LINKS = [
@@ -11,19 +12,19 @@ const SOCIAL_LINKS = [
 ] as const;
 
 const linkClassName =
-  "rounded-md text-[#8c8e9a] transition-colors duration-150 ease-out hover:text-[#111] outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15";
+  "rounded-md text-[#8c8e9a] transition-colors duration-150 ease-standard hover:text-[#111] outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15";
 
 export function HubV2Footer() {
   const bookingUrl = useCalBookingUrl();
 
   return (
-    <footer className="mx-auto w-full max-w-[1040px] px-5">
+    <footer className={`mx-auto w-full max-w-[1040px] ${safeAreaGutterClassName}`}>
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-[#ededed] pb-8 pt-5">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px] leading-none">
           <Link
             to={Routes.home}
             aria-label="Luhive home"
-            className="rounded-md opacity-80 transition-opacity duration-150 ease-out hover:opacity-100 outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15"
+            className="rounded-md opacity-80 transition-opacity duration-150 ease-standard hover:opacity-100 outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15"
           >
             <span className="relative block size-4">
               <img

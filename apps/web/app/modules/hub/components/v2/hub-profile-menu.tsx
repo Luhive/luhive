@@ -18,7 +18,7 @@ type HubProfileMenuProps = {
 };
 
 const itemClassName =
-  "cursor-pointer rounded-none px-4 py-1.5 text-[14px] text-[#5f616b] transition-[background-color,color] duration-200 ease-out-strong focus:bg-[#f6f6f6] focus:text-[#111]";
+  "cursor-pointer rounded-none px-4 py-1.5 text-[14px] text-[#5f616b] transition-[background-color,color] duration-200 ease-standard focus:bg-[#f6f6f6] focus:text-[#111]";
 
 function getInitials(name: string | null | undefined) {
   if (!name) return "";
@@ -72,7 +72,7 @@ export function HubProfileMenu({ viewer }: HubProfileMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Account menu"
-        className="-m-1 flex items-center justify-center rounded-full p-1 outline-none transition-[background-color,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-[#95959522] active:scale-[0.97] data-[state=open]:bg-[#95959522]"
+        className="-m-1 flex items-center justify-center rounded-full p-1 outline-none [transition:background-color_300ms_var(--ease-standard),transform_150ms_var(--ease-out-strong)] hover:bg-[#95959522] active:scale-[0.97] data-[state=open]:bg-[#95959522]"
       >
         <ViewerAvatar
           viewer={viewer}
@@ -83,7 +83,7 @@ export function HubProfileMenu({ viewer }: HubProfileMenuProps) {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="w-[260px] overflow-hidden rounded-[14px] border-[#ececee] bg-white p-0 font-inter shadow-[0_12px_32px_-12px_rgba(0,0,0,0.18)]"
+        className="hub-touch-surface w-[260px] overflow-hidden rounded-[14px] border-[#ececee] bg-white p-0 font-inter shadow-[0_12px_32px_-12px_rgba(0,0,0,0.18)]"
       >
         <div className="flex items-center gap-3 px-4 py-3.5">
           <ViewerAvatar viewer={viewer} className="size-9" />

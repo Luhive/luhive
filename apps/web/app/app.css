@@ -54,6 +54,7 @@
   --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-geologica: "Geologica", ui-sans-serif, system-ui, sans-serif;
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html,
@@ -297,8 +298,12 @@ body {
 }
 
 .animate-hub-rise {
-  animation: hub-rise 520ms var(--ease-out-strong) both;
+  animation: hub-rise 400ms var(--ease-out-strong) both;
   animation-delay: var(--rise-delay, 0ms);
+}
+
+.animate-hub-fade-in {
+  animation: hub-fade 180ms var(--ease-out-strong) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -306,6 +311,31 @@ body {
     animation-name: hub-fade;
     animation-duration: 200ms;
   }
+
+  /* vaul always slides; fade instead. Selector must outrank vaul's own drawer rules. */
+  [data-vaul-drawer].hub-event-drawer[data-vaul-snap-points="false"][data-vaul-drawer-direction="bottom"][data-state="open"] {
+    animation-name: fadeIn;
+  }
+
+  [data-vaul-drawer].hub-event-drawer[data-vaul-snap-points="false"][data-vaul-drawer-direction="bottom"][data-state="closed"] {
+    animation-name: fadeOut;
+  }
+}
+
+/* Hub v2 touch surface. Applied to the page root and to portalled drawer/menu content. */
+.hub-touch-surface {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+.hub-touch-surface :is(a, button, [role="button"], [role="menuitem"]) {
+  touch-action: manipulation;
+}
+
+.hub-touch-surface :is(button, [role="button"], [role="menuitem"], [data-hub-control]) {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* Gradient text for hero section */

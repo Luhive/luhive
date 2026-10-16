@@ -29,6 +29,7 @@ export function HubAccountActions({ viewer }: HubAccountActionsProps) {
         href={bookingUrl}
         target="_blank"
         rel="noopener noreferrer"
+        data-hub-control
         className={`flex h-11 items-center justify-center gap-1.5 overflow-hidden rounded-[44px] bg-black px-4 text-[15px] font-medium leading-normal text-white hover:bg-[#262626] md:h-9 md:text-[13px] ${pillPress}`}
       >
         <Plus className="size-4 sm:hidden" strokeWidth={2.25} aria-hidden />
@@ -43,6 +44,7 @@ export function HubAccountActions({ viewer }: HubAccountActionsProps) {
           to={Routes.login}
           onClick={rememberReturnPath}
           aria-label="Sign in"
+          data-hub-control
           className={`flex size-11 items-center justify-center overflow-hidden rounded-[44px] bg-[#f6f6f6] hover:bg-[#efefef] md:size-9 ${pillPress}`}
         >
           <img src={userIcon} alt="" width={20} height={20} className="block max-w-none md:scale-90" />

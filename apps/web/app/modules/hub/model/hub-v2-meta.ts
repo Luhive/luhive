@@ -7,6 +7,8 @@ export function meta() {
       content: "Explore communities and upcoming events on the Luhive Hub.",
     },
     { name: "robots", content: "noindex, nofollow" },
+    // The page is always white, so one value covers both color schemes.
+    { name: "theme-color", content: "#ffffff" },
   ];
 }
 

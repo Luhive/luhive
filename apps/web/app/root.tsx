@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLocation,
+  useMatches,
 } from "react-router";
 import { useEffect } from "react";
 
@@ -38,8 +39,20 @@ export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900&display=swap" },
 ];
 
+const DEFAULT_VIEWPORT = "width=device-width, initial-scale=1";
+
+/** Routes opt into edge-to-edge layout with `handle = { viewportFit: "cover" }`. */
+function useViewportContent() {
+  const matches = useMatches();
+  const isEdgeToEdge = matches.some(
+    (match) => (match.handle as { viewportFit?: string } | undefined)?.viewportFit === "cover",
+  );
+  return isEdgeToEdge ? `${DEFAULT_VIEWPORT}, viewport-fit=cover` : DEFAULT_VIEWPORT;
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const viewportContent = useViewportContent();
 
   useEffect(() => {
     analytics.trackPageView(location.pathname);
@@ -49,7 +62,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content={viewportContent} />
         <Meta />
         <Links />
         <script

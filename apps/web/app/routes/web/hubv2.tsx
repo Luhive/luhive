@@ -1,6 +1,9 @@
 export { loader } from "~/modules/hub/server/hub-v2-loader.server";
 export { meta, links } from "~/modules/hub/model/hub-v2-meta";
 
+/** Paints under the notch; content is padded back with safe-area insets. */
+export const handle = { viewportFit: "cover" };
+
 import { Suspense, useDeferredValue, useState } from "react";
 import { Await, useLoaderData } from "react-router";
 import type { HubV2LoaderData } from "~/modules/hub/model/hub-v2-types";
@@ -10,7 +13,10 @@ import { HubV2Footer } from "~/modules/hub/components/v2/hub-v2-footer";
 import { HubSectionHeader } from "~/modules/hub/components/v2/hub-section-header";
 import { ExploreCommunitiesSection } from "~/modules/hub/components/v2/explore-communities-section";
 import { ExploreEventsSection } from "~/modules/hub/components/v2/explore-events-section";
-import { sectionClassName } from "~/modules/hub/components/v2/hub-grid-layout";
+import {
+  safeAreaGutterClassName,
+  sectionClassName,
+} from "~/modules/hub/components/v2/hub-grid-layout";
 import {
   CommunityGridSkeleton,
   EventGridSkeleton,
@@ -40,7 +46,7 @@ export default function HubV2Page() {
   const normalizedQuery = normalizeSearchQuery(useDeferredValue(searchQuery));
 
   return (
-    <div className="flex min-h-screen flex-col bg-white font-inter text-[#111] antialiased">
+    <div className="hub-touch-surface flex min-h-svh flex-col bg-white font-inter text-[#111] antialiased">
       <HubV2Navigation
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
@@ -51,7 +57,9 @@ export default function HubV2Page() {
         }
       />
 
-      <main className="mx-auto flex w-full max-w-[1040px] flex-1 flex-col gap-16 px-5 pb-24 pt-6 sm:gap-20 md:pt-10 lg:gap-[104px] lg:pb-32">
+      <main
+        className={`mx-auto flex w-full max-w-[1040px] flex-1 flex-col gap-16 pb-24 pt-6 sm:gap-20 md:pt-10 lg:gap-[104px] lg:pb-32 ${safeAreaGutterClassName}`}
+      >
         <Suspense
           fallback={
             <div className={sectionClassName}>

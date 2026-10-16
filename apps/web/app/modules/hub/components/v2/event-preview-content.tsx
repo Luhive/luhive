@@ -11,6 +11,7 @@ import { DrawerDescription, DrawerTitle } from "~/shared/components/ui/drawer";
 import { Skeleton } from "~/shared/components/ui/skeleton";
 import { Routes } from "~/shared/lib/routing/routes";
 import { cn } from "~/shared/lib/utils/cn";
+import { drawerGutterClassName } from "~/modules/hub/components/v2/hub-grid-layout";
 import verifiedBadge from "~/assets/images/hub-v2/verified-badge.svg";
 
 const HUB_UTM_SOURCE = "luhive_network";
@@ -68,7 +69,7 @@ function HeaderText({ event, preview, isLarge }: SectionProps & { isLarge?: bool
       <Link
         to={Routes.community.detail(event.communitySlug)}
         prefetch="intent"
-        className="flex w-fit min-w-0 items-center gap-2 rounded-md text-[14px] text-[#5f616b] transition-colors duration-150 hover:text-[#111]"
+        className="flex w-fit min-w-0 items-center gap-2 rounded-md text-[14px] text-[#5f616b] transition-colors duration-150 ease-standard hover:text-[#111]"
       >
         {preview?.communityLogoUrl ? (
           <img src={preview.communityLogoUrl} alt="" className="size-5 shrink-0 rounded-[6px] object-cover" />
@@ -88,7 +89,7 @@ function DetailRow({ icon: Icon, primary, secondary, href, linkLabel }: DetailRo
   const rowClassName = cn("flex gap-3 self-start", secondary ? "items-start" : "items-center");
   const content = (
     <>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#f6f6f6] text-[#5f616b] transition-colors duration-150 ease-out group-hover/detail:bg-[#ececef] group-hover/detail:text-[#111]">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#f6f6f6] text-[#5f616b] transition-colors duration-150 ease-standard group-hover/detail:bg-[#ececef] group-hover/detail:text-[#111]">
         <Icon className="size-[18px]" strokeWidth={1.75} aria-hidden />
       </span>
       <div className={cn("flex min-w-0 flex-col gap-1", secondary && "pt-[3px]")}>
@@ -139,7 +140,7 @@ function DetailRowSkeleton() {
 
 function Details({ preview, isLoadingDetails, className }: SectionProps & { className?: string }) {
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
+    <div className={cn("flex flex-col gap-4", preview && "animate-hub-fade-in", className)}>
       {preview ? (
         <>
           {preview.isOnline ? (
@@ -179,7 +180,7 @@ function Details({ preview, isLoadingDetails, className }: SectionProps & { clas
 function About({ preview, isLoadingDetails }: SectionProps) {
   if (preview?.description) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="animate-hub-fade-in flex select-text flex-col gap-2">
         <p className="text-[13px] font-medium uppercase tracking-[0.04em] text-[#8c8e9a]">About</p>
         <p className="line-clamp-[8] whitespace-pre-wrap text-[15px] leading-[1.55] text-[#3f4049]">
           {preview.description}
@@ -203,6 +204,7 @@ function EventPageCta({ event, className }: { event: HubEventSummary; className?
       to={`${Routes.community.event(event.communitySlug, event.slug)}?utm_source=${HUB_UTM_SOURCE}`}
       prefetch="render"
       viewTransition
+      data-hub-control
       className={cn(
         "flex h-12 w-full items-center justify-center gap-2 rounded-[44px] bg-black px-6 text-[15px] font-medium text-white outline-none transition-[transform,background-color] duration-150 ease-out-strong hover:bg-[#262626] focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-2 active:scale-[0.98]",
         className,
@@ -224,8 +226,10 @@ export function EventPreviewContent({ summary, preview, isLoadingDetails }: Even
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[1040px] px-5 pb-6 pt-4 sm:px-8 sm:pt-6 md:grid md:grid-cols-[280px_minmax(0,1fr)] md:gap-10 md:pb-10 md:pt-8">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div
+          className={`mx-auto w-full max-w-[1040px] pb-6 pt-4 sm:pt-6 md:grid md:grid-cols-[280px_minmax(0,1fr)] md:gap-10 md:pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] md:pt-8 ${drawerGutterClassName}`}
+        >
           <Cover event={event} className="hidden md:block" />
           <div className="flex min-w-0 flex-col gap-6">
             <div className="grid grid-cols-[96px_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-6 md:block">
@@ -238,7 +242,9 @@ export function EventPreviewContent({ summary, preview, isLoadingDetails }: Even
           </div>
         </div>
       </div>
-      <div className="border-t border-[#f0f0f0] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-4 sm:px-8 md:hidden">
+      <div
+        className={`border-t border-[#f0f0f0] bg-white pb-[calc(env(safe-area-inset-bottom,0px)+16px)] pt-4 md:hidden ${drawerGutterClassName}`}
+      >
         <EventPageCta event={event} />
       </div>
     </div>

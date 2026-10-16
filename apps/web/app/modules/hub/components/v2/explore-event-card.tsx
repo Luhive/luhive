@@ -41,6 +41,7 @@ export function ExploreEventCard({ event, riseDelayMs, isPast = false }: Explore
       onFocus={warmPreview}
       onTouchStart={warmPreview}
       aria-haspopup="dialog"
+      data-hub-control
       style={{ "--rise-delay": `${riseDelayMs}ms` } as CSSProperties}
       className="animate-hub-rise group flex min-w-0 flex-col gap-4 rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-4 sm:gap-5"
     >
@@ -51,7 +52,7 @@ export function ExploreEventCard({ event, riseDelayMs, isPast = false }: Explore
             alt=""
             loading="lazy"
             className={cn(
-              "absolute inset-0 size-full object-cover transition-[transform,filter] duration-500 ease-out-strong group-hover:scale-[1.035]",
+              "absolute inset-0 size-full object-cover transition-[transform,filter] duration-300 ease-out-strong group-hover:scale-[1.035]",
               isPast && "grayscale-[35%] group-hover:grayscale-0",
             )}
           />

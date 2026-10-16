@@ -51,7 +51,7 @@ function PastEventsGrid({ events, normalizedQuery, emptyMessage }: PastEventsGri
 function PastEventsDivider() {
   return (
     <div className="animate-hub-rise flex items-center gap-4">
-      <h3 className="shrink-0 text-[18px] font-medium leading-none text-[#888] sm:text-[20px]">
+      <h3 className="shrink-0 text-[16px] font-medium leading-none text-[#888] sm:text-[17px]">
         Past events
       </h3>
       <span aria-hidden className="h-px flex-1 origin-left bg-[#ededed]" />

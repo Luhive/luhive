@@ -72,7 +72,7 @@ export function HubProfileMenu({ viewer }: HubProfileMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Account menu"
-        className="-m-1 flex items-center justify-center rounded-full p-1 outline-none transition-[background-color,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-[#95959522] focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-2 active:scale-[0.97] data-[state=open]:bg-[#95959522]"
+        className="-m-1 flex items-center justify-center rounded-full p-1 outline-none transition-[background-color,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-[#95959522] active:scale-[0.97] data-[state=open]:bg-[#95959522]"
       >
         <ViewerAvatar
           viewer={viewer}

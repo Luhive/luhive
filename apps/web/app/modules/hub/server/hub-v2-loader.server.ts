@@ -14,13 +14,14 @@ export async function loader({ request }: { request: Request }): Promise<HubV2Lo
   const { supabase } = createClient(request);
   const now = new Date();
 
-  const userIdPromise = supabase.auth
-    .getUser()
-    .then(({ data }) => data.user?.id ?? null);
+  const authUserPromise = supabase.auth.getUser().then(({ data }) => data.user ?? null);
+  const userIdPromise = authUserPromise.then((user) => user?.id ?? null);
 
-  const viewer = userIdPromise.then((userId) =>
-    userId ? getUserProfile(supabase, userId) : null,
-  );
+  const viewer = authUserPromise.then(async (user) => {
+    if (!user) return null;
+    const profile = await getUserProfile(supabase, user.id);
+    return profile ? { ...profile, email: user.email ?? null } : null;
+  });
 
   const adminIdsPromise = userIdPromise.then((userId) =>
     userId ? getAdminCommunityIds(supabase, userId) : [],

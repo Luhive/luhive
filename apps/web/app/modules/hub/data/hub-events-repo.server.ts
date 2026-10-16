@@ -4,7 +4,7 @@ import type { HubEvent } from "~/shared/models/entity.types";
 import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
 
 const HUB_EVENT_COLUMNS =
-  "id, slug, title, cover_url, start_time, end_time, timezone, location_name, community_slug, community_name";
+  "id, slug, title, cover_url, start_time, end_time, timezone, location_name, event_type, community_slug, community_name";
 
 const UPCOMING_EVENT_LIMIT = 48;
 const PAST_EVENT_LIMIT = 24;
@@ -19,6 +19,7 @@ type HubEventColumns = Pick<
   | "end_time"
   | "timezone"
   | "location_name"
+  | "event_type"
   | "community_slug"
   | "community_name"
 >;
@@ -45,6 +46,7 @@ function toHubEventSummary(row: HubEventColumns): HubEventSummary | null {
     endTime: row.end_time,
     timezone: row.timezone,
     locationName: row.location_name,
+    isOnline: row.event_type === "online",
     communitySlug: row.community_slug,
     communityName: row.community_name,
   };

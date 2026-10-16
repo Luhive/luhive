@@ -1,10 +1,4 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router";
-import {
-  EVENT_PREVIEW_LAYOUT_PARAM,
-  getEventPreviewLayout,
-} from "~/modules/hub/utils/get-event-preview-layout";
-import { cn } from "~/shared/lib/utils/cn";
 import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
 import { EventPreviewContent } from "~/modules/hub/components/v2/event-preview-content";
 import { useEventPreviewSelection } from "~/modules/hub/hooks/use-event-preview-selection";
@@ -19,9 +13,6 @@ import { Skeleton } from "~/shared/components/ui/skeleton";
 
 export function EventPreviewDrawer() {
   const { selectedEventId, selectedSummary, closePreview } = useEventPreviewSelection();
-  const [searchParams] = useSearchParams();
-  const layout = getEventPreviewLayout(searchParams.get(EVENT_PREVIEW_LAYOUT_PARAM));
-
   // Keep the last event on screen while the drawer animates closed.
   const [shownEventId, setShownEventId] = useState(selectedEventId);
   const [shownSummary, setShownSummary] = useState<HubEventSummary | null>(selectedSummary);
@@ -40,18 +31,12 @@ export function EventPreviewDrawer() {
         if (!isOpen) closePreview();
       }}
     >
-      <DrawerContent
-        className={cn(
-          "inset-x-0 mx-auto w-full bg-white font-inter text-[#111] data-[vaul-drawer-direction=bottom]:max-h-[88dvh] data-[vaul-drawer-direction=bottom]:rounded-t-[28px] data-[vaul-drawer-direction=bottom]:border-t-0",
-          layout === "panel" && "max-w-[680px]",
-        )}
-      >
+      <DrawerContent className="inset-x-0 w-full bg-white font-inter text-[#111] data-[vaul-drawer-direction=bottom]:max-h-[88dvh] data-[vaul-drawer-direction=bottom]:rounded-t-[28px] data-[vaul-drawer-direction=bottom]:border-t-0">
         {summary ? (
           <EventPreviewContent
             summary={summary}
             preview={preview ?? null}
             isLoadingDetails={isPending && !isError}
-            layout={layout}
           />
         ) : isPending ? (
           <PreviewLoadingState />
@@ -65,10 +50,10 @@ export function EventPreviewDrawer() {
 
 function PreviewLoadingState() {
   return (
-    <div className="flex flex-col gap-6 px-5 pb-10 pt-4 sm:px-8 sm:pt-6">
+    <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6 px-5 pb-10 pt-4 sm:px-8 sm:pt-6 md:pt-8">
       <DrawerTitle className="sr-only">Loading event</DrawerTitle>
       <DrawerDescription className="sr-only">Event details are loading.</DrawerDescription>
-      <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-6">
+      <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-6 md:grid-cols-[280px_minmax(0,1fr)] md:gap-10">
         <Skeleton className="aspect-square w-full rounded-[14px] bg-[#f3f3f5]" />
         <div className="flex flex-col gap-3 pt-1">
           <Skeleton className="h-3 w-1/2 rounded-full bg-[#f3f3f5]" />

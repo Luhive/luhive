@@ -3,7 +3,7 @@ import type { Database } from "~/shared/models/database.types";
 import type { HubEventPreview } from "~/modules/hub/model/hub-v2-types";
 
 const PREVIEW_COLUMNS =
-  "id, slug, title, cover_url, start_time, end_time, timezone, location_name, location_address, event_type, description, price_minor, currency, communities!inner(slug, name, logo_url, verified, is_show)";
+  "id, slug, title, cover_url, start_time, end_time, timezone, location_name, location_address, location_place_id, event_type, description, price_minor, currency, communities!inner(slug, name, logo_url, verified, is_show)";
 
 /** Same visibility as the hub list: published events from visible communities. */
 export async function findHubEventPreview(
@@ -33,6 +33,7 @@ export async function findHubEventPreview(
       timezone: data.timezone,
       locationName: data.location_name,
       locationAddress: data.location_address,
+      locationPlaceId: data.location_place_id,
       isOnline: data.event_type === "online",
       description: data.description,
       priceMinor: data.price_minor,

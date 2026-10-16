@@ -24,22 +24,26 @@ export function ExploreCommunityCard({ community, riseDelayMs }: ExploreCommunit
       style={{ "--rise-delay": `${riseDelayMs}ms` } as CSSProperties}
       className="animate-hub-rise group block h-full rounded-[26px] outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-2"
     >
-      <div className="flex h-full flex-col overflow-clip rounded-[26px] bg-[#f6f6f6] p-1 shadow-[0px_16px_32px_-10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 ease-out-strong group-hover:-translate-y-[3px] group-hover:shadow-[0px_22px_36px_-12px_rgba(0,0,0,0.14)] group-active:translate-y-0 group-active:scale-[0.985] group-active:duration-150">
+      <div className="flex h-full flex-col overflow-clip rounded-[26px] bg-[#f6f6f6] p-1 shadow-[0px_16px_32px_-10px_rgba(0,0,0,0.1)] transition-[transform,background-color] duration-200 ease-out group-hover:bg-[#ececee] group-active:scale-[0.985] group-active:duration-150">
         <div className="flex flex-1 flex-col gap-[34px] rounded-[24px] bg-white p-4 drop-shadow-[0px_4px_7px_rgba(0,0,0,0.05)]">
           <div className="flex items-start justify-between">
-            <div className="relative size-12 shrink-0 overflow-hidden rounded-[8px] border-[0.5px] border-[rgba(255,255,255,0.08)] bg-[#f5f5f7]">
+            <div className="relative size-12 shrink-0 overflow-hidden rounded-[8px]">
               {community.logo_url ? (
                 <img
                   src={community.logo_url}
                   alt=""
                   loading="lazy"
-                  className="absolute inset-0 size-full object-cover"
+                  className="absolute inset-0 size-full rounded-[8px] object-cover"
                 />
               ) : (
-                <span className="flex size-full items-center justify-center text-[15px] font-semibold text-[#8c8e9a]">
+                <span className="flex size-full items-center justify-center bg-[#f5f5f7] text-[15px] font-semibold text-[#8c8e9a]">
                   {community.name.slice(0, 2).toUpperCase()}
                 </span>
               )}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-[8px] shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.08)]"
+              />
             </div>
             <span className="flex size-9 items-center justify-center rounded-full bg-[#f5f5f7] p-1 transition-colors duration-200 ease-out group-hover:bg-[#ebebee]">
               <img

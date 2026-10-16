@@ -8,7 +8,7 @@ export function HubBrand() {
       to={Routes.hubV2}
       prefetch="intent"
       aria-label="Luhive hub"
-      className="flex items-center gap-[4.71px] rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15"
+      className="flex origin-left items-center gap-[4.71px] rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15 md:scale-[0.8]"
     >
       <span className="relative size-[20px] shrink-0">
         <img

@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import type { CSSProperties, MouseEvent } from "react";
+import { Video } from "lucide-react";
 import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
 import { useEventPreviewSelection } from "~/modules/hub/hooks/use-event-preview-selection";
 import { usePrefetchHubEventPreview } from "~/modules/hub/hooks/use-hub-event-preview-query";
@@ -75,7 +76,14 @@ export function ExploreEventCard({ event, riseDelayMs, isPast = false }: Explore
           <h3 className="-my-[0.3em] truncate py-[0.3em] text-[17px] font-medium leading-normal text-[#111] [text-box-edge:cap_alphabetic] [text-box-trim:trim-both] sm:text-[20px]">
             {event.title}
           </h3>
-          {event.locationName && (
+          {event.isOnline ? (
+            <p className="flex min-w-0 items-center gap-1 text-[14px] leading-normal text-[#8c8e9a]">
+              <span className="flex h-4 w-[15px] shrink-0 items-center justify-center">
+                <Video className="size-[13px]" strokeWidth={1.75} aria-hidden />
+              </span>
+              <span className="truncate">Online</span>
+            </p>
+          ) : event.locationName && (
             <p className="flex min-w-0 items-center gap-1 text-[14px] leading-normal text-[#8c8e9a]">
               <span className="flex h-4 w-[15px] shrink-0 items-center justify-center">
                 <img

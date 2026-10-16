@@ -1,26 +1,24 @@
 import { Link } from "react-router";
 import { ArrowUpRight, MapPin, Ticket, Video } from "lucide-react";
-import type {
-  EventPreviewLayout,
-  HubEventPreview,
-  HubEventSummary,
-} from "~/modules/hub/model/hub-v2-types";
+import type { HubEventPreview, HubEventSummary } from "~/modules/hub/model/hub-v2-types";
 import {
   formatEventDateLabel,
   formatEventTimeRange,
 } from "~/modules/hub/utils/format-event-schedule";
 import { getEventPriceLabel } from "~/modules/events/utils/event-price-label";
+import { GoogleMaps } from "~/modules/events/utils/google-maps";
 import { DrawerDescription, DrawerTitle } from "~/shared/components/ui/drawer";
 import { Skeleton } from "~/shared/components/ui/skeleton";
 import { Routes } from "~/shared/lib/routing/routes";
 import { cn } from "~/shared/lib/utils/cn";
 import verifiedBadge from "~/assets/images/hub-v2/verified-badge.svg";
 
+const HUB_UTM_SOURCE = "luhive_network";
+
 type EventPreviewContentProps = {
   summary: HubEventSummary;
   preview: HubEventPreview | null;
   isLoadingDetails: boolean;
-  layout: EventPreviewLayout;
 };
 
 type SectionProps = {
@@ -33,6 +31,8 @@ type DetailRowProps = {
   icon: typeof MapPin;
   primary: string;
   secondary?: string | null;
+  href?: string;
+  linkLabel?: string;
 };
 
 function hasEnded(event: HubEventSummary) {
@@ -84,17 +84,44 @@ function HeaderText({ event, preview, isLarge }: SectionProps & { isLarge?: bool
   );
 }
 
-function DetailRow({ icon: Icon, primary, secondary }: DetailRowProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#f6f6f6] text-[#5f616b]">
+function DetailRow({ icon: Icon, primary, secondary, href, linkLabel }: DetailRowProps) {
+  const rowClassName = cn("flex gap-3 self-start", secondary ? "items-start" : "items-center");
+  const content = (
+    <>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#f6f6f6] text-[#5f616b] transition-colors duration-150 ease-out group-hover/detail:bg-[#ececef] group-hover/detail:text-[#111]">
         <Icon className="size-[18px]" strokeWidth={1.75} aria-hidden />
       </span>
-      <div className="flex min-w-0 flex-col gap-1 pt-[3px]">
-        <p className="text-[15px] font-medium leading-tight text-[#111]">{primary}</p>
+      <div className={cn("flex min-w-0 flex-col gap-1", secondary && "pt-[3px]")}>
+        <p className="flex items-center gap-1 text-[15px] font-medium leading-tight text-[#111]">
+          {primary}
+          {href && (
+            <ArrowUpRight
+              className="size-3.5 shrink-0 text-[#8c8e9a] transition-transform duration-200 ease-out-strong group-hover/detail:-translate-y-px group-hover/detail:translate-x-px group-hover/detail:text-[#111]"
+              strokeWidth={2}
+              aria-hidden
+            />
+          )}
+        </p>
         {secondary && <p className="text-[13px] leading-snug text-[#8c8e9a]">{secondary}</p>}
       </div>
-    </div>
+    </>
+  );
+
+  if (!href) return <div className={rowClassName}>{content}</div>;
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={linkLabel}
+      className={cn(
+        rowClassName,
+        "group/detail -m-1.5 rounded-[14px] p-1.5 outline-none transition-[background-color,transform] duration-150 ease-out-strong hover:bg-[#f9f9fa] focus-visible:ring-2 focus-visible:ring-[#111]/15 active:scale-[0.99]",
+      )}
+    >
+      {content}
+    </a>
   );
 }
 
@@ -123,6 +150,12 @@ function Details({ preview, isLoadingDetails, className }: SectionProps & { clas
                 icon={MapPin}
                 primary={preview.locationName ?? preview.locationAddress ?? ""}
                 secondary={preview.locationName ? preview.locationAddress : null}
+                href={GoogleMaps.mapsSearchUrl({
+                  name: preview.locationName,
+                  address: preview.locationAddress,
+                  placeId: preview.locationPlaceId,
+                })}
+                linkLabel={`Open ${preview.locationName ?? "venue"} in Google Maps`}
               />
             )
           )}
@@ -167,7 +200,7 @@ function About({ preview, isLoadingDetails }: SectionProps) {
 function EventPageCta({ event, className }: { event: HubEventSummary; className?: string }) {
   return (
     <Link
-      to={Routes.community.event(event.communitySlug, event.slug)}
+      to={`${Routes.community.event(event.communitySlug, event.slug)}?utm_source=${HUB_UTM_SOURCE}`}
       prefetch="render"
       viewTransition
       className={cn(
@@ -181,47 +214,33 @@ function EventPageCta({ event, className }: { event: HubEventSummary; className?
   );
 }
 
-function StackedLayout({ event, preview, isLoadingDetails }: SectionProps) {
+/**
+ * Full-width sheet whose content stays on the hub's 1000px column from `md` up.
+ * Below `md` the CTA is pinned under the scroll area so it stays in reach.
+ */
+export function EventPreviewContent({ summary, preview, isLoadingDetails }: EventPreviewContentProps) {
+  const event = preview ?? summary;
   const sectionProps = { event, preview, isLoadingDetails };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pb-6 pt-4 sm:px-8 sm:pt-6">
-        <div className="grid grid-cols-[96px_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-6">
-          <Cover event={event} />
-          <HeaderText {...sectionProps} />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-[1040px] px-5 pb-6 pt-4 sm:px-8 sm:pt-6 md:grid md:grid-cols-[280px_minmax(0,1fr)] md:gap-10 md:pb-10 md:pt-8">
+          <Cover event={event} className="hidden md:block" />
+          <div className="flex min-w-0 flex-col gap-6">
+            <div className="grid grid-cols-[96px_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-6 md:block">
+              <Cover event={event} className="md:hidden" />
+              <HeaderText {...sectionProps} isLarge />
+            </div>
+            <Details {...sectionProps} className="md:grid md:grid-cols-2 md:gap-x-6" />
+            <About {...sectionProps} />
+            <EventPageCta event={event} className="hidden md:flex md:w-fit md:self-start md:px-8" />
+          </div>
         </div>
-        <Details {...sectionProps} />
-        <About {...sectionProps} />
       </div>
-      <div className="border-t border-[#f0f0f0] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-4 sm:px-8">
+      <div className="border-t border-[#f0f0f0] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-4 sm:px-8 md:hidden">
         <EventPageCta event={event} />
       </div>
     </div>
   );
-}
-
-/** Full-width sheet whose content stays on the hub's 1000px column from `md` up. */
-function WideLayout({ event, preview, isLoadingDetails }: SectionProps) {
-  const sectionProps = { event, preview, isLoadingDetails };
-  return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto w-full max-w-[1040px] px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-4 sm:px-8 sm:pt-6 md:grid md:grid-cols-[280px_minmax(0,1fr)] md:gap-10 md:pb-10 md:pt-8">
-        <Cover event={event} className="hidden md:block" />
-        <div className="flex min-w-0 flex-col gap-6">
-          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-6 md:block">
-            <Cover event={event} className="md:hidden" />
-            <HeaderText {...sectionProps} isLarge />
-          </div>
-          <Details {...sectionProps} className="md:grid md:grid-cols-2 md:gap-x-6" />
-          <About {...sectionProps} />
-          <EventPageCta event={event} className="md:w-fit md:self-start md:px-8" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function EventPreviewContent({ summary, preview, isLoadingDetails, layout }: EventPreviewContentProps) {
-  const sectionProps = { event: preview ?? summary, preview, isLoadingDetails };
-  return layout === "wide" ? <WideLayout {...sectionProps} /> : <StackedLayout {...sectionProps} />;
 }

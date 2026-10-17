@@ -1,51 +1,104 @@
 export { loader } from "~/modules/hub/server/hub-loader.server";
-export { meta } from "~/modules/hub/model/hub-meta";
+export { meta, links } from "~/modules/hub/model/hub-meta";
 
-import { useLoaderData, Await, useNavigation } from "react-router";
-import { Suspense } from "react";
-import { HubPageSkeleton } from "~/modules/hub/components/hub-page-skeleton";
-import { Spinner } from "~/shared/components/ui/spinner";
+/** Paints under the notch; content is padded back with safe-area insets. */
+export const handle = { viewportFit: "cover" };
+
+import { Suspense, useDeferredValue, useState } from "react";
+import { Await, useLoaderData } from "react-router";
 import type { HubLoaderData } from "~/modules/hub/model/hub-types";
-import { CommunityGrid } from "~/modules/hub/components/community-grid";
-import { HubEmptyState } from "~/modules/hub/components/hub-empty-state";
-import { HubHeader } from "~/modules/hub/components/hub-header";
-import { Routes } from "~/shared/lib/routing/routes";
+import { HubNavigation } from "~/modules/hub/components/hub-navigation";
+import { HubAccountActions } from "~/modules/hub/components/hub-account-actions";
+import { HubFooter } from "~/modules/hub/components/hub-footer";
+// import { HubBackdrop } from "~/modules/hub/components/hub-backdrop";
+import { HubSectionHeader } from "~/modules/hub/components/hub-section-header";
+import { ExploreCommunitiesSection } from "~/modules/hub/components/explore-communities-section";
+import { ExploreEventsSection } from "~/modules/hub/components/explore-events-section";
+import {
+  safeAreaGutterClassName,
+  sectionClassName,
+} from "~/modules/hub/components/hub-grid-layout";
+import {
+  CommunitySectionSkeleton,
+  EventGridSkeleton,
+} from "~/modules/hub/components/hub-skeletons";
+import { normalizeSearchQuery } from "~/modules/hub/utils/matches-search-query";
+import { EventPreviewDrawer } from "~/modules/hub/components/event-preview-drawer";
+import { isEventPreviewChange } from "~/modules/hub/utils/is-event-preview-change";
+
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  currentUrl: URL;
+  nextUrl: URL;
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}) {
+  if (!formMethod && isEventPreviewChange(currentUrl, nextUrl)) return false;
+  return defaultShouldRevalidate;
+}
 
 export default function HubPage() {
-  const { data } = useLoaderData<HubLoaderData>();
-  const navigation = useNavigation();
-  const isCommunityTransitionLoading =
-    navigation.state === "loading" &&
-    (navigation.location?.pathname.startsWith(`${Routes.community.base}/`) ||
-      navigation.location?.pathname.startsWith(`${Routes.dashboard.base}/`));
+  const { viewer, communities, upcomingEvents, pastEvents } = useLoaderData<HubLoaderData>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const normalizedQuery = normalizeSearchQuery(useDeferredValue(searchQuery));
 
   return (
-    <>
-      {isCommunityTransitionLoading && (
-        <div className="fixed inset-0 z-[100] bg-background flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <Spinner className="h-8 w-8 text-primary" />
-            <p className="text-sm font-medium text-muted-foreground">
-              Going to Community...
-            </p>
-          </div>
-        </div>
-      )}
+    <div className="hub-touch-surface isolate flex min-h-svh flex-col bg-white font-inter text-[#111] antialiased">
+      {/* <HubBackdrop /> */}
+      <HubNavigation
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        accountActions={
+          <Suspense fallback={<HubAccountActions viewer={null} isViewerPending />}>
+            <Await resolve={viewer}>{(user) => <HubAccountActions viewer={user} />}</Await>
+          </Suspense>
+        }
+      />
 
-      <Suspense fallback={<HubPageSkeleton user={null} />}>
-        <Await resolve={data}>
-          {(resolvedData) => (
-            <main className="py-8">
-              <HubHeader />
-              {resolvedData.communities.length === 0 ? (
-                <HubEmptyState />
-              ) : (
-                <CommunityGrid communities={resolvedData.communities} />
-              )}
-            </main>
-          )}
-        </Await>
-      </Suspense>
-    </>
+      <main
+        className={`mx-auto flex w-full max-w-[1040px] flex-1 flex-col gap-16 pb-24 pt-6 sm:gap-20 md:pt-10 lg:gap-[104px] lg:pb-32 ${safeAreaGutterClassName}`}
+      >
+        <Suspense
+          fallback={
+            <div className={sectionClassName}>
+              <HubSectionHeader id="explore-communities-loading" title="Explore Communities" />
+              <CommunitySectionSkeleton />
+            </div>
+          }
+        >
+          <Await resolve={communities}>
+            {(resolved) => (
+              <ExploreCommunitiesSection communities={resolved} normalizedQuery={normalizedQuery} />
+            )}
+          </Await>
+        </Suspense>
+
+        <Suspense
+          fallback={
+            <div className={sectionClassName}>
+              <HubSectionHeader id="explore-events-loading" title="Explore Events" />
+              <EventGridSkeleton count={8} />
+            </div>
+          }
+        >
+          <Await resolve={upcomingEvents}>
+            {(resolved) => (
+              <ExploreEventsSection
+                upcomingEvents={resolved}
+                pastEvents={pastEvents}
+                normalizedQuery={normalizedQuery}
+              />
+            )}
+          </Await>
+        </Suspense>
+      </main>
+
+      <HubFooter />
+      <EventPreviewDrawer />
+    </div>
   );
 }

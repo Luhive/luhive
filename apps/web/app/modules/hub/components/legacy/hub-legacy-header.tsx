@@ -1,6 +1,6 @@
 import { Sparkle } from "lucide-react";
 
-export function HubHeader() {
+export function HubLegacyHeader() {
   return (
     <div className="mb-8">
       <div className="flex items-center gap-3">

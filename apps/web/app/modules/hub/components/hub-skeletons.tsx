@@ -4,7 +4,7 @@ import {
   communityListClassName,
   communityListFrameClassName,
   eventGridClassName,
-} from "~/modules/hub/components/v2/hub-grid-layout";
+} from "~/modules/hub/components/hub-grid-layout";
 
 type SkeletonCountProps = {
   count: number;

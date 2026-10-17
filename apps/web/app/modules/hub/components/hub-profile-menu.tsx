@@ -1,9 +1,9 @@
 import { Link, useLocation, useSubmit } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import type { HubViewer } from "~/modules/hub/model/hub-v2-types";
+import type { HubViewer } from "~/modules/hub/model/hub-types";
 import { clearEventRegistrationSessionState } from "~/modules/events/hooks/use-event-registration-query";
 import { EVENT_PREVIEW_PARAM } from "~/modules/hub/hooks/use-event-preview-selection";
-import { CommunityLogo } from "~/modules/hub/components/v2/community-logo";
+import { CommunityLogo } from "~/modules/hub/components/community-logo";
 import {
   DropdownMenu,
   DropdownMenuContent,

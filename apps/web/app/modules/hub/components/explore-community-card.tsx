@@ -2,8 +2,8 @@ import { Link } from "react-router";
 import type { CSSProperties } from "react";
 import type { Community } from "~/modules/hub/model/hub-types";
 import { getCommunityHref } from "~/modules/hub/utils/get-community-href";
-import arrowUpRight from "~/assets/images/hub-v2/arrow-up-right.svg";
-import verifiedBadge from "~/assets/images/hub-v2/verified-badge.svg";
+import arrowUpRight from "~/assets/images/hub/arrow-up-right.svg";
+import verifiedBadge from "~/assets/images/hub/verified-badge.svg";
 
 type ExploreCommunityCardProps = {
   community: Community;

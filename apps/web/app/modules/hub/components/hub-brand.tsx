@@ -1,11 +1,11 @@
 import { Link } from "react-router";
 import { Routes } from "~/shared/lib/routing/routes";
-import luhiveMark from "~/assets/images/hub-v2/luhive-mark.svg";
+import luhiveMark from "~/assets/images/hub/luhive-mark.svg";
 
 export function HubBrand() {
   return (
     <Link
-      to={Routes.hubV2}
+      to={Routes.hub}
       prefetch="intent"
       aria-label="Luhive hub"
       className="flex origin-left items-center gap-[4.71px] rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15 md:scale-[0.8]"

@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 import { Plus } from "lucide-react";
-import type { HubViewer } from "~/modules/hub/model/hub-v2-types";
+import type { HubViewer } from "~/modules/hub/model/hub-types";
 import { useCalBookingUrl } from "~/shared/hooks/use-cal-booking-url";
 import { Routes } from "~/shared/lib/routing/routes";
-import { HubProfileMenu } from "~/modules/hub/components/v2/hub-profile-menu";
+import { HubProfileMenu } from "~/modules/hub/components/hub-profile-menu";
 
 type HubAccountActionsProps = {
   viewer: HubViewer | null;

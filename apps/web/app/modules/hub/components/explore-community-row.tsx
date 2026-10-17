@@ -2,9 +2,9 @@ import { Link } from "react-router";
 import type { CSSProperties } from "react";
 import { ChevronRight } from "lucide-react";
 import type { Community } from "~/modules/hub/model/hub-types";
-import { CommunityLogo } from "~/modules/hub/components/v2/community-logo";
+import { CommunityLogo } from "~/modules/hub/components/community-logo";
 import { getCommunityHref } from "~/modules/hub/utils/get-community-href";
-import verifiedBadge from "~/assets/images/hub-v2/verified-badge.svg";
+import verifiedBadge from "~/assets/images/hub/verified-badge.svg";
 
 type ExploreCommunityRowProps = {
   community: Community;

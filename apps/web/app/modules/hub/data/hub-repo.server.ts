@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/shared/models/database.types";
 import type { HubCommunity } from "~/shared/models/entity.types";
 import type { Community, HubPreview, UserData } from "~/modules/hub/model/hub-types";
-import type { ManagedCommunity } from "~/modules/hub/model/hub-v2-types";
+import type { ManagedCommunity } from "~/modules/hub/model/hub-types";
 
 function toCommunity(row: HubCommunity): Community | null {
   if (

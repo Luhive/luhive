@@ -4,11 +4,11 @@ import { Skeleton } from "~/shared/components/ui/skeleton";
 import { Avatar } from "~/shared/components/ui/avatar";
 import { Sparkle } from "lucide-react";
 
-interface HubPageSkeletonProps {
+interface HubLegacyPageSkeletonProps {
 	user?: { id: string } | null;
 }
 
-export function HubPageSkeleton({ user }: HubPageSkeletonProps) {
+export function HubLegacyPageSkeleton({ user }: HubLegacyPageSkeletonProps) {
 	return (
 		<>
 			{/* <TopNavigation user={user} /> */}

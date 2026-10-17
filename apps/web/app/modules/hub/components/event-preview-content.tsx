@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { ArrowUpRight, MapPin, Ticket, Video } from "lucide-react";
-import type { HubEventPreview, HubEventSummary } from "~/modules/hub/model/hub-v2-types";
+import type { HubEventPreview, HubEventSummary } from "~/modules/hub/model/hub-types";
 import {
   formatEventDateLabel,
   formatEventTimeRange,
@@ -11,8 +11,8 @@ import { DrawerDescription, DrawerTitle } from "~/shared/components/ui/drawer";
 import { Skeleton } from "~/shared/components/ui/skeleton";
 import { Routes } from "~/shared/lib/routing/routes";
 import { cn } from "~/shared/lib/utils/cn";
-import { drawerGutterClassName } from "~/modules/hub/components/v2/hub-grid-layout";
-import verifiedBadge from "~/assets/images/hub-v2/verified-badge.svg";
+import { drawerGutterClassName } from "~/modules/hub/components/hub-grid-layout";
+import verifiedBadge from "~/assets/images/hub/verified-badge.svg";
 
 const HUB_UTM_SOURCE = "luhive_network";
 

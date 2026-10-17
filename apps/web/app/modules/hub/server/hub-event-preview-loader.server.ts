@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
-import type { HubEventPreviewResponse } from "~/modules/hub/model/hub-v2-types";
+import type { HubEventPreviewResponse } from "~/modules/hub/model/hub-types";
 import { findHubEventPreview } from "~/modules/hub/data/hub-event-preview-repo.server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

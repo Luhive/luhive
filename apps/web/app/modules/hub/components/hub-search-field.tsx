@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "~/shared/lib/utils/cn";
-import searchIcon from "~/assets/images/hub-v2/search.svg";
+import searchIcon from "~/assets/images/hub/search.svg";
 
 type HubSearchFieldProps = {
   value: string;

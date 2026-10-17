@@ -1,58 +1,61 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
-import type { HubData } from "~/modules/hub/model/hub-types";
+import type { HubLoaderData } from "~/modules/hub/model/hub-types";
 import {
-  getVisibleCommunities,
-  getUserProfile,
   getAdminCommunityIds,
+  getUserProfile,
+  getVisibleCommunities,
+  listManagedCommunities,
 } from "~/modules/hub/data/hub-repo.server";
+import {
+  listPastHubEvents,
+  listUpcomingHubEvents,
+} from "~/modules/hub/data/hub-events-repo.server";
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ context }: LoaderFunctionArgs): Promise<HubLoaderData> {
   const { supabase, findAuthUser } = context.get(requestSupabaseContext);
+  const now = new Date();
 
-  const dataPromise = (async (): Promise<HubData> => {
-    const user = await findAuthUser();
+  const authUserPromise = findAuthUser();
+  const userIdPromise = authUserPromise.then((user) => user?.id ?? null);
 
-    const { communities, error } = await getVisibleCommunities(supabase);
+  const adminIdsPromise = userIdPromise.then((userId) =>
+    userId ? getAdminCommunityIds(supabase, userId) : [],
+  );
 
+  const viewer = authUserPromise.then(async (user) => {
+    if (!user) return null;
+    const [profile, managedCommunities] = await Promise.all([
+      getUserProfile(supabase, user.id),
+      adminIdsPromise.then((ids) => listManagedCommunities(supabase, ids)),
+    ]);
+    return profile ? { ...profile, email: user.email ?? null, managedCommunities } : null;
+  });
+
+  const communities = Promise.all([
+    getVisibleCommunities(supabase),
+    adminIdsPromise,
+  ]).then(([{ communities: rows, error }, adminIds]) => {
     if (error) {
-      console.error("Error fetching communities:", error);
-      return {
-        communities: [],
-        user: user ? { id: user.id } : null,
-      };
+      console.error("Error fetching hub communities:", error);
+      return [];
     }
-
-    if (!communities || communities.length === 0) {
-      return {
-        communities: [],
-        user: user ? { id: user.id } : null,
-      };
-    }
-
-    let userProfile: HubData["user"] = null;
-    let adminIds = new Set<string>();
-    if (user) {
-      const [profile, adminCommunityIds] = await Promise.all([
-        getUserProfile(supabase, user.id),
-        getAdminCommunityIds(supabase, user.id),
-      ]);
-      userProfile = profile;
-      adminIds = new Set(adminCommunityIds);
-    }
-
-    const communitiesWithAdmin = communities.map((c) => ({
-      ...c,
-      isAdmin: adminIds.has(c.id),
+    const adminIdSet = new Set(adminIds);
+    return rows.map((community) => ({
+      ...community,
+      isAdmin: adminIdSet.has(community.id),
     }));
+  });
 
-    return {
-      communities: communitiesWithAdmin,
-      user: userProfile,
-    };
-  })();
+  const upcomingEvents = listUpcomingHubEvents(supabase, now).then(({ events, error }) => {
+    if (error) console.error("Error fetching upcoming hub events:", error);
+    return events;
+  });
 
-  return {
-    data: dataPromise,
-  };
+  const pastEvents = listPastHubEvents(supabase, now).then(({ events, error }) => {
+    if (error) console.error("Error fetching past hub events:", error);
+    return events;
+  });
+
+  return { viewer, communities, upcomingEvents, pastEvents };
 }

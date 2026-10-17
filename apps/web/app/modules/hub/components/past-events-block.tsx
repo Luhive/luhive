@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import { Await } from "react-router";
-import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
-import { ExploreEventCard } from "~/modules/hub/components/v2/explore-event-card";
-import { HubEmptyMessage } from "~/modules/hub/components/v2/hub-empty-message";
-import { eventGridClassName } from "~/modules/hub/components/v2/hub-grid-layout";
-import { EventGridSkeleton } from "~/modules/hub/components/v2/hub-skeletons";
+import type { HubEventSummary } from "~/modules/hub/model/hub-types";
+import { ExploreEventCard } from "~/modules/hub/components/explore-event-card";
+import { HubEmptyMessage } from "~/modules/hub/components/hub-empty-message";
+import { eventGridClassName } from "~/modules/hub/components/hub-grid-layout";
+import { EventGridSkeleton } from "~/modules/hub/components/hub-skeletons";
 import { getRiseDelayMs } from "~/modules/hub/utils/get-rise-delay-ms";
 import { matchesSearchQuery } from "~/modules/hub/utils/matches-search-query";
 

@@ -2,8 +2,8 @@ import { Link } from "react-router";
 import { Instagram, Linkedin, Mail } from "lucide-react";
 import { useCalBookingUrl } from "~/shared/hooks/use-cal-booking-url";
 import { Routes } from "~/shared/lib/routing/routes";
-import { safeAreaGutterClassName } from "~/modules/hub/components/v2/hub-grid-layout";
-import luhiveMark from "~/assets/images/hub-v2/luhive-mark.svg";
+import { safeAreaGutterClassName } from "~/modules/hub/components/hub-grid-layout";
+import luhiveMark from "~/assets/images/hub/luhive-mark.svg";
 
 const SOCIAL_LINKS = [
   { href: "https://www.instagram.com/luhivecom/", label: "Luhive on Instagram", Icon: Instagram },
@@ -14,13 +14,20 @@ const SOCIAL_LINKS = [
 const linkClassName =
   "rounded-md text-[#8c8e9a] transition-colors duration-150 ease-standard hover:text-[#111] outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15";
 
-export function HubV2Footer() {
+type HubFooterProps = {
+  /** Width and gutters, so the footer lines up with the page content above. */
+  widthClassName?: string;
+};
+
+export function HubFooter({
+  widthClassName = `max-w-[1040px] ${safeAreaGutterClassName}`,
+}: HubFooterProps) {
   const bookingUrl = useCalBookingUrl();
 
   return (
-    <footer className={`mx-auto w-full max-w-[1040px] ${safeAreaGutterClassName}`}>
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-[#ededed] pb-8 pt-5">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px] leading-none">
+    <footer className={`hub-touch-surface mx-auto w-full font-inter antialiased ${widthClassName}`}>
+      <div className="flex flex-col-reverse items-center gap-x-6 gap-y-3 border-t border-[#ededed] pb-8 pt-5 sm:flex-row sm:flex-wrap sm:justify-between">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[14px] leading-none">
           <Link
             to={Routes.home}
             aria-label="Luhive home"
@@ -47,7 +54,7 @@ export function HubV2Footer() {
           </a>
         </div>
 
-        <div className="-mr-2 flex items-center">
+        <div className="flex items-center sm:-mr-2">
           {SOCIAL_LINKS.map(({ href, label, Icon }) => (
             <a
               key={href}

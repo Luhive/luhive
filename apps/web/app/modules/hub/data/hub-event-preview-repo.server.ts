@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/shared/models/database.types";
-import type { HubEventPreview } from "~/modules/hub/model/hub-v2-types";
+import type { HubEventPreview } from "~/modules/hub/model/hub-types";
 
 const PREVIEW_COLUMNS =
   "id, slug, title, cover_url, start_time, end_time, timezone, location_name, location_address, location_place_id, event_type, description, price_minor, currency, communities!inner(slug, name, logo_url, verified, is_show)";

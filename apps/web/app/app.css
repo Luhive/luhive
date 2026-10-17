@@ -283,7 +283,7 @@ body {
   animation: gradient-flow 3s ease infinite;
 }
 
-/* Hub v2: cards rise in with a short stagger set through --rise-delay */
+/* Hub: cards rise in with a short stagger set through --rise-delay */
 @keyframes hub-rise {
   from {
     opacity: 0;
@@ -361,7 +361,7 @@ body {
   }
 }
 
-/* Hub v2 touch surface. Applied to the page root and to portalled drawer/menu content. */
+/* Hub touch surface. Applied to the page root and to portalled drawer/menu content. */
 .hub-touch-surface {
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;

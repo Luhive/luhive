@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
-import { EventPreviewContent } from "~/modules/hub/components/v2/event-preview-content";
+import type { HubEventSummary } from "~/modules/hub/model/hub-types";
+import { EventPreviewContent } from "~/modules/hub/components/event-preview-content";
 import { useEventPreviewSelection } from "~/modules/hub/hooks/use-event-preview-selection";
 import { useHubEventPreviewQuery } from "~/modules/hub/hooks/use-hub-event-preview-query";
 import {
@@ -10,7 +10,7 @@ import {
   DrawerTitle,
 } from "~/shared/components/ui/drawer";
 import { Skeleton } from "~/shared/components/ui/skeleton";
-import { drawerGutterClassName } from "~/modules/hub/components/v2/hub-grid-layout";
+import { drawerGutterClassName } from "~/modules/hub/components/hub-grid-layout";
 
 export function EventPreviewDrawer() {
   const { selectedEventId, selectedSummary, closePreview } = useEventPreviewSelection();

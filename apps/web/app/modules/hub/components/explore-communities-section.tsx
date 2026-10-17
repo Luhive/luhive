@@ -1,15 +1,15 @@
 import type { Community } from "~/modules/hub/model/hub-types";
-import { ExploreCommunityCard } from "~/modules/hub/components/v2/explore-community-card";
-import { ExploreCommunityRow } from "~/modules/hub/components/v2/explore-community-row";
-import { HubEmptyMessage } from "~/modules/hub/components/v2/hub-empty-message";
+import { ExploreCommunityCard } from "~/modules/hub/components/explore-community-card";
+import { ExploreCommunityRow } from "~/modules/hub/components/explore-community-row";
+import { HubEmptyMessage } from "~/modules/hub/components/hub-empty-message";
 import {
   communityGridClassName,
   communityListClassName,
   communityListFrameClassName,
   sectionClassName,
-} from "~/modules/hub/components/v2/hub-grid-layout";
-import { HubSectionHeader } from "~/modules/hub/components/v2/hub-section-header";
-import { HubSectionMoreButton } from "~/modules/hub/components/v2/hub-section-more-button";
+} from "~/modules/hub/components/hub-grid-layout";
+import { HubSectionHeader } from "~/modules/hub/components/hub-section-header";
+import { HubSectionMoreButton } from "~/modules/hub/components/hub-section-more-button";
 import { useSectionExpansion } from "~/modules/hub/hooks/use-section-expansion";
 import { getRiseDelayMs } from "~/modules/hub/utils/get-rise-delay-ms";
 import { matchesSearchQuery } from "~/modules/hub/utils/matches-search-query";

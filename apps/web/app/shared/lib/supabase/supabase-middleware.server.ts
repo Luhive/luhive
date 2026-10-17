@@ -4,6 +4,17 @@ import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-c
 
 const SUPABASE_COOKIE_PREFIX = "sb-";
 
+/**
+ * Public responses cached by CDNs for every visitor. They get a signed-out client and no
+ * session refresh, so one visitor's cookies can never be stored in a shared cache.
+ */
+const SESSIONLESS_PATH_PREFIXES = ["/api/og/"];
+
+function isSessionlessRequest(request: Request) {
+  const { pathname } = new URL(request.url);
+  return SESSIONLESS_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 function listCookieNames(setCookieHeaders: string[]) {
   return setCookieHeaders.map((header) => header.slice(0, header.indexOf("=")));
 }
@@ -26,6 +37,12 @@ export const supabaseMiddleware: MiddlewareFunction<Response> = async (
   { request, context },
   next,
 ) => {
+  if (isSessionlessRequest(request)) {
+    const { supabase } = createClient(new Request(request.url));
+    context.set(requestSupabaseContext, { supabase, findAuthUser: async () => null });
+    return next();
+  }
+
   const { supabase, headers } = createClient(request);
 
   let authUserPromise: ReturnType<typeof readAuthUser> | undefined;

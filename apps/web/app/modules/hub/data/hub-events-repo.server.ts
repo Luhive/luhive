@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/shared/models/database.types";
 import type { HubEvent } from "~/shared/models/entity.types";
-import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
+import type { HubEventSummary } from "~/modules/hub/model/hub-types";
 
 const HUB_EVENT_COLUMNS =
   "id, slug, title, cover_url, start_time, end_time, timezone, location_name, event_type, community_slug, community_name";

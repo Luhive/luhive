@@ -1,14 +1,14 @@
-import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
-import { ExploreEventCard } from "~/modules/hub/components/v2/explore-event-card";
-import { HubEmptyMessage } from "~/modules/hub/components/v2/hub-empty-message";
+import type { HubEventSummary } from "~/modules/hub/model/hub-types";
+import { ExploreEventCard } from "~/modules/hub/components/explore-event-card";
+import { HubEmptyMessage } from "~/modules/hub/components/hub-empty-message";
 import {
   eventGridClassName,
   sectionClassName,
-} from "~/modules/hub/components/v2/hub-grid-layout";
-import { HubSectionHeader } from "~/modules/hub/components/v2/hub-section-header";
-import { HubSectionMoreButton } from "~/modules/hub/components/v2/hub-section-more-button";
-import { NoUpcomingEventsNotice } from "~/modules/hub/components/v2/no-upcoming-events-notice";
-import { PastEventsBlock } from "~/modules/hub/components/v2/past-events-block";
+} from "~/modules/hub/components/hub-grid-layout";
+import { HubSectionHeader } from "~/modules/hub/components/hub-section-header";
+import { HubSectionMoreButton } from "~/modules/hub/components/hub-section-more-button";
+import { NoUpcomingEventsNotice } from "~/modules/hub/components/no-upcoming-events-notice";
+import { PastEventsBlock } from "~/modules/hub/components/past-events-block";
 import { useSectionExpansion } from "~/modules/hub/hooks/use-section-expansion";
 import { getRiseDelayMs } from "~/modules/hub/utils/get-rise-delay-ms";
 import { matchesSearchQuery } from "~/modules/hub/utils/matches-search-query";

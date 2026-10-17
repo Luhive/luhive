@@ -11,7 +11,7 @@ export default [
 
   // Routes with top navigation layout
   layout("routes/web/layout.tsx", [
-    route("hub", "routes/web/hub.tsx"),
+    route("hub-legacy", "routes/web/hub-legacy.tsx"),
     route("profile", "routes/web/profile.tsx"),
     route("c/:slug", "routes/web/community-layout.tsx", [
       index("routes/web/community-index.tsx"),
@@ -54,9 +54,8 @@ export default [
     // ),
   ]),
 
-  // Hub redesign, standalone with its own navigation for side-by-side comparison
-  route("hubv2", "routes/web/hubv2.tsx"),
-
+  // Hub, standalone with its own navigation
+  route("hub", "routes/web/hub.tsx"),
   route("login", "routes/auth/login.tsx"),
   route("signup", "routes/auth/register.tsx"),
 
@@ -109,6 +108,7 @@ export default [
 
   // OG image generation
   route("api/og/event/:slug/:eventSlug", "routes/api/og/event.tsx"),
+  route("api/og/hub/:week", "routes/api/og/hub.tsx"),
 
   // Events API routes
   route("api/events/create", "routes/api/events/create.tsx"),

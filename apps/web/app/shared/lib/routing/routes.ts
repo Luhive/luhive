@@ -18,7 +18,7 @@ const API_BASE = "/api";
 export class Routes {
   static home = "/";
   static hub = "/hub";
-  static hubV2 = "/hubv2";
+  static hubLegacy = "/hub-legacy";
   static profile = "/profile";
   static login = "/login";
   static signup = "/signup";

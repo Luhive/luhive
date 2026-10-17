@@ -324,7 +324,7 @@ export default function CommunityIndexPage() {
       )} */}
 
         <Activity mode={isOwner ? "visible" : "hidden"}>
-          <div className="fixed top-4 right-4 z-50">
+          <div className="fixed bottom-4 right-4 z-50 md:bottom-auto md:top-[88px]">
             <div className="flex flex-col gap-2">
               <TooltipProvider delayDuration={200}>
                 <Tooltip>

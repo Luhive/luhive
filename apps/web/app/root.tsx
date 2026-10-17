@@ -6,11 +6,13 @@ import {
   Scripts,
   ScrollRestoration,
   useLocation,
+  useMatches,
 } from "react-router";
 import { useEffect } from "react";
 
 import { analytics } from "~/shared/lib/analytics/analytics";
 import { readFirstTouchSource } from "~/shared/lib/first-touch.server";
+import { supabaseMiddleware } from "~/shared/lib/supabase/supabase-middleware.server";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -19,8 +21,11 @@ import manrope500Url from "./assets/fonts/manrope-v20-latin_latin-ext-500.woff2?
 import manrope600Url from "./assets/fonts/manrope-v20-latin_latin-ext-600.woff2?url";
 import manrope700Url from "./assets/fonts/manrope-v20-latin_latin-ext-700.woff2?url";
 import { Toaster } from "~/shared/components/ui/sonner";
+import { NavigationProgress } from "~/shared/components/navigation-progress";
 import ErrorComponent from "./routes/error";
 import { QueryProvider } from "~/shared/lib/query/query-provider";
+
+export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
 export async function loader({ request }: Route.LoaderArgs) {
   return { firstTouchSource: readFirstTouchSource(request) };
@@ -38,8 +43,20 @@ export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900&display=swap" },
 ];
 
+const DEFAULT_VIEWPORT = "width=device-width, initial-scale=1";
+
+/** Routes opt into edge-to-edge layout with `handle = { viewportFit: "cover" }`. */
+function useViewportContent() {
+  const matches = useMatches();
+  const isEdgeToEdge = matches.some(
+    (match) => (match.handle as { viewportFit?: string } | undefined)?.viewportFit === "cover",
+  );
+  return isEdgeToEdge ? `${DEFAULT_VIEWPORT}, viewport-fit=cover` : DEFAULT_VIEWPORT;
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const viewportContent = useViewportContent();
 
   useEffect(() => {
     analytics.trackPageView(location.pathname);
@@ -49,7 +66,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content={viewportContent} />
         <Meta />
         <Links />
         <script
@@ -63,6 +80,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body>
+        <NavigationProgress />
         {children}
         <Toaster position="bottom-right" />
         <ScrollRestoration />

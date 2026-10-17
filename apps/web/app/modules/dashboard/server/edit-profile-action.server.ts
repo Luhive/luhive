@@ -1,11 +1,9 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import type { ActionFunctionArgs } from "react-router";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { countWords } from "~/shared/lib/utils/text";
 
-export async function action({
-  request,
-  params,
-}: { request: Request; params: Record<string, string | undefined> }) {
-  const { supabase } = createClient(request);
+export async function action({ request, params, context }: ActionFunctionArgs) {
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
   const formData = await request.formData();
   const slug = (params as { slug?: string }).slug;
 
@@ -13,8 +11,8 @@ export async function action({
     return { success: false, error: "Invalid community" };
   }
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const user = await findAuthUser();
+  if (!user) {
     return { success: false, error: "Authentication required" };
   }
 

@@ -1,5 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
-import { createClient, createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import {
   getMemberById,
   updateMemberRole,
@@ -7,18 +8,15 @@ import {
 
 type RoleIntent = "promote" | "demote";
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== "POST") {
     return { success: false, error: "Method not allowed" };
   }
 
-  const { supabase } = createClient(request);
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
+  const user = await findAuthUser();
 
-  if (authError || !user) {
+  if (!user) {
     return { success: false, error: "Unauthorized" };
   }
 

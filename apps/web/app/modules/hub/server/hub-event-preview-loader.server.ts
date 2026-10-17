@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
-import type { HubEventPreviewResponse } from "~/modules/hub/model/hub-v2-types";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
+import type { HubEventPreviewResponse } from "~/modules/hub/model/hub-types";
 import { findHubEventPreview } from "~/modules/hub/data/hub-event-preview-repo.server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -12,11 +12,11 @@ function respond(body: HubEventPreviewResponse, status = 200) {
   });
 }
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ params, context }: LoaderFunctionArgs) {
   const eventId = params.eventId ?? "";
   if (!UUID_PATTERN.test(eventId)) return respond({ preview: null }, 404);
 
-  const { supabase } = createClient(request);
+  const { supabase } = context.get(requestSupabaseContext);
   const { preview, error } = await findHubEventPreview(supabase, eventId);
 
   if (error) {

@@ -1,23 +1,20 @@
-import { createClient, createServiceRoleClient } from "~/shared/lib/supabase/server";
+import type { LoaderFunctionArgs } from "react-router";
+import { createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { getNotifyRegistrations } from "~/modules/dashboard/data/notification-settings-repo.server";
 import type { NotificationSettingsLoaderData } from "~/modules/dashboard/model/dashboard-types";
 
 export async function loader({
-  request,
   params,
-}: {
-  request: Request;
-  params: Record<string, string | undefined>;
-}): Promise<NotificationSettingsLoaderData> {
+  context,
+}: LoaderFunctionArgs): Promise<NotificationSettingsLoaderData> {
   const slug = params.slug;
   if (!slug) {
     return { notifyRegistrations: true };
   }
 
-  const { supabase } = createClient(request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
+  const user = await findAuthUser();
 
   if (!user) {
     return { notifyRegistrations: true };

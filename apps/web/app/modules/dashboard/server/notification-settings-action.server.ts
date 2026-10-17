@@ -1,8 +1,9 @@
 import type { ActionFunctionArgs } from "react-router";
-import { createClient, createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { updateNotifyRegistrations } from "~/modules/dashboard/data/notification-settings-repo.server";
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params, context }: ActionFunctionArgs) {
   if (request.method !== "POST") {
     return { success: false, error: "Method not allowed" };
   }
@@ -12,13 +13,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return { success: false, error: "Invalid community" };
   }
 
-  const { supabase } = createClient(request);
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
+  const user = await findAuthUser();
 
-  if (authError || !user) {
+  if (!user) {
     return { success: false, error: "Authentication required" };
   }
 

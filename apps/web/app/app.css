@@ -54,6 +54,7 @@
   --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-geologica: "Geologica", ui-sans-serif, system-ui, sans-serif;
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html,
@@ -282,7 +283,7 @@ body {
   animation: gradient-flow 3s ease infinite;
 }
 
-/* Hub v2: cards rise in with a short stagger set through --rise-delay */
+/* Hub: cards rise in with a short stagger set through --rise-delay */
 @keyframes hub-rise {
   from {
     opacity: 0;
@@ -297,8 +298,12 @@ body {
 }
 
 .animate-hub-rise {
-  animation: hub-rise 520ms var(--ease-out-strong) both;
+  animation: hub-rise 400ms var(--ease-out-strong) both;
   animation-delay: var(--rise-delay, 0ms);
+}
+
+.animate-hub-fade-in {
+  animation: hub-fade 180ms var(--ease-out-strong) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -306,6 +311,78 @@ body {
     animation-name: hub-fade;
     animation-duration: 200ms;
   }
+
+  /* vaul always slides; fade instead. Selector must outrank vaul's own drawer rules. */
+  [data-vaul-drawer].hub-event-drawer[data-vaul-snap-points="false"][data-vaul-drawer-direction="bottom"][data-state="open"] {
+    animation-name: fadeIn;
+  }
+
+  [data-vaul-drawer].hub-event-drawer[data-vaul-snap-points="false"][data-vaul-drawer-direction="bottom"][data-state="closed"] {
+    animation-name: fadeOut;
+  }
+}
+
+/* Page navigation progress. The 150ms delay keeps fast navigations from flashing the bar;
+   the long strong ease-out moves quickly at first, then crawls so it never looks finished. */
+.navigation-progress {
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.navigation-progress[data-state="loading"] {
+  opacity: 1;
+  transform: scaleX(0.9);
+  transition:
+    transform 10s var(--ease-out-strong) 150ms,
+    opacity 150ms var(--ease-out-strong) 150ms;
+}
+
+.navigation-progress[data-state="complete"] {
+  opacity: 0;
+  transform: scaleX(1);
+  transition:
+    transform 200ms var(--ease-out-strong),
+    opacity 200ms var(--ease-out-strong) 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation-progress,
+  .navigation-progress[data-state] {
+    transform: none;
+  }
+
+  .navigation-progress[data-state="loading"] {
+    transition: opacity 200ms var(--ease-out-strong) 150ms;
+  }
+
+  .navigation-progress[data-state="complete"] {
+    transition: opacity 200ms var(--ease-out-strong);
+  }
+}
+
+/* Hub touch surface. Applied to the page root and to portalled drawer/menu content. */
+.hub-touch-surface {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+.hub-touch-surface :is(a, button, [role="button"], [role="menuitem"]) {
+  touch-action: manipulation;
+}
+
+/* Backdrop tint is commented out with <HubBackdrop />.
+   Safari 26 paints its status/tool bars from the page background, not theme-color.
+html:has(.hub-touch-surface),
+html:has(.hub-touch-surface) body {
+  background-color: #fff3f1;
+}
+*/
+
+.hub-touch-surface :is(button, [role="button"], [role="menuitem"], [data-hub-control]) {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* Gradient text for hero section */

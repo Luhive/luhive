@@ -1,4 +1,4 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import {
   createOAuth2Client,
   setCredentials,
@@ -15,18 +15,15 @@ export type GoogleFormsLoaderData = {
 };
 
 export async function loader({
-  request,
   params,
+  context,
 }: LoaderFunctionArgs): Promise<GoogleFormsLoaderData> {
-  const { supabase } = createClient(request);
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
   const slug = (params as { slug?: string }).slug ?? "";
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const user = await findAuthUser();
 
-  if (authError || !user) {
+  if (!user) {
     return {
       connected: false,
       forms: [],

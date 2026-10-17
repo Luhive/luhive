@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { HubEventPreviewResponse } from "~/modules/hub/model/hub-v2-types";
+import type { HubEventPreviewResponse } from "~/modules/hub/model/hub-types";
 import { Routes } from "~/shared/lib/routing/routes";
 
 const hubEventPreviewKey = (eventId: string) => ["hub-event-preview", eventId] as const;

@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import {
 	createOAuth2Client,
 	setCredentials,
@@ -9,17 +9,17 @@ import {
 	parseResponses,
 } from "~/modules/integrations/providers/google-forms/data/google-forms-repo.server";
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
-	const { supabase, headers } = createClient(request);
+export async function loader({ params, context }: LoaderFunctionArgs) {
+	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 	const { formId } = params;
 
 	if (!formId) {
-		return Response.json({ error: "Missing form ID" }, { status: 400, headers });
+		return Response.json({ error: "Missing form ID" }, { status: 400 });
 	}
 
-	const { data: { user }, error: authError } = await supabase.auth.getUser();
-	if (authError || !user) {
-		return Response.json({ error: "Not authenticated" }, { status: 401, headers });
+	const user = await findAuthUser();
+	if (!user) {
+		return Response.json({ error: "Not authenticated" }, { status: 401 });
 	}
 
 	try {
@@ -30,7 +30,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 			.single();
 
 		if (tokenError || !tokenData) {
-			return Response.json({ error: "Google account not connected" }, { status: 401, headers });
+			return Response.json({ error: "Google account not connected" }, { status: 401 });
 		}
 
 		const oauth2Client = createOAuth2Client();
@@ -52,20 +52,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 				questions,
 				count: parsedResponses.length,
 				responses: parsedResponses,
-			},
-			{ headers }
+			}
 		);
 	} catch (error: any) {
 		console.error("Error getting responses:", error);
 		if (error.code === 401 || error.message?.includes("invalid_grant")) {
 			return Response.json(
 				{ error: "token_expired", message: "Your Google connection has expired" },
-				{ status: 401, headers }
+				{ status: 401 }
 			);
 		}
 		return Response.json(
 			{ error: "Failed to get responses", message: error.message },
-			{ status: 500, headers }
+			{ status: 500 }
 		);
 	}
 }

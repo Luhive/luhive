@@ -1,7 +1,10 @@
-import { createClient, createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { ActionFunctionArgs } from "react-router";
 
-export async function action({ request }: ActionFunctionArgs) {
+const jsonHeaders = { "Content-Type": "application/json" };
+
+export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -23,11 +26,9 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     }
 
-    const { supabase, headers } = createClient(request);
+    const { findAuthUser } = context.get(requestSupabaseContext);
     const serviceClient = createServiceRoleClient() as any;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await findAuthUser();
 
     console.log(`[Web Tracking] Auth status:`, {
       isAuthenticated: !!user?.id,
@@ -36,10 +37,9 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     if (!user?.id && !sessionId) {
-      headers.set("Content-Type", "application/json");
       return new Response(JSON.stringify({ error: "Missing sessionId for anonymous view" }), {
         status: 400,
-        headers,
+        headers: jsonHeaders,
       });
     }
 
@@ -56,10 +56,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (existingError) {
       console.error("Error checking existing announcement view:", existingError);
-      headers.set("Content-Type", "application/json");
       return new Response(JSON.stringify({ error: "Failed to check existing view" }), {
         status: 500,
-        headers,
+        headers: jsonHeaders,
       });
     }
 
@@ -86,10 +85,9 @@ export async function action({ request }: ActionFunctionArgs) {
           code: (insertError as any).code,
           details: (insertError as any).details,
         });
-        headers.set("Content-Type", "application/json");
         return new Response(JSON.stringify({ error: "Failed to record view" }), {
           status: 500,
-          headers,
+          headers: jsonHeaders,
         });
       }
       console.log(`[Web Tracking] ✅ View recorded`);
@@ -103,18 +101,16 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (countError) {
       console.error("Error fetching view count:", countError);
-      headers.set("Content-Type", "application/json");
       return new Response(JSON.stringify({ error: "Failed to fetch view count" }), {
         status: 500,
-        headers,
+        headers: jsonHeaders,
       });
     }
 
     console.log(`[Web Tracking] ✅ View count: ${viewCount || 0}`);
-    headers.set("Content-Type", "application/json");
     return new Response(JSON.stringify({ success: true, viewCount: viewCount || 0 }), {
       status: 200,
-      headers,
+      headers: jsonHeaders,
     });
   } catch (error) {
     console.error("Error in track-view endpoint:", error);

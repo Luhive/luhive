@@ -1,4 +1,4 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { sendCommunityWaitlistNotification } from "~/shared/lib/email.server";
 import { redirect } from "react-router";
 import type { ActionFunctionArgs } from "react-router";
@@ -10,15 +10,13 @@ export type CreateCommunityActionData = {
 
 export async function action({
   request,
+  context,
 }: ActionFunctionArgs): Promise<CreateCommunityActionData | Response> {
-  const { supabase } = createClient(request);
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const user = await findAuthUser();
 
-  if (authError || !user) {
+  if (!user) {
     return { success: false, error: "Authentication required" };
   }
 

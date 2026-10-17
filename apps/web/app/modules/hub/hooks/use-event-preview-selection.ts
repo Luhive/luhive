@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type {
   HubEventPreviewLocationState,
   HubEventSummary,
-} from "~/modules/hub/model/hub-v2-types";
+} from "~/modules/hub/model/hub-types";
 
 export const EVENT_PREVIEW_PARAM = "event";
 

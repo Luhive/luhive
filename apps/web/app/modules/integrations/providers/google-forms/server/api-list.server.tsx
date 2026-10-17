@@ -1,15 +1,15 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { createOAuth2Client, setCredentials, listForms } from "~/modules/integrations/providers/google-forms/data/google-forms-repo.server";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-	const { supabase, headers } = createClient(request);
+export async function loader({ context }: LoaderFunctionArgs) {
+	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
-	const { data: { user }, error: authError } = await supabase.auth.getUser();
-	if (authError || !user) {
+	const user = await findAuthUser();
+	if (!user) {
 		return Response.json(
 			{ error: "Not authenticated", message: "Please log in first" },
-			{ status: 401, headers }
+			{ status: 401 }
 		);
 	}
 
@@ -22,8 +22,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 		if (tokenError || !tokenData) {
 			return Response.json(
-				{ connected: false, forms: [], message: "Please connect your Google account to view forms" },
-				{ headers }
+				{ connected: false, forms: [], message: "Please connect your Google account to view forms" }
 			);
 		}
 
@@ -46,20 +45,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
 					modifiedTime: form.modifiedTime,
 					webViewLink: form.webViewLink,
 				})),
-			},
-			{ headers }
+			}
 		);
 	} catch (error: any) {
 		console.error("Error listing forms:", error);
 		if (error.code === 401 || error.message?.includes("invalid_grant")) {
 			return Response.json(
 				{ connected: false, error: "token_expired", message: "Your Google connection has expired. Please reconnect." },
-				{ status: 401, headers }
+				{ status: 401 }
 			);
 		}
 		return Response.json(
 			{ error: "Failed to list forms", message: error.message },
-			{ status: 500, headers }
+			{ status: 500 }
 		);
 	}
 }

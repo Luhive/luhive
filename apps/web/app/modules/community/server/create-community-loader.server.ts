@@ -1,4 +1,4 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { redirect } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 
@@ -7,16 +7,13 @@ export type CreateCommunityLoaderData = {
 };
 
 export async function loader({
-  request,
+  context,
 }: LoaderFunctionArgs): Promise<CreateCommunityLoaderData | Response> {
-  const { supabase } = createClient(request);
+  const { findAuthUser } = context.get(requestSupabaseContext);
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const user = await findAuthUser();
 
-  if (authError || !user) {
+  if (!user) {
     return redirect("/signup?redirect=/create-community");
   }
 

@@ -1,6 +1,5 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { LoaderFunctionArgs } from "react-router";
-import type { Database } from "~/shared/models/database.types";
 import { Profile } from "~/shared/models/entity.types";
 
 
@@ -10,16 +9,13 @@ export type ProfileLoaderData = {
 };
 
 export async function loader({
-  request,
+  context,
 }: LoaderFunctionArgs): Promise<ProfileLoaderData> {
-  const { supabase } = createClient(request);
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
-  const {
-    data: { user: authUser },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const authUser = await findAuthUser();
 
-  if (authError || !authUser) {
+  if (!authUser) {
     return { user: null, email: null };
   }
 

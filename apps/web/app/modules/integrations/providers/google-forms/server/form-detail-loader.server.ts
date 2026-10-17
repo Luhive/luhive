@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import {
 	createOAuth2Client,
 	setCredentials,
@@ -12,8 +12,8 @@ import type { FormDetailLoaderData } from "~/modules/integrations/providers/goog
 
 export type { FormDetailLoaderData };
 
-export async function loader({ request, params }: LoaderFunctionArgs): Promise<FormDetailLoaderData> {
-	const { supabase } = createClient(request);
+export async function loader({ params, context }: LoaderFunctionArgs): Promise<FormDetailLoaderData> {
+	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 	const { slug, formId } = params;
 
 	const defaultReturn: FormDetailLoaderData = {
@@ -29,8 +29,8 @@ export async function loader({ request, params }: LoaderFunctionArgs): Promise<F
 		return { ...defaultReturn, error: "Form ID is required" };
 	}
 
-	const { data: { user }, error: authError } = await supabase.auth.getUser();
-	if (authError || !user) {
+	const user = await findAuthUser();
+	if (!user) {
 		return { ...defaultReturn, error: "Not authenticated" };
 	}
 

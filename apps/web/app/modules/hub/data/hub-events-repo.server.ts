@@ -1,13 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/shared/models/database.types";
 import type { HubEvent } from "~/shared/models/entity.types";
-import type { HubEventSummary } from "~/modules/hub/model/hub-v2-types";
+import type { HubEventSummary } from "~/modules/hub/model/hub-types";
 
 const HUB_EVENT_COLUMNS =
-  "id, slug, title, cover_url, start_time, end_time, timezone, location_name, community_slug, community_name";
+  "id, slug, title, cover_url, start_time, end_time, timezone, location_name, event_type, community_slug, community_name";
 
-const UPCOMING_EVENT_LIMIT = 48;
-const PAST_EVENT_LIMIT = 24;
+/** PostgREST's default max-rows; the hub shows every published event up to it. */
+const HUB_EVENT_LIMIT = 1000;
 
 type HubEventColumns = Pick<
   HubEvent,
@@ -19,6 +19,7 @@ type HubEventColumns = Pick<
   | "end_time"
   | "timezone"
   | "location_name"
+  | "event_type"
   | "community_slug"
   | "community_name"
 >;
@@ -45,6 +46,7 @@ function toHubEventSummary(row: HubEventColumns): HubEventSummary | null {
     endTime: row.end_time,
     timezone: row.timezone,
     locationName: row.location_name,
+    isOnline: row.event_type === "online",
     communitySlug: row.community_slug,
     communityName: row.community_name,
   };
@@ -68,7 +70,7 @@ export async function listUpcomingHubEvents(
     .select(HUB_EVENT_COLUMNS)
     .or(`end_time.gte.${nowIso},and(end_time.is.null,start_time.gte.${nowIso})`)
     .order("start_time", { ascending: true })
-    .limit(UPCOMING_EVENT_LIMIT);
+    .limit(HUB_EVENT_LIMIT);
 
   return { events: toHubEventSummaries(data), error };
 }
@@ -83,7 +85,7 @@ export async function listPastHubEvents(
     .select(HUB_EVENT_COLUMNS)
     .or(`end_time.lt.${nowIso},and(end_time.is.null,start_time.lt.${nowIso})`)
     .order("start_time", { ascending: false })
-    .limit(PAST_EVENT_LIMIT);
+    .limit(HUB_EVENT_LIMIT);
 
   return { events: toHubEventSummaries(data), error };
 }

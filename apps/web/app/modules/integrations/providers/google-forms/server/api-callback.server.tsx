@@ -1,10 +1,10 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { createOAuth2Client, getTokensFromCode, GOOGLE_FORMS_SCOPES } from "~/modules/integrations/providers/google-forms/data/google-forms-repo.server";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-	const { supabase, headers } = createClient(request);
+export async function loader({ request, context }: LoaderFunctionArgs) {
+	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 	const url = new URL(request.url);
 	const code = url.searchParams.get("code");
 	const error = url.searchParams.get("error");
@@ -13,10 +13,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	let returnTo = "/dashboard";
 
 	if (error) {
-		return redirect("/dashboard?google_forms_error=authorization_failed", { headers });
+		return redirect("/dashboard?google_forms_error=authorization_failed");
 	}
 	if (!code) {
-		return redirect("/dashboard?google_forms_error=missing_code", { headers });
+		return redirect("/dashboard?google_forms_error=missing_code");
 	}
 
 	let userId: string | null = null;
@@ -30,9 +30,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		}
 	}
 
-	const { data: { user }, error: authError } = await supabase.auth.getUser();
-	if (authError || !user) {
+	const user = await findAuthUser();
+	if (!user) {
 		const returnUrl = new URL(request.url).pathname + new URL(request.url).search;
+		const headers = new Headers();
 		headers.append(
 			"Set-Cookie",
 			`pending_return_to=${encodeURIComponent(returnUrl)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=600`
@@ -41,7 +42,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	}
 	if (!userId) userId = user.id;
 	if (userId !== user.id) {
-		return redirect("/dashboard?google_forms_error=user_mismatch", { headers });
+		return redirect("/dashboard?google_forms_error=user_mismatch");
 	}
 
 	try {
@@ -63,11 +64,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			);
 
 		if (upsertError) {
-			return redirect(`${returnTo}?google_forms_error=save_failed`, { headers });
+			return redirect(`${returnTo}?google_forms_error=save_failed`);
 		}
-		return redirect(`${returnTo}?google_forms_connected=true`, { headers });
+		return redirect(`${returnTo}?google_forms_connected=true`);
 	} catch (err) {
 		console.error("Error in OAuth callback:", err);
-		return redirect(`${returnTo}?google_forms_error=token_exchange_failed`, { headers });
+		return redirect(`${returnTo}?google_forms_error=token_exchange_failed`);
 	}
 }

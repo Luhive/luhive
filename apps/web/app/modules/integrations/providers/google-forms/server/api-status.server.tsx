@@ -1,14 +1,14 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-	const { supabase, headers } = createClient(request);
+export async function loader({ context }: LoaderFunctionArgs) {
+	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
-	const { data: { user }, error: authError } = await supabase.auth.getUser();
-	if (authError || !user) {
+	const user = await findAuthUser();
+	if (!user) {
 		return Response.json(
 			{ connected: false, error: "Not authenticated" },
-			{ status: 401, headers }
+			{ status: 401 }
 		);
 	}
 
@@ -21,21 +21,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 		if (tokenError || !tokenData) {
 			return Response.json(
-				{ connected: false, message: "Google account not connected" },
-				{ headers }
+				{ connected: false, message: "Google account not connected" }
 			);
 		}
 
 		const isExpired = tokenData.expiry_date && new Date(tokenData.expiry_date) < new Date();
 		return Response.json(
-			{ connected: true, isExpired, lastUpdated: tokenData.updated_at },
-			{ headers }
+			{ connected: true, isExpired, lastUpdated: tokenData.updated_at }
 		);
 	} catch (error) {
 		console.error("Error checking Google Forms status:", error);
 		return Response.json(
 			{ connected: false, error: "Failed to check status" },
-			{ status: 500, headers }
+			{ status: 500 }
 		);
 	}
 }

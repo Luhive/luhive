@@ -3,7 +3,7 @@ import { Outlet, useLoaderData, useMatches, useLocation } from "react-router";
 import { useCallback } from "react";
 import { HydrationBoundary } from "@tanstack/react-query";
 import { TopNavigation } from "~/shared/components/navigation";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import Footer from "~/shared/components/footer";
 import {
 	useCurrentUserQuery,
@@ -14,12 +14,9 @@ import { clearEventRegistrationSessionState } from "~/modules/events/hooks/use-e
 import { dehydrateSeed } from "~/shared/lib/query/dehydrate-loader.server";
 import { currentUserKey } from "~/shared/lib/query/query-keys";
 
-export async function loader({ request }: Route.LoaderArgs) {
-	const { supabase } = createClient(request);
-
-	const {
-		data: { user: authUser },
-	} = await supabase.auth.getUser();
+export async function loader({ context }: Route.LoaderArgs) {
+	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
+	const authUser = await findAuthUser();
 
 	let profile = null;
 	if (authUser) {

@@ -2,10 +2,8 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import { redirect } from "react-router";
 import type { DehydratedState } from "@tanstack/react-query";
-import {
-  createClient,
-  createServiceRoleClient,
-} from "~/shared/lib/supabase/server";
+import { createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { LoaderFunctionArgs } from "react-router";
 import type { ExternalPlatform } from "~/modules/events/model/event.types";
 import type { EventPageUserState } from "~/modules/events/model/event-detail-view.types";
@@ -76,9 +74,10 @@ export interface EventDetailLoaderData {
 export async function loader({
   request,
   params,
+  context,
 }: LoaderFunctionArgs): Promise<EventDetailLoaderData> {
   const loaderStartedAt = performance.now();
-  const { supabase } = createClient(request);
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
   const communitySlug = (params as { slug?: string }).slug;
   const eventSlug = (params as { eventSlug?: string }).eventSlug;
@@ -112,9 +111,7 @@ export async function loader({
 
   const [
     { count: regCount },
-    {
-      data: { user: u },
-    },
+    u,
     { collaborations },
     hostCommunityResult,
   ] = await Promise.all([
@@ -128,7 +125,7 @@ export async function loader({
         .eq("rsvp_status", "going")
         .eq("approval_status", "approved"),
     ),
-    timedLoader("eventDetail auth getUser", supabase.auth.getUser()),
+    timedLoader("eventDetail auth getUser", findAuthUser()),
     timedLoader("eventDetail collaborations", getEventCollaborations(supabase, event.id)),
     isHostCommunityPath
       ? Promise.resolve({

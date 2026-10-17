@@ -1,4 +1,4 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 
@@ -19,10 +19,10 @@ export type AnnouncementDetailLoaderData = {
 };
 
 export async function loader({
-  request,
   params,
+  context,
 }: LoaderFunctionArgs): Promise<AnnouncementDetailLoaderData> {
-  const { supabase } = createClient(request);
+  const { supabase } = context.get(requestSupabaseContext);
 
   const announcementId = (params as { announcementId?: string }).announcementId;
   const slug = (params as { slug?: string }).slug;

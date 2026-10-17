@@ -1,16 +1,15 @@
 import { redirect } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { ActionFunctionArgs } from "react-router";
 
-export async function action({ request }: ActionFunctionArgs) {
-  const { supabase, headers } = createClient(request);
+export async function action({ request, context }: ActionFunctionArgs) {
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await findAuthUser();
 
   if (!user) {
     const returnUrl = new URL(request.url).pathname + new URL(request.url).search;
+    const headers = new Headers();
     headers.append(
       "Set-Cookie",
       `pending_return_to=${encodeURIComponent(returnUrl)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=600`

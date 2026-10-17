@@ -1,14 +1,14 @@
 import type { ActionFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 
-export async function action({ request }: ActionFunctionArgs) {
-	const { supabase, headers } = createClient(request);
+export async function action({ context }: ActionFunctionArgs) {
+	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
-	const { data: { user }, error: authError } = await supabase.auth.getUser();
-	if (authError || !user) {
+	const user = await findAuthUser();
+	if (!user) {
 		return Response.json(
 			{ error: "Not authenticated" },
-			{ status: 401, headers }
+			{ status: 401 }
 		);
 	}
 
@@ -19,19 +19,18 @@ export async function action({ request }: ActionFunctionArgs) {
 			console.error("Error deleting tokens:", deleteError);
 			return Response.json(
 				{ error: "Failed to disconnect", message: deleteError.message },
-				{ status: 500, headers }
+				{ status: 500 }
 			);
 		}
 
 		return Response.json(
-			{ success: true, message: "Google account disconnected successfully" },
-			{ headers }
+			{ success: true, message: "Google account disconnected successfully" }
 		);
 	} catch (error: any) {
 		console.error("Error disconnecting Google:", error);
 		return Response.json(
 			{ error: "Failed to disconnect", message: error.message },
-			{ status: 500, headers }
+			{ status: 500 }
 		);
 	}
 }

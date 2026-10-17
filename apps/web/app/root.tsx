@@ -12,6 +12,7 @@ import { useEffect } from "react";
 
 import { analytics } from "~/shared/lib/analytics/analytics";
 import { readFirstTouchSource } from "~/shared/lib/first-touch.server";
+import { supabaseMiddleware } from "~/shared/lib/supabase/supabase-middleware.server";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -23,6 +24,8 @@ import { Toaster } from "~/shared/components/ui/sonner";
 import { NavigationProgress } from "~/shared/components/navigation-progress";
 import ErrorComponent from "./routes/error";
 import { QueryProvider } from "~/shared/lib/query/query-provider";
+
+export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
 
 export async function loader({ request }: Route.LoaderArgs) {
   return { firstTouchSource: readFirstTouchSource(request) };

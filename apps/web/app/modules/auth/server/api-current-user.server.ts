@@ -1,11 +1,9 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-	const { supabase } = createClient(request);
-	const {
-		data: { user: authUser },
-	} = await supabase.auth.getUser();
+export async function loader({ context }: LoaderFunctionArgs) {
+	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
+	const authUser = await findAuthUser();
 
 	if (!authUser) {
 		return Response.json({ user: null });

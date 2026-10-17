@@ -1,4 +1,5 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import type { LoaderFunctionArgs } from "react-router";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { HubData } from "~/modules/hub/model/hub-types";
 import {
   getVisibleCommunities,
@@ -6,11 +7,11 @@ import {
   getAdminCommunityIds,
 } from "~/modules/hub/data/hub-repo.server";
 
-export async function loader({ request }: { request: Request }) {
-  const { supabase } = createClient(request);
+export async function loader({ context }: LoaderFunctionArgs) {
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
   const dataPromise = (async (): Promise<HubData> => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await findAuthUser();
 
     const { communities, error } = await getVisibleCommunities(supabase);
 

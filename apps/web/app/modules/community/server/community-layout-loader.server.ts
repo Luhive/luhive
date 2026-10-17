@@ -1,5 +1,5 @@
 import { redirect } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { LoaderFunctionArgs } from "react-router";
 import type { Community } from "~/modules/community/model/community-types";
 import type { Profile } from "~/shared/models/entity.types";
@@ -25,16 +25,12 @@ export type CommunityLayoutLoaderData = {
 export async function loader({
   request,
   params,
+  context,
 }: LoaderFunctionArgs): Promise<CommunityLayoutLoaderData> {
   const loaderStartedAt = performance.now();
-  const { supabase } = createClient(request);
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
-  const {
-    data: { user },
-  } = await timedLoader(
-    "communityLayout auth getUser",
-    supabase.auth.getUser(),
-  );
+  const user = await timedLoader("communityLayout auth getUser", findAuthUser());
 
   const slug = (params as { slug?: string }).slug;
 

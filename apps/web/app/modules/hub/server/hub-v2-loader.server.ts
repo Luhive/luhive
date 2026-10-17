@@ -1,4 +1,5 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import type { LoaderFunctionArgs } from "react-router";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { HubV2LoaderData } from "~/modules/hub/model/hub-v2-types";
 import {
   getAdminCommunityIds,
@@ -11,11 +12,11 @@ import {
   listUpcomingHubEvents,
 } from "~/modules/hub/data/hub-events-repo.server";
 
-export async function loader({ request }: { request: Request }): Promise<HubV2LoaderData> {
-  const { supabase } = createClient(request);
+export async function loader({ context }: LoaderFunctionArgs): Promise<HubV2LoaderData> {
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
   const now = new Date();
 
-  const authUserPromise = supabase.auth.getUser().then(({ data }) => data.user ?? null);
+  const authUserPromise = findAuthUser();
   const userIdPromise = authUserPromise.then((user) => user?.id ?? null);
 
   const adminIdsPromise = userIdPromise.then((userId) =>

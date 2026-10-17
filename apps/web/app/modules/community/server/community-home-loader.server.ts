@@ -1,4 +1,4 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { getUserAgent } from "~/modules/community/utils/user-agent";
 import { getIpLocation } from "~/modules/community/utils/get-ip-location";
 import {
@@ -26,8 +26,9 @@ export type CommunityHomeLoaderData = {
 export async function loader({
   request,
   params,
+  context,
 }: LoaderFunctionArgs): Promise<CommunityHomeLoaderData> {
-  const { supabase } = createClient(request);
+  const { supabase } = context.get(requestSupabaseContext);
 
   const userAgent = getUserAgent(request);
   const location = getIpLocation(request);

@@ -1,10 +1,10 @@
 import { redirect } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { Routes } from "~/shared/lib/routing/routes";
 import { resolvePublicEvent } from "~/modules/events/server/resolve-public-event.server";
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ params, context }: LoaderFunctionArgs) {
   const communitySlug = (params as { slug?: string }).slug;
   const eventId = (params as { eventId?: string }).eventId;
 
@@ -12,7 +12,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const { supabase } = createClient(request);
+  const { supabase } = context.get(requestSupabaseContext);
   const resolved = await resolvePublicEvent(supabase, communitySlug, eventId, {
     publishedOnly: false,
   });

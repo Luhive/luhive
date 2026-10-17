@@ -1,10 +1,10 @@
-import { createClient } from "~/shared/lib/supabase/server";
+import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { Database } from "~/shared/models/database.types";
 import type { VisitAnalytics } from "~/modules/community/utils/visit-tracker";
 import type { ActionFunctionArgs } from "react-router";
 
-export async function action({ request }: ActionFunctionArgs) {
-  const { supabase } = createClient(request);
+export async function action({ request, context }: ActionFunctionArgs) {
+  const { supabase, findAuthUser } = context.get(requestSupabaseContext);
 
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -16,9 +16,7 @@ export async function action({ request }: ActionFunctionArgs) {
       const analyticsData = formData.get("analytics") as string;
       const analytics: VisitAnalytics = JSON.parse(analyticsData);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await findAuthUser();
 
       supabase
         .from("community_visits")

@@ -10,6 +10,7 @@ import type { HubV2LoaderData } from "~/modules/hub/model/hub-v2-types";
 import { HubV2Navigation } from "~/modules/hub/components/v2/hub-v2-navigation";
 import { HubAccountActions } from "~/modules/hub/components/v2/hub-account-actions";
 import { HubV2Footer } from "~/modules/hub/components/v2/hub-v2-footer";
+import { HubBackdrop } from "~/modules/hub/components/v2/hub-backdrop";
 import { HubSectionHeader } from "~/modules/hub/components/v2/hub-section-header";
 import { ExploreCommunitiesSection } from "~/modules/hub/components/v2/explore-communities-section";
 import { ExploreEventsSection } from "~/modules/hub/components/v2/explore-events-section";
@@ -46,7 +47,8 @@ export default function HubV2Page() {
   const normalizedQuery = normalizeSearchQuery(useDeferredValue(searchQuery));
 
   return (
-    <div className="hub-touch-surface flex min-h-svh flex-col bg-white font-inter text-[#111] antialiased">
+    <div className="hub-touch-surface isolate flex min-h-svh flex-col bg-white font-inter text-[#111] antialiased">
+      <HubBackdrop />
       <HubV2Navigation
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}

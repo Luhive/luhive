@@ -6,6 +6,7 @@ import {
   sectionClassName,
 } from "~/modules/hub/components/v2/hub-grid-layout";
 import { HubSectionHeader } from "~/modules/hub/components/v2/hub-section-header";
+import { HubSectionMoreButton } from "~/modules/hub/components/v2/hub-section-more-button";
 import { NoUpcomingEventsNotice } from "~/modules/hub/components/v2/no-upcoming-events-notice";
 import { PastEventsBlock } from "~/modules/hub/components/v2/past-events-block";
 import { useSectionExpansion } from "~/modules/hub/hooks/use-section-expansion";
@@ -37,6 +38,7 @@ export function ExploreEventsSection({
   const isShowingAll = isExpanded || isSearching;
   const visible = isShowingAll ? matches : matches.slice(0, PREVIEW_COUNT);
   const shouldShowPastEvents = isShowingAll || !hasUpcomingEvents;
+  const canToggle = !isSearching && hasUpcomingEvents;
 
   let pastEmptyMessage: string | null = null;
   if (!hasUpcomingEvents) {
@@ -51,8 +53,9 @@ export function ExploreEventsSection({
         id={HEADING_ID}
         title="Explore Events"
         isExpanded={isExpanded}
-        onToggle={isSearching || !hasUpcomingEvents ? undefined : toggle}
+        onToggle={canToggle ? toggle : undefined}
         controlsId={LIST_ID}
+        toggleClassName="max-sm:hidden"
       />
 
       <div
@@ -88,6 +91,15 @@ export function ExploreEventsSection({
           />
         )}
       </div>
+
+      {canToggle && (
+        <HubSectionMoreButton
+          label="See all events"
+          isExpanded={isExpanded}
+          onToggle={toggle}
+          controlsId={LIST_ID}
+        />
+      )}
     </section>
   );
 }

@@ -9,6 +9,7 @@ import {
   sectionClassName,
 } from "~/modules/hub/components/v2/hub-grid-layout";
 import { HubSectionHeader } from "~/modules/hub/components/v2/hub-section-header";
+import { HubSectionMoreButton } from "~/modules/hub/components/v2/hub-section-more-button";
 import { useSectionExpansion } from "~/modules/hub/hooks/use-section-expansion";
 import { getRiseDelayMs } from "~/modules/hub/utils/get-rise-delay-ms";
 import { matchesSearchQuery } from "~/modules/hub/utils/matches-search-query";
@@ -52,9 +53,9 @@ export function ExploreCommunitiesSection({
         id={HEADING_ID}
         title="Explore Communities"
         isExpanded={isExpanded}
-        onToggle={canToggle ? toggle : undefined}
-        controlsId={`${LIST_ID} ${GRID_ID}`}
-        toggleClassName={hasMoreThanGrid ? undefined : "sm:hidden"}
+        onToggle={canToggle && hasMoreThanGrid ? toggle : undefined}
+        controlsId={GRID_ID}
+        toggleClassName="max-sm:hidden"
       />
 
       {matches.length === 0 ? (
@@ -63,16 +64,26 @@ export function ExploreCommunitiesSection({
         </HubEmptyMessage>
       ) : (
         <>
-          <div className={cn(communityListFrameClassName, "sm:hidden")}>
-            <ul id={LIST_ID} className={communityListClassName}>
-              {listItems.map((community, index) => (
-                <ExploreCommunityRow
-                  key={community.id}
-                  community={community}
-                  riseDelayMs={getPreviewRiseDelayMs(index, LIST_PREVIEW_COUNT)}
-                />
-              ))}
-            </ul>
+          <div className="flex flex-col gap-3 sm:hidden">
+            <div className={communityListFrameClassName}>
+              <ul id={LIST_ID} className={communityListClassName}>
+                {listItems.map((community, index) => (
+                  <ExploreCommunityRow
+                    key={community.id}
+                    community={community}
+                    riseDelayMs={getPreviewRiseDelayMs(index, LIST_PREVIEW_COUNT)}
+                  />
+                ))}
+              </ul>
+            </div>
+            {canToggle && (
+              <HubSectionMoreButton
+                label="See all communities"
+                isExpanded={isExpanded}
+                onToggle={toggle}
+                controlsId={LIST_ID}
+              />
+            )}
           </div>
 
           <div id={GRID_ID} className={cn(communityGridClassName, "hidden sm:grid")}>

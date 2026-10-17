@@ -33,9 +33,18 @@ export type HubEventPreviewLocationState = {
   hubEventSummary: HubEventSummary;
 };
 
+/** A community the viewer owns or administers, shown in their account menu. */
+export type ManagedCommunity = {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+};
+
 /** The signed-in person shown in the /hubv2 navigation. */
 export type HubViewer = NonNullable<UserData> & {
   email: string | null;
+  managedCommunities: ManagedCommunity[];
 };
 
 /** Loader return shape for /hubv2; each section streams independently. */

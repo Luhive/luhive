@@ -21,7 +21,7 @@ export function ExploreCommunityRow({ community, riseDelayMs }: ExploreCommunity
         data-hub-control
         className="flex items-center gap-3 px-3.5 py-3 outline-none transition-colors duration-150 ease-standard active:bg-[#f6f6f6] focus-visible:bg-[#f6f6f6]"
       >
-        <CommunityLogo community={community} className="size-10 rounded-[10px]" />
+        <CommunityLogo name={community.name} logoUrl={community.logo_url} className="size-10 rounded-[10px]" />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1.5">
             <h3 className="truncate text-[15px] font-medium leading-tight text-[#111]">{community.name}</h3>

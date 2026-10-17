@@ -3,15 +3,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { HubViewer } from "~/modules/hub/model/hub-v2-types";
 import { clearEventRegistrationSessionState } from "~/modules/events/hooks/use-event-registration-query";
 import { EVENT_PREVIEW_PARAM } from "~/modules/hub/hooks/use-event-preview-selection";
+import { CommunityLogo } from "~/modules/hub/components/v2/community-logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/shared/components/ui/dropdown-menu";
 import { useSetCurrentUserCache } from "~/shared/hooks/use-current-user-query";
 import { Routes } from "~/shared/lib/routing/routes";
+import { cn } from "~/shared/lib/utils/cn";
 
 type HubProfileMenuProps = {
   viewer: HubViewer;
@@ -97,6 +101,30 @@ export function HubProfileMenu({ viewer }: HubProfileMenuProps) {
           </div>
         </div>
         <DropdownMenuSeparator className="m-0 bg-[#ececee]" />
+        {viewer.managedCommunities.length > 0 && (
+          <>
+            <DropdownMenuGroup className="py-1">
+              <DropdownMenuLabel className="px-4 pb-1 pt-1.5 text-[12px] font-medium text-[#8c8e9a]">
+                Your communities
+              </DropdownMenuLabel>
+              <div className="max-h-[188px] overflow-y-auto overscroll-contain">
+                {viewer.managedCommunities.map((community) => (
+                  <DropdownMenuItem key={community.id} asChild className={cn(itemClassName, "gap-2.5")}>
+                    <Link to={Routes.dashboard.overview(community.slug)} prefetch="intent">
+                      <CommunityLogo
+                        name={community.name}
+                        logoUrl={community.logoUrl}
+                        className="size-6 rounded-[7px] text-[10px]"
+                      />
+                      <span className="truncate">{community.name}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </div>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator className="m-0 bg-[#ececee]" />
+          </>
+        )}
         <div className="py-1">
           <DropdownMenuItem asChild className={itemClassName}>
             <Link to={Routes.profile} prefetch="intent">

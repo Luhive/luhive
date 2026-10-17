@@ -1,8 +1,8 @@
-import type { Community } from "~/modules/hub/model/hub-types";
 import { cn } from "~/shared/lib/utils/cn";
 
 type CommunityLogoProps = {
-  community: Community;
+  name: string;
+  logoUrl: string | null;
   className: string;
 };
 
@@ -22,17 +22,17 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-export function CommunityLogo({ community, className }: CommunityLogoProps) {
+export function CommunityLogo({ name, logoUrl, className }: CommunityLogoProps) {
   return (
     <span className={cn("relative block shrink-0 overflow-hidden", className)}>
-      {community.logo_url ? (
-        <img src={community.logo_url} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+      {logoUrl ? (
+        <img src={logoUrl} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
       ) : (
         <span
           className="flex size-full items-center justify-center text-[13px] font-semibold text-[#3f4049]"
-          style={{ backgroundColor: pickFallbackTileColor(community.name) }}
+          style={{ backgroundColor: pickFallbackTileColor(name) }}
         >
-          {getInitials(community.name)}
+          {getInitials(name)}
         </span>
       )}
       <span

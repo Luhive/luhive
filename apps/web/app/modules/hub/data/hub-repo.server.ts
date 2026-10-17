@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/shared/models/database.types";
 import type { HubCommunity } from "~/shared/models/entity.types";
 import type { Community, HubPreview, UserData } from "~/modules/hub/model/hub-types";
+import type { ManagedCommunity } from "~/modules/hub/model/hub-v2-types";
 
 function toCommunity(row: HubCommunity): Community | null {
   if (
@@ -127,4 +128,30 @@ export async function getAdminCommunityIds(
     if (m.community_id) ids.add(m.community_id);
   });
   return Array.from(ids);
+}
+
+/** Includes hidden communities: the viewer still manages them even when the hub doesn't list them. */
+export async function listManagedCommunities(
+  supabase: SupabaseClient<Database>,
+  communityIds: string[],
+): Promise<ManagedCommunity[]> {
+  if (communityIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("communities")
+    .select("id, name, slug, logo_url")
+    .in("id", communityIds)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Failed to load managed communities:", error);
+    return [];
+  }
+
+  return (data ?? []).map((community) => ({
+    id: community.id,
+    name: community.name,
+    slug: community.slug,
+    logoUrl: community.logo_url,
+  }));
 }

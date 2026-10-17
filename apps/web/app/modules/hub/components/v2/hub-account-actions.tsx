@@ -4,10 +4,11 @@ import type { HubViewer } from "~/modules/hub/model/hub-v2-types";
 import { useCalBookingUrl } from "~/shared/hooks/use-cal-booking-url";
 import { Routes } from "~/shared/lib/routing/routes";
 import { HubProfileMenu } from "~/modules/hub/components/v2/hub-profile-menu";
-import userIcon from "~/assets/images/hub-v2/user.svg";
 
 type HubAccountActionsProps = {
   viewer: HubViewer | null;
+  /** While the session resolves, hold the slot instead of flashing "Sign in". */
+  isViewerPending?: boolean;
 };
 
 const pillPress =
@@ -20,7 +21,7 @@ function rememberReturnPath() {
   );
 }
 
-export function HubAccountActions({ viewer }: HubAccountActionsProps) {
+export function HubAccountActions({ viewer, isViewerPending = false }: HubAccountActionsProps) {
   const bookingUrl = useCalBookingUrl();
 
   return (
@@ -37,17 +38,18 @@ export function HubAccountActions({ viewer }: HubAccountActionsProps) {
         <span className="hidden sm:inline">Create a community</span>
       </a>
 
-      {viewer ? (
+      {isViewerPending ? (
+        <span aria-hidden className="size-11 rounded-full bg-[#95959522] md:size-9" />
+      ) : viewer ? (
         <HubProfileMenu viewer={viewer} />
       ) : (
         <Link
           to={Routes.login}
           onClick={rememberReturnPath}
-          aria-label="Sign in"
           data-hub-control
-          className={`flex size-11 items-center justify-center overflow-hidden rounded-[44px] bg-[#f6f6f6] hover:bg-[#efefef] md:size-9 ${pillPress}`}
+          className="flex h-11 items-center justify-center rounded-[44px] px-3.5 text-[15px] font-medium leading-normal text-[#111] outline-none [transition:background-color_300ms_var(--ease-standard),transform_150ms_var(--ease-out-strong)] hover:bg-[#95959522] focus-visible:bg-[#95959522] active:scale-[0.97] md:h-9 md:px-3 md:text-[13px]"
         >
-          <img src={userIcon} alt="" width={20} height={20} className="block max-w-none md:scale-90" />
+          Sign in
         </Link>
       )}
     </div>

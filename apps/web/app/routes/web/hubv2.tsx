@@ -53,7 +53,7 @@ export default function HubV2Page() {
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         accountActions={
-          <Suspense fallback={<HubAccountActions viewer={null} />}>
+          <Suspense fallback={<HubAccountActions viewer={null} isViewerPending />}>
             <Await resolve={viewer}>{(user) => <HubAccountActions viewer={user} />}</Await>
           </Suspense>
         }

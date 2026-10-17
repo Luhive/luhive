@@ -14,6 +14,8 @@ import { getRiseDelayMs } from "~/modules/hub/utils/get-rise-delay-ms";
 import { matchesSearchQuery } from "~/modules/hub/utils/matches-search-query";
 
 const PREVIEW_COUNT = 8;
+/** Below one full desktop row of upcoming events, past events fill the section by default. */
+const FEW_UPCOMING_THRESHOLD = 4;
 const HEADING_ID = "explore-events-heading";
 const LIST_ID = "explore-events-list";
 
@@ -37,13 +39,14 @@ export function ExploreEventsSection({
   const hasUpcomingEvents = upcomingEvents.length > 0;
   const isShowingAll = isExpanded || isSearching;
   const visible = isShowingAll ? matches : matches.slice(0, PREVIEW_COUNT);
-  const shouldShowPastEvents = isShowingAll || !hasUpcomingEvents;
-  const canToggle = !isSearching && hasUpcomingEvents;
+  const hasFewUpcomingEvents = upcomingEvents.length < FEW_UPCOMING_THRESHOLD;
+  const shouldShowPastEvents = isShowingAll || hasFewUpcomingEvents;
+  const canToggle = !isSearching && !hasFewUpcomingEvents;
 
   let pastEmptyMessage: string | null = null;
   if (!hasUpcomingEvents) {
     pastEmptyMessage = isSearching ? "No events match your search." : "No past events yet.";
-  } else if (!isSearching) {
+  } else if (isExpanded && !isSearching) {
     pastEmptyMessage = "No past events yet.";
   }
 

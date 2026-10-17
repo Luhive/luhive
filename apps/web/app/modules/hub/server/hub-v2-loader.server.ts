@@ -4,6 +4,7 @@ import {
   getAdminCommunityIds,
   getUserProfile,
   getVisibleCommunities,
+  listManagedCommunities,
 } from "~/modules/hub/data/hub-repo.server";
 import {
   listPastHubEvents,
@@ -17,15 +18,18 @@ export async function loader({ request }: { request: Request }): Promise<HubV2Lo
   const authUserPromise = supabase.auth.getUser().then(({ data }) => data.user ?? null);
   const userIdPromise = authUserPromise.then((user) => user?.id ?? null);
 
-  const viewer = authUserPromise.then(async (user) => {
-    if (!user) return null;
-    const profile = await getUserProfile(supabase, user.id);
-    return profile ? { ...profile, email: user.email ?? null } : null;
-  });
-
   const adminIdsPromise = userIdPromise.then((userId) =>
     userId ? getAdminCommunityIds(supabase, userId) : [],
   );
+
+  const viewer = authUserPromise.then(async (user) => {
+    if (!user) return null;
+    const [profile, managedCommunities] = await Promise.all([
+      getUserProfile(supabase, user.id),
+      adminIdsPromise.then((ids) => listManagedCommunities(supabase, ids)),
+    ]);
+    return profile ? { ...profile, email: user.email ?? null, managedCommunities } : null;
+  });
 
   const communities = Promise.all([
     getVisibleCommunities(supabase),

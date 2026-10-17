@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import type { CSSProperties } from "react";
 import type { Community } from "~/modules/hub/model/hub-types";
-import { Routes } from "~/shared/lib/routing/routes";
+import { getCommunityHref } from "~/modules/hub/utils/get-community-href";
 import arrowUpRight from "~/assets/images/hub-v2/arrow-up-right.svg";
 import verifiedBadge from "~/assets/images/hub-v2/verified-badge.svg";
 
@@ -11,9 +11,7 @@ type ExploreCommunityCardProps = {
 };
 
 export function ExploreCommunityCard({ community, riseDelayMs }: ExploreCommunityCardProps) {
-  const href = community.isAdmin
-    ? Routes.dashboard.overview(community.slug)
-    : Routes.community.detail(community.slug);
+  const href = getCommunityHref(community);
   const summary = community.description || community.tagline;
 
   return (

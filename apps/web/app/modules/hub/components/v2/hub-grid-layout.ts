@@ -1,6 +1,13 @@
 export const communityGridClassName =
   "grid w-full grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-3";
 
+/** Phone layout for communities: one grouped list instead of stacked cards. */
+export const communityListFrameClassName =
+  "w-full rounded-[24px] bg-[#f6f6f6] p-1 shadow-[0px_4px_12px_-8px_rgba(0,0,0,0.06)]";
+
+export const communityListClassName =
+  "divide-y divide-[#f1f1f3] overflow-hidden rounded-[20px] bg-white drop-shadow-[0px_4px_7px_rgba(0,0,0,0.05)]";
+
 export const eventGridClassName =
   "grid w-full grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 sm:gap-y-10 md:grid-cols-3 lg:grid-cols-4";
 

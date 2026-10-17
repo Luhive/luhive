@@ -6,6 +6,8 @@ type HubSectionHeaderProps = {
   isExpanded?: boolean;
   onToggle?: () => void;
   controlsId?: string;
+  /** Hides the toggle at breakpoints where it would have nothing to reveal. */
+  toggleClassName?: string;
 };
 
 const labelLayer =
@@ -17,6 +19,7 @@ export function HubSectionHeader({
   isExpanded = false,
   onToggle,
   controlsId,
+  toggleClassName,
 }: HubSectionHeaderProps) {
   return (
     <div className="flex w-full items-center justify-between gap-4 leading-none">
@@ -33,6 +36,7 @@ export function HubSectionHeader({
             "-mx-2 -my-1 rounded-full px-2 py-1 text-[16px] font-medium leading-none text-[#888] sm:text-[14px]",
             "transition-[color,transform] duration-150 ease-out-strong hover:text-[#111] active:scale-[0.96]",
             "outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15",
+            toggleClassName,
           )}
         >
           <span className="grid justify-items-end">

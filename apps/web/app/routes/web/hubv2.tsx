@@ -18,7 +18,7 @@ import {
   sectionClassName,
 } from "~/modules/hub/components/v2/hub-grid-layout";
 import {
-  CommunityGridSkeleton,
+  CommunitySectionSkeleton,
   EventGridSkeleton,
 } from "~/modules/hub/components/v2/hub-skeletons";
 import { normalizeSearchQuery } from "~/modules/hub/utils/matches-search-query";
@@ -64,7 +64,7 @@ export default function HubV2Page() {
           fallback={
             <div className={sectionClassName}>
               <HubSectionHeader id="explore-communities-loading" title="Explore Communities" />
-              <CommunityGridSkeleton count={6} />
+              <CommunitySectionSkeleton />
             </div>
           }
         >

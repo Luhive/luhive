@@ -6,11 +6,20 @@ type CommunityLogoProps = {
   className: string;
 };
 
-const TILE_COLORS = ["#fde8dc", "#e3eefc", "#e6f4ea", "#f3e8fd", "#fdf3d8", "#e8f1f2"];
+const FALLBACK_TILE_COLORS = ["#fde8dc", "#e3eefc", "#e6f4ea", "#f3e8fd", "#fdf3d8", "#e8f1f2"];
 
-function pickTileColor(name: string) {
+function pickFallbackTileColor(name: string) {
   const code = [...name].reduce((sum, character) => sum + character.charCodeAt(0), 0);
-  return TILE_COLORS[code % TILE_COLORS.length];
+  return FALLBACK_TILE_COLORS[code % FALLBACK_TILE_COLORS.length];
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 export function CommunityLogo({ community, className }: CommunityLogoProps) {
@@ -21,14 +30,9 @@ export function CommunityLogo({ community, className }: CommunityLogoProps) {
       ) : (
         <span
           className="flex size-full items-center justify-center text-[13px] font-semibold text-[#3f4049]"
-          style={{ backgroundColor: pickTileColor(community.name) }}
+          style={{ backgroundColor: pickFallbackTileColor(community.name) }}
         >
-          {community.name
-            .split(" ")
-            .map((word) => word[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase()}
+          {getInitials(community.name)}
         </span>
       )}
       <span

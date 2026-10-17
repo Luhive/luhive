@@ -20,6 +20,7 @@ import manrope500Url from "./assets/fonts/manrope-v20-latin_latin-ext-500.woff2?
 import manrope600Url from "./assets/fonts/manrope-v20-latin_latin-ext-600.woff2?url";
 import manrope700Url from "./assets/fonts/manrope-v20-latin_latin-ext-700.woff2?url";
 import { Toaster } from "~/shared/components/ui/sonner";
+import { NavigationProgress } from "~/shared/components/navigation-progress";
 import ErrorComponent from "./routes/error";
 import { QueryProvider } from "~/shared/lib/query/query-provider";
 
@@ -76,6 +77,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body>
+        <NavigationProgress />
         {children}
         <Toaster position="bottom-right" />
         <ScrollRestoration />

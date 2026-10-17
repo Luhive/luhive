@@ -322,6 +322,45 @@ body {
   }
 }
 
+/* Page navigation progress. The 150ms delay keeps fast navigations from flashing the bar;
+   the long strong ease-out moves quickly at first, then crawls so it never looks finished. */
+.navigation-progress {
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.navigation-progress[data-state="loading"] {
+  opacity: 1;
+  transform: scaleX(0.9);
+  transition:
+    transform 10s var(--ease-out-strong) 150ms,
+    opacity 150ms var(--ease-out-strong) 150ms;
+}
+
+.navigation-progress[data-state="complete"] {
+  opacity: 0;
+  transform: scaleX(1);
+  transition:
+    transform 200ms var(--ease-out-strong),
+    opacity 200ms var(--ease-out-strong) 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation-progress,
+  .navigation-progress[data-state] {
+    transform: none;
+  }
+
+  .navigation-progress[data-state="loading"] {
+    transition: opacity 200ms var(--ease-out-strong) 150ms;
+  }
+
+  .navigation-progress[data-state="complete"] {
+    transition: opacity 200ms var(--ease-out-strong);
+  }
+}
+
 /* Hub v2 touch surface. Applied to the page root and to portalled drawer/menu content. */
 .hub-touch-surface {
   -webkit-tap-highlight-color: transparent;

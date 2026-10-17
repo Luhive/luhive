@@ -11,7 +11,7 @@ type HubV2NavigationProps = {
 
 export function HubV2Navigation({ accountActions }: HubV2NavigationProps) {
   return (
-    <header className="z-40 w-full bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-transparent md:sticky md:top-0">
+    <header className="z-40 w-full bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/85 md:sticky md:top-0">
       <div
         className={`mx-auto grid w-full max-w-[1040px] grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 pb-3 pt-4 md:h-[72px] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-6 md:py-0 ${safeAreaGutterClassName}`}
       >

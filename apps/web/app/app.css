@@ -371,12 +371,13 @@ body {
   touch-action: manipulation;
 }
 
-/* Safari 26 paints its status/tool bars from the page background, not theme-color.
-   Match the hub backdrop's top colour so the bar flows into the page. */
+/* Backdrop tint is commented out with <HubBackdrop />.
+   Safari 26 paints its status/tool bars from the page background, not theme-color.
 html:has(.hub-touch-surface),
 html:has(.hub-touch-surface) body {
   background-color: #fff3f1;
 }
+*/
 
 .hub-touch-surface :is(button, [role="button"], [role="menuitem"], [data-hub-control]) {
   user-select: none;

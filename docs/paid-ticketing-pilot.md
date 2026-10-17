@@ -9,8 +9,16 @@ This is a pilot (max ~50 registrations per event). It is built to ship fast and
 to be folded into `apps/core-api` (`slices/ticketing/`) after Stage 1 #9. Every
 shortcut is listed under [Temporary shortcuts](#temporary-shortcuts).
 
-`app/modules/events/**` is unfrozen for this feature (owner decision, 29 Sep
-2026). Record the exception in `docs/spec/12` when this merges.
+`app/modules/events/**` is unfrozen for this feature only (owner decision,
+29 Sep 2026). The exception is recorded in `docs/spec/12`.
+
+## Status
+
+Finished 30 Sep 2026. M1–M8 are built. A real Checkila payment confirmed a
+registration in production and both emails went out. Mark as paid, resend, and
+the revenue cards are in [PR #161](https://github.com/Luhive/luhive/pull/161).
+The paid registration branch and the internal email route stay in the web app
+until the core ticketing slice (see [Temporary shortcuts](#temporary-shortcuts)).
 
 ---
 
@@ -701,52 +709,54 @@ Each milestone ends with a stop: it is merged-quality on its own, has a
 verification you can run yourself, and nothing after it starts until you say so.
 Each one leaves the app working with the flag off.
 
-**M1 — Database.** `0003_add_paid_ticketing.sql` (columns, tables, indexes,
+**M1 — Database. Done.** `0003_add_paid_ticketing.sql` (columns, tables, indexes,
 `confirm_ticket_order`), regenerated types, web `database.types` synced.
 Verify: `pnpm --filter @luhive/db migrate:validation`, inspect tables and
 constraints, call `confirm_ticket_order` by hand on test rows (confirmed, then
 `already_paid`, then `not_found`), typecheck web and integration-api.
 Nothing user-visible changes.
 
-**M2 — Shared money and flag helpers.** `formatMoney`, major/minor conversion,
+**M2 — Shared money and flag helpers. Done.** `formatMoney`, major/minor conversion,
 `isPaidTicketingEnabled(settings)`, with unit tests. Verify: run the tests.
 Nothing user-visible changes.
 
-**M3 — Price on events.** Price field in the event form (flag-gated), server-side
+**M3 — Price on events. Done.** Price field in the event form (flag-gated), server-side
 flag enforcement on create/update, approval toggle disabled for priced events,
 price shown on the event page instead of "Free". Verify: with the flag off no
 field appears and a forged price is rejected; with the flag on for a test
 community a priced event saves and displays; free events are unchanged.
 
-**M4 — Paid registration and Pay now.** Checkila client (real + fake),
+**M4 — Paid registration and Pay now. Done.** Checkila client (real + fake),
 `ticket_orders` repo, the paid branch in `completeEventRegistration`, retry for
 pending orders, Pay now card state, delete-registration rules. Verify with
 `CHECKILA_FAKE=true`: register → pending registration + order + payment URL, no
 emails, second attempt returns the same URL, free events unchanged. Real
 Checkila can be tried here to create a link.
 
-**M5 — Callback and confirmation.** `POST /v1/payments/confirm` with auth,
+**M5 — Callback and confirmation. Done.** A live Checkila payment confirmed a registration. `POST /v1/payments/confirm` with auth,
 validation, audit log, the shared confirm rule; integration-api tests. Verify:
 tests, then `curl` the endpoint locally with a test key (success, replay, wrong
 amount, wrong key). No email yet: registration becomes approved with a check-in
 token.
 
-**M6 — Emails.** Temporary internal web route, `sendPaidRegistrationConfirmation`
+**M6 — Emails. Done.** Attendee and organiser both send after the first confirmation. The organiser email includes registration count and total gain. Temporary internal web route, `sendPaidRegistrationConfirmation`
 (attendee + organizer, community join), integration-api call with timeout.
 Verify: a confirmed callback sends both emails once; a replay sends none; a
 downed web app does not fail the callback.
 
-**M7 — Admin.** Unpaid badge, Mark as paid, Resend confirmation, block manual
+**M7 — Admin. Done.** Unpaid badge, Mark as paid, Resend confirmation, block manual
 approve on unpaid. Verify: the manual path produces the same end state as the
 callback and sends the emails.
 
-**M8 — Revenue.** Per-event revenue panel and the dashboard list block, deferred
-loading. Verify: numbers match orders with one paid, one pending, one refunded.
+**M8 — Revenue. Done.** Per-event panel at the bottom of event statistics.
+Events list and dashboard home show a revenue card when the flag is on; the
+card renders immediately and the amount fills in after. Refunded orders are
+excluded. Verify: numbers match orders with one paid, one pending, one refunded.
 
-**M9 — Pilot rollout.** Docs (`docs/spec/12` exception, daily log), production
-migration, pilot key, env vars on both apps, flag enabled for the pilot
-community, one real low-price end-to-end payment. Verify: the rollout checklist
-in section 12.
+**M9 — Pilot rollout. Done** for the payment path: production migration, pilot
+key, env vars, flag on for the pilot community, and one real payment. The
+`docs/spec/12` exception is recorded. Admin and revenue reach production when
+PR #161 merges.
 
 M1–M6 is the minimum for a working paid flow; M7 is the safety net for lost
 callbacks and should ship with it; M8 can follow the day after if time is short.

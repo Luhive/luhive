@@ -7,8 +7,8 @@ export function meta() {
       content: "Explore communities and upcoming events on the Luhive Hub.",
     },
     { name: "robots", content: "noindex, nofollow" },
-    // Matches the tinted top of the backdrop; the page has no dark scheme.
-    { name: "theme-color", content: "#fff3f1" },
+    // Backdrop tint is commented out; the page has no dark scheme.
+    { name: "theme-color", content: "#ffffff" },
   ];
 }
 

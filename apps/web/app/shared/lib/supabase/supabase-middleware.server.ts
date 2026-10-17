@@ -19,6 +19,11 @@ function listCookieNames(setCookieHeaders: string[]) {
   return setCookieHeaders.map((header) => header.slice(0, header.indexOf("=")));
 }
 
+function hasSessionCookie(request: Request) {
+  const cookieHeader = request.headers.get("Cookie") ?? "";
+  return cookieHeader.split(";").some((cookie) => cookie.trim().startsWith(SUPABASE_COOKIE_PREFIX));
+}
+
 /**
  * Verifies the access token locally against the project's signing keys. Tokens signed
  * with the legacy shared secret are still checked by the Auth server.
@@ -30,33 +35,36 @@ async function readAuthUser(supabase: ReturnType<typeof createClient>["supabase"
 }
 
 /**
- * One Supabase client per request. Refreshed session cookies are attached to the
- * response, unless a route already set its own session cookies (login, logout, verify).
+ * One Supabase client per request, created on first use so routes that never touch Supabase
+ * (and build-time prerendering, which has no Supabase env) do no Supabase work. Refreshed
+ * session cookies are attached to the response, unless a route set its own (login, logout, verify).
  */
 export const supabaseMiddleware: MiddlewareFunction<Response> = async (
   { request, context },
   next,
 ) => {
-  if (isSessionlessRequest(request)) {
-    const { supabase } = createClient(new Request(request.url));
-    context.set(requestSupabaseContext, { supabase, findAuthUser: async () => null });
-    return next();
-  }
+  const isSessionless = isSessionlessRequest(request);
+  const canHaveSession = !isSessionless && hasSessionCookie(request);
 
-  const { supabase, headers } = createClient(request);
+  let client: ReturnType<typeof createClient> | undefined;
+  const getClient = () => (client ??= createClient(isSessionless ? new Request(request.url) : request));
 
   let authUserPromise: ReturnType<typeof readAuthUser> | undefined;
   context.set(requestSupabaseContext, {
-    supabase,
-    findAuthUser: () => (authUserPromise ??= readAuthUser(supabase)),
+    get supabase() {
+      return getClient().supabase;
+    },
+    findAuthUser: () =>
+      (authUserPromise ??= canHaveSession ? readAuthUser(getClient().supabase) : Promise.resolve(null)),
   });
 
   // Refresh an expired session before loaders stream, while headers can still be set.
-  await supabase.auth.getSession();
+  if (canHaveSession) await getClient().supabase.auth.getSession();
 
   const response = await next();
+  if (!client || isSessionless) return response;
 
-  const refreshedCookies = headers.getSetCookie();
+  const refreshedCookies = client.headers.getSetCookie();
   if (refreshedCookies.length === 0) return response;
 
   const isSessionSetByRoute = listCookieNames(response.headers.getSetCookie()).some(

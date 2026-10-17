@@ -1,5 +1,4 @@
 import type { MiddlewareFunction } from "react-router";
-import type { User } from "@supabase/supabase-js";
 import { createClient } from "~/shared/lib/supabase/server";
 import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 
@@ -7,6 +6,16 @@ const SUPABASE_COOKIE_PREFIX = "sb-";
 
 function listCookieNames(setCookieHeaders: string[]) {
   return setCookieHeaders.map((header) => header.slice(0, header.indexOf("=")));
+}
+
+/**
+ * Verifies the access token locally against the project's signing keys. Tokens signed
+ * with the legacy shared secret are still checked by the Auth server.
+ */
+async function readAuthUser(supabase: ReturnType<typeof createClient>["supabase"]) {
+  const { data } = await supabase.auth.getClaims();
+  if (!data) return null;
+  return { id: data.claims.sub, email: data.claims.email };
 }
 
 /**
@@ -19,13 +28,10 @@ export const supabaseMiddleware: MiddlewareFunction<Response> = async (
 ) => {
   const { supabase, headers } = createClient(request);
 
-  let authUserPromise: Promise<User | null> | undefined;
+  let authUserPromise: ReturnType<typeof readAuthUser> | undefined;
   context.set(requestSupabaseContext, {
     supabase,
-    findAuthUser: () =>
-      (authUserPromise ??= supabase.auth
-        .getUser()
-        .then(({ data }) => data.user ?? null)),
+    findAuthUser: () => (authUserPromise ??= readAuthUser(supabase)),
   });
 
   // Refresh an expired session before loaders stream, while headers can still be set.

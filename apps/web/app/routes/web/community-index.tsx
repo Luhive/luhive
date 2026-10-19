@@ -402,7 +402,7 @@ export default function CommunityIndexPage() {
                       {displayTagline}
                     </p>
                     <p
-                      className={`text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md ${!isDescriptionExpanded ? "line-clamp-3" : ""}`}
+                      className={`text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md md:mx-auto ${!isDescriptionExpanded ? "line-clamp-3" : ""}`}
                     >
                       {displayDescription}
                     </p>

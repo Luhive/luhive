@@ -1,4 +1,5 @@
 import type { LocationValue } from '~/modules/events/model/event-location.types';
+import { getPublicEnv } from '~/shared/lib/public-env';
 
 /**
  * All Google Maps/Places interactions are isolated here.
@@ -18,7 +19,9 @@ type PlacesLib = google.maps.PlacesLibrary;
 let placesPromise: Promise<PlacesLib> | null = null;
 
 export class GoogleMaps {
-  private static readonly apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+  private static get apiKey(): string {
+    return getPublicEnv().googleMapsApiKey;
+  }
 
   // ── Loader ────────────────────────────────────────────────────────────────
 
@@ -32,7 +35,7 @@ export class GoogleMaps {
     if (placesPromise) return placesPromise;
     placesPromise = import('@googlemaps/js-api-loader').then(({ setOptions, importLibrary }) => {
       setOptions({
-        key: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+        key: GoogleMaps.apiKey,
         v: 'weekly',
       });
       return importLibrary('places') as Promise<PlacesLib>;

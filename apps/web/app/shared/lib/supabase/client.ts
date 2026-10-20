@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { getPublicEnv } from "~/shared/lib/public-env";
 import { Database } from "~/shared/models/database.types";
 
 let supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null =
@@ -13,14 +14,13 @@ function createClient() {
     return supabaseClient;
   }
 
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const { supabaseUrl, supabaseAnonKey } = getPublicEnv();
 
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing Supabase environment variables");
   }
 
-  supabaseClient = createBrowserClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabaseClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
 
   return supabaseClient;
 }

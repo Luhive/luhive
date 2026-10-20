@@ -36,7 +36,7 @@ async function readAuthUser(supabase: ReturnType<typeof createClient>["supabase"
 
 /**
  * One Supabase client per request, created on first use so routes that never touch Supabase
- * (and build-time prerendering, which has no Supabase env) do no Supabase work. Refreshed
+ * do no Supabase work. Refreshed
  * session cookies are attached to the response, unless a route set its own (login, logout, verify).
  */
 export const supabaseMiddleware: MiddlewareFunction<Response> = async (

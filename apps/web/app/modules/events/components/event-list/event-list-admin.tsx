@@ -458,7 +458,7 @@ export function EventList({ events, communitySlug, ticketRevenue, showRevenue = 
                         </div>
 
                         {/* Events for this date */}
-                        <div className="flex-1 space-y-3">
+                        <div className="flex-1 min-w-0 space-y-3">
                           {/* Mobile: Date Header */}
                           <div className="md:hidden pb-2 border-b border-gray-100">
                             <div className="text-lg font-bold text-gray-900">{date}</div>
@@ -494,7 +494,7 @@ export function EventList({ events, communitySlug, ticketRevenue, showRevenue = 
                             return (
                               <div
                                 key={event.id}
-                                className="group bg-white border border-gray-100 rounded-xl p-4 flex flex-col md:flex-row gap-6 hover:shadow-xs transition-all duration-200 hover:border-gray-200"
+                                className="group min-w-0 bg-white border border-gray-100 rounded-xl p-4 flex flex-col md:flex-row gap-6 hover:shadow-xs transition-all duration-200 hover:border-gray-200"
                               >
                                 {/* Left Section: Cover Picture with Date Overlay (Desktop) / Small Icon + Date (Mobile) */}
                                 <div className="flex flex-col gap-3 min-w-[200px] md:min-w-0 md:self-stretch md:gap-0">
@@ -613,7 +613,7 @@ export function EventList({ events, communitySlug, ticketRevenue, showRevenue = 
                                       </Badge>
                                     )}
                                   </div>
-                                  <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-primary transition-colors">
+                                  <h3 className="text-lg font-bold text-gray-900 line-clamp-2 break-words group-hover:text-primary transition-colors">
                                     {event.title}
                                   </h3>
                                   <div className="flex items-center gap-4 text-sm text-gray-500 mt-1 flex-wrap">
@@ -661,7 +661,7 @@ export function EventList({ events, communitySlug, ticketRevenue, showRevenue = 
                                 </div>
 
                                 {/* Right Section: Action Buttons */}
-                                <div className="flex items-center gap-4 md:pl-6 md:border-l md:border-gray-50 md:justify-end">
+                                <div className="flex shrink-0 items-center gap-4 md:pl-6 md:border-l md:border-gray-50 md:justify-end">
                                   <div className="flex items-center gap-2">
                                     <div className="flex items-center border border-gray-100 bg-gray-50/50 rounded-lg p-1 gap-1">
                                       <Tooltip>

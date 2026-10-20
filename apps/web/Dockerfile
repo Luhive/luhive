@@ -1,22 +1,29 @@
-FROM node:20-alpine AS development-dependencies-env
-COPY . /app
-WORKDIR /app
-RUN npm ci
+# Build context is the repo root, not this directory:
+#   az acr build -r luhiveprodacr -f apps/web/Dockerfile -t web:<tag> .
+# The image carries no configuration. Browser config is read at runtime from
+# the environment, so the same image runs in any environment.
 
-FROM node:20-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
-WORKDIR /app
-RUN npm ci --omit=dev
+FROM node:22-alpine AS base
+ENV PNPM_HOME=/pnpm
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
-FROM node:20-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
-RUN npm run build
+FROM base AS build
+WORKDIR /repo
+COPY . .
+# The trailing "..." also installs web's workspace dependencies.
+RUN pnpm install --frozen-lockfile --filter "@luhive/web..."
+RUN pnpm --filter @luhive/web build
+# --legacy is required on pnpm 10 without injected workspace packages.
+RUN pnpm --filter @luhive/web deploy --prod --legacy /prod/web
 
-FROM node:20-alpine
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
+FROM base AS runtime
 WORKDIR /app
-CMD ["npm", "run", "start"]
+ENV NODE_ENV=production
+COPY --from=build /prod/web ./
+# `pnpm deploy` follows publish rules and drops gitignored output, so the
+# build is copied explicitly.
+COPY --from=build /repo/apps/web/build ./build
+USER node
+EXPOSE 3000
+CMD ["node_modules/.bin/react-router-serve", "./build/server/index.js"]

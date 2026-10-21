@@ -11,6 +11,7 @@ const TOC_ITEMS = [
   { href: "#acceptable-use", label: "Acceptable Use" },
   { href: "#content", label: "User Content" },
   { href: "#communities", label: "Communities" },
+  { href: "#paid-events", label: "Paid events" },
   { href: "#gamification", label: "Gamification" },
   { href: "#intellectual-property", label: "Intellectual Property" },
   { href: "#disclaimers", label: "Disclaimers" },
@@ -45,7 +46,7 @@ export default function TermsConditionsPage() {
         </h1>
         <p className="text-muted-foreground text-sm md:text-base">
           Effective date: <strong>February 1, 2025</strong> · Last updated:{" "}
-          <strong>February 1, 2025</strong>
+          <strong>October 21, 2026</strong>
         </p>
       </div>
 
@@ -239,6 +240,22 @@ export default function TermsConditionsPage() {
               and events. This data is provided in accordance with our Privacy
               Policy and is intended solely for legitimate community management
               purposes.
+            </p>
+          </section>
+
+          <section id="paid-events">
+            <h2 className="text-xl font-semibold mb-4">Paid events</h2>
+            <p className="mb-3.5 text-foreground/90">
+              When a community collects ticket money itself, that community is the
+              seller. It is responsible for taxes, refunds, and any receipt the
+              law requires. Luhive does not receive, transfer, or check the
+              payment. A receipt uploaded on Luhive is only a note for the
+              organiser. Marking a registration as paid is the organiser's own
+              confirmation, not a verification by Luhive.
+            </p>
+            <p className="text-foreground/90">
+              This way of collecting payment is offered only to communities we
+              enable. Other communities will use a payment provider.
             </p>
           </section>
 

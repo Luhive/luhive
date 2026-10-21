@@ -41,7 +41,7 @@ export async function sendPaidRegistrationConfirmation(
 
   const { data: order } = await db
     .from("ticket_orders")
-    .select("status, amount_minor, currency, confirmation_email_sent_at")
+    .select("status, amount_minor, currency, paid_via, confirmation_email_sent_at")
     .eq("registration_id", registrationId)
     .maybeSingle();
 
@@ -97,6 +97,7 @@ export async function sendPaidRegistrationConfirmation(
     Routes.community.event(community?.slug ?? "unknown", publicEventSlug(event)),
   );
   const ticketPrice = formatMoney(order.amount_minor, order.currency);
+  const isPaidManually = order.paid_via === "manual";
 
   await sendRegistrationConfirmationEmail({
     eventTitle: event.title,
@@ -120,6 +121,7 @@ export async function sendPaidRegistrationConfirmation(
     onlineMeetingLink: event.online_meeting_link || undefined,
     checkinToken: registration.checkin_token,
     ticketPrice,
+    isPaidManually,
   });
 
   // Resend is the attendee email only. The organiser was notified on the first send.
@@ -162,6 +164,7 @@ export async function sendPaidRegistrationConfirmation(
       ticketPrice,
       registrationCount,
       totalGain,
+      paymentStatus: isPaidManually ? "marked_paid" : undefined,
     });
   } catch (error) {
     console.error("Failed to notify organisers of a paid registration:", error);

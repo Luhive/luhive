@@ -8,6 +8,8 @@ import { Routes } from "~/shared/lib/routing/routes";
 import { ensureUniqueEventSlug } from "~/modules/events/server/ensure-event-slug.server";
 import { publicEventSlug } from "~/modules/events/utils/event-slug";
 import { resolveEventPrice } from "~/modules/events/server/resolve-event-price.server";
+import { resolveEventPaymentInstructions } from "~/modules/events/server/payments/resolve-event-payment-instructions.server";
+import { saveEventPaymentInstructions } from "~/modules/events/data/event-payment-instructions-repo.server";
 
 type EventType = Database["public"]["Enums"]["event_type"];
 type EventStatus = Database["public"]["Enums"]["event_status"];
@@ -35,6 +37,7 @@ export interface EventCreatePayload {
   status: EventStatus;
   isApproveRequired: boolean;
   priceMinor?: number | null;
+  paymentInstructions?: string | null;
   customQuestions?: Json | null;
   reminderTimes?: ReminderTime[];
   reminderMessage?: string | null;
@@ -97,6 +100,7 @@ export async function eventCreateAction({
     status,
     isApproveRequired,
     priceMinor: requestedPriceMinor,
+    paymentInstructions: requestedPaymentInstructions,
     customQuestions,
     reminderTimes,
     reminderMessage,
@@ -112,6 +116,15 @@ export async function eventCreateAction({
   });
   if (!price.ok) {
     return { success: false, error: price.error };
+  }
+
+  const paymentInstructions = await resolveEventPaymentInstructions({
+    communityId,
+    priceMinor: price.priceMinor,
+    requestedInstructions: requestedPaymentInstructions,
+  });
+  if (!paymentInstructions.ok) {
+    return { success: false, error: paymentInstructions.error };
   }
 
   const eventSlug = await ensureUniqueEventSlug(supabase, communityId, title);
@@ -164,6 +177,15 @@ export async function eventCreateAction({
 
   if (collabError) {
     console.error("Error creating host collaboration:", collabError);
+  }
+
+  // The insert above passed RLS, so the caller manages this community.
+  if (paymentInstructions.instructions) {
+    try {
+      await saveEventPaymentInstructions(newEvent.id, paymentInstructions.instructions);
+    } catch (instructionsError) {
+      console.error("Failed to save payment instructions:", instructionsError);
+    }
   }
 
   if (reminderTimes && reminderTimes.length > 0) {

@@ -43,6 +43,8 @@ export interface EventPageUserState extends EventRegistrationState {
 export interface EventDetailActionData {
   success: boolean;
   error?: string;
+  /** Where to reach the organiser when a paid ticket can't be cancelled here. */
+  contactUrl?: string;
   message?: string;
   needsCustomQuestions?: boolean;
   anonymousName?: string;

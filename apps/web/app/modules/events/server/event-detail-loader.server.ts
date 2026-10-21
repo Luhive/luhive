@@ -188,7 +188,13 @@ export async function loader({
       userRegistrationStatus = registration?.approval_status || null;
       userCheckinToken = registration?.checkin_token || null;
 
-      if (registration?.approval_status === "pending") {
+      if (
+        registration &&
+        (registration.approval_status === "pending" ||
+          (registration.approval_status === "approved" &&
+            event.price_minor != null &&
+            event.price_minor > 0))
+      ) {
         pendingTicketPayment = await findPendingTicketPayment(registration.id);
       }
     }

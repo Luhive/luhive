@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -499,6 +499,39 @@ export type Database = {
             columns: ["invited_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_payment_instructions: {
+        Row: {
+          event_id: string
+          instructions: string
+          updated_at: string
+        }
+        Insert: {
+          event_id: string
+          instructions: string
+          updated_at?: string
+        }
+        Update: {
+          event_id?: string
+          instructions?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_payment_instructions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_payment_instructions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "hub_events"
             referencedColumns: ["id"]
           },
         ]
@@ -1297,7 +1330,11 @@ export type Database = {
           paid_at: string | null
           paid_via: string | null
           partner_reference: string | null
+          payment_method: string | null
+          payment_provider: string
           payment_url: string | null
+          receipt_path: string | null
+          receipt_uploaded_at: string | null
           registration_id: string
           status: string
           transaction_id: string | null
@@ -1315,7 +1352,11 @@ export type Database = {
           paid_at?: string | null
           paid_via?: string | null
           partner_reference?: string | null
+          payment_method?: string | null
+          payment_provider?: string
           payment_url?: string | null
+          receipt_path?: string | null
+          receipt_uploaded_at?: string | null
           registration_id: string
           status?: string
           transaction_id?: string | null
@@ -1333,7 +1374,11 @@ export type Database = {
           paid_at?: string | null
           paid_via?: string | null
           partner_reference?: string | null
+          payment_method?: string | null
+          payment_provider?: string
           payment_url?: string | null
+          receipt_path?: string | null
+          receipt_uploaded_at?: string | null
           registration_id?: string
           status?: string
           transaction_id?: string | null

@@ -119,6 +119,8 @@ export const attenderSchema = z.object({
     .enum(["pending", "paid", "refunded"])
     .nullable()
     .optional(),
+  ticket_payment_method: z.enum(["card_transfer", "cash"]).nullable().optional(),
+  ticket_has_receipt: z.boolean().optional(),
 });
 
 type Attender = z.infer<typeof attenderSchema>;
@@ -216,6 +218,8 @@ function buildPendingInviteAttender(invite: InviteSuccessResult): Attender {
     invited_by_name: invite.invitedByName,
     invite_status: "pending_acceptance",
     ticket_order_status: null,
+    ticket_payment_method: null,
+    ticket_has_receipt: false,
   };
 }
 
@@ -225,6 +229,14 @@ function isUnpaidTicket(attender: Attender) {
 
 function approvalBadgeLabel(attender: Attender): string {
   if (attender.invite_status === "pending_acceptance") return "Not accepted";
+  if (attender.ticket_order_status === "refunded") return "Refunded";
+  if (attender.ticket_order_status === "paid") return "Paid";
+  if (attender.ticket_order_status === "pending" && attender.ticket_payment_method === "cash") {
+    return "Pays at the door";
+  }
+  if (attender.ticket_order_status === "pending" && attender.ticket_has_receipt) {
+    return "Receipt sent";
+  }
   if (isUnpaidTicket(attender)) return "Unpaid";
   return (
     approvalStatusConfig[attender.approval_status as EventApprovalStatus]
@@ -351,9 +363,13 @@ export const AttendersTable = React.forwardRef<
         .map((reg: any) => reg.user_id);
 
       // Fetch emails for authenticated users from API route
-      const orderStatusByRegistration = new Map<
+      const orderByRegistration = new Map<
         string,
-        "pending" | "paid" | "refunded"
+        {
+          status: "pending" | "paid" | "refunded";
+          paymentMethod: "card_transfer" | "cash" | null;
+          hasReceipt: boolean;
+        }
       >();
       try {
         const ordersResponse = await fetch(
@@ -362,7 +378,11 @@ export const AttendersTable = React.forwardRef<
         if (ordersResponse.ok) {
           const body = await ordersResponse.json();
           for (const order of body.orders ?? []) {
-            orderStatusByRegistration.set(order.registrationId, order.status);
+            orderByRegistration.set(order.registrationId, {
+              status: order.status,
+              paymentMethod: order.paymentMethod ?? null,
+              hasReceipt: order.hasReceipt === true,
+            });
           }
         }
       } catch (ordersError) {
@@ -429,8 +449,10 @@ export const AttendersTable = React.forwardRef<
             invited_by_user_id: reg.invited_by_user_id ?? null,
             invited_by_name: inviterProfile?.full_name ?? null,
             invite_status: inviteStatus,
-            ticket_order_status:
-              orderStatusByRegistration.get(reg.id) ?? null,
+            ticket_order_status: orderByRegistration.get(reg.id)?.status ?? null,
+            ticket_payment_method:
+              orderByRegistration.get(reg.id)?.paymentMethod ?? null,
+            ticket_has_receipt: orderByRegistration.get(reg.id)?.hasReceipt ?? false,
           };
         },
       );
@@ -532,7 +554,15 @@ export const AttendersTable = React.forwardRef<
     // toast.info(`Updating status to ${status}...`);
   };
 
-  const handleTicketAction = (id: string, intent: "mark-paid" | "resend") => {
+  const handleTicketAction = (id: string, intent: "mark-paid" | "resend" | "refund") => {
+    if (
+      intent === "refund" &&
+      !window.confirm(
+        "Refund this ticket? They lose their spot. You return the money yourself.",
+      )
+    ) {
+      return;
+    }
     const formData = new FormData();
     formData.append("registrationId", id);
     formData.append("eventId", eventId);
@@ -541,15 +571,21 @@ export const AttendersTable = React.forwardRef<
       method: "POST",
       action: "/api/events/ticket-orders",
     });
-    if (intent === "mark-paid") {
+    if (intent === "mark-paid" || intent === "refund") {
       setData((prev) =>
         prev.map((item) =>
           item.id === id
-            ? {
-                ...item,
-                approval_status: "approved",
-                ticket_order_status: "paid",
-              }
+            ? intent === "mark-paid"
+              ? {
+                  ...item,
+                  approval_status: "approved",
+                  ticket_order_status: "paid",
+                }
+              : {
+                  ...item,
+                  approval_status: "rejected",
+                  ticket_order_status: "refunded",
+                }
             : item,
         ),
       );
@@ -747,6 +783,8 @@ export const AttendersTable = React.forwardRef<
                 config?.className,
                 status === "approved" &&
                   "bg-green-100 text-green-700 hover:bg-green-200 border-green-200",
+                row.original.ticket_order_status === "refunded" &&
+                  "bg-muted text-muted-foreground hover:bg-muted",
               )}
             >
               {approvalBadgeLabel(row.original)}
@@ -804,6 +842,17 @@ export const AttendersTable = React.forwardRef<
 
           return (
             <div className="flex items-center gap-2">
+              {isUnpaid && attender.ticket_has_receipt && (
+                <Button size="sm" variant="outline" className="h-8" asChild>
+                  <a
+                    href={`/api/events/ticket-receipt?registrationId=${encodeURIComponent(attender.id)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View receipt
+                  </a>
+                </Button>
+              )}
               {isUnpaid && (
                 <Button
                   size="sm"
@@ -871,15 +920,24 @@ export const AttendersTable = React.forwardRef<
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuSeparator />
                   {attender.ticket_order_status === "paid" && (
-                    <DropdownMenuCheckboxItem
-                      onClick={() => handleTicketAction(attender.id, "resend")}
-                    >
-                      Resend confirmation
-                    </DropdownMenuCheckboxItem>
+                    <>
+                      <DropdownMenuCheckboxItem
+                        onClick={() => handleTicketAction(attender.id, "resend")}
+                      >
+                        Resend confirmation
+                      </DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleTicketAction(attender.id, "refund")}
+                      >
+                        Refund
+                      </DropdownMenuCheckboxItem>
+                    </>
                   )}
                   {!isPendingInvite &&
                     !isUnpaid &&
                     !isPending &&
+                    attender.ticket_order_status !== "refunded" &&
                     attender.approval_status !== "approved" && (
                       <DropdownMenuCheckboxItem
                         onClick={() =>

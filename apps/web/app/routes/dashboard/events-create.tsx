@@ -1,4 +1,5 @@
 import { isPaidTicketingEnabled } from '@luhive/domain/v1/paid-ticketing-flag';
+import * as CommunitySettings from '@luhive/domain/v1/community-settings';
 import { EventForm } from '~/modules/events/components/event-form/event-form';
 import { useDashboardContext } from '~/modules/dashboard/hooks/use-dashboard-context';
 
@@ -20,6 +21,7 @@ export default function CreateEventPage() {
           communityId={community.id}
           mode="create"
           isPaidTicketingEnabled={isPaidTicketingEnabled(community.settings)}
+          paymentProvider={CommunitySettings.getPaymentProvider(community.settings)}
         />
       </div>
     </div>

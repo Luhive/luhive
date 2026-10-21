@@ -42,7 +42,7 @@ export default function PrivacyPolicyPage() {
         </h1>
         <p className="text-muted-foreground text-sm md:text-base">
           Effective date: <strong>February 1, 2025</strong> · Last updated:{" "}
-          <strong>February 1, 2025</strong>
+          <strong>October 21, 2026</strong>
         </p>
       </div>
 
@@ -100,6 +100,7 @@ export default function PrivacyPolicyPage() {
                 "Community details you create (name, description, logo)",
                 "Event and announcement content you publish",
                 "Messages and communications within the platform",
+                "Payment receipts you upload for an event, stored privately for that community's organisers and deleted if you cancel before paying",
               ].map((item) => (
                 <li key={item} className="pl-6 relative text-foreground/90">
                   <span className="absolute left-0 text-primary text-sm">→</span>

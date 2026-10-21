@@ -1,8 +1,12 @@
 import { Activity } from "react";
 import { Form } from "react-router";
+import * as CommunitySettings from "@luhive/domain/v1/community-settings";
 import { Button } from "~/shared/components/ui/button";
 import type { PendingTicketPayment } from "~/modules/events/model/ticket-order.types";
 import { RegistrationPriceLine } from "./shared/registration-price-line";
+import { PaymentInstructionsBlock } from "./shared/payment-instructions-block";
+import { ManualPaymentActions } from "./shared/manual-payment-actions";
+import { getEventPriceLabel } from "~/modules/events/utils/event-price-label";
 import { CalendarSubscriptionButton } from "~/modules/events/components/registration/calendar-subscription-dialog";
 import { CheckinQrDialog } from "~/modules/events/components/registration/checkin-qr-dialog";
 import { InviteSomeoneButton } from "~/modules/events/components/registration/invite-modal";
@@ -109,9 +113,11 @@ function ApprovedRegisteredView({
 	isUnregistering,
 	user,
 	userProfile,
+	payAtDoor,
 }: RegisteredStateViewProps & {
 	userCheckinToken: string | null;
 	discussionLink?: string | null;
+	payAtDoor?: boolean;
 }) {
 	const timeUntilStart = useEventStartTimer(
 		event.start_time,
@@ -133,6 +139,11 @@ function ApprovedRegisteredView({
 					<RegistrationStatusLine variant="green">
 						You&apos;re registered
 					</RegistrationStatusLine>
+					{payAtDoor ? (
+						<p className="text-xs text-muted-foreground">
+							Pay {getEventPriceLabel(event)} in cash at the door.
+						</p>
+					) : null}
 					<RegistrationEmailSpamHint />
 				</div>
 			}
@@ -270,6 +281,61 @@ function PendingPaymentView({
 	);
 }
 
+function PendingManualPaymentView({
+	event,
+	communityName,
+	isPastEvent,
+	isUnregistering,
+	user,
+	userProfile,
+	paymentInstructions,
+	registrationId,
+	hasReceipt,
+}: RegisteredStateViewProps & {
+	paymentInstructions: string | null;
+	registrationId: string;
+	hasReceipt: boolean;
+}) {
+	const timeUntilStart = useEventStartTimer(
+		event.start_time,
+		event.timezone,
+		isPastEvent,
+	);
+	const { displayName, avatarInitials } = useRegistrationIdentity(user, userProfile);
+
+	return (
+		<RegisteredAttendeeLayout
+			displayName={displayName}
+			avatarUrl={userProfile?.avatar_url}
+			avatarInitials={avatarInitials}
+			timeFormatted={timeUntilStart?.formatted}
+			isUnregistering={isUnregistering}
+			statusLine={
+				<div className="space-y-2">
+					<RegistrationStatusLine variant="amber">
+						Pay to confirm your spot
+					</RegistrationStatusLine>
+					<RegistrationPriceLine event={event} />
+					<PaymentInstructionsBlock instructions={paymentInstructions} />
+					{hasReceipt ? null : (
+						<p className="text-xs text-muted-foreground">
+							Payment goes directly to {communityName ?? "the organiser"}.
+							Luhive does not process or check the transfer.
+						</p>
+					)}
+				</div>
+			}
+			actions={
+				<ManualPaymentActions
+					registrationId={registrationId}
+					eventId={event.id}
+					hasReceipt={hasReceipt}
+				/>
+			}
+		/>
+	);
+}
+
 function RejectedRegisteredView({
 	isPastEvent,
 	isUnregistering,
@@ -321,17 +387,33 @@ export function NativeRegisteredView({
 		userProfile,
 	};
 
+	const paysCashAtDoor =
+		pendingTicketPayment?.provider === CommunitySettings.PaymentProvider.Manual &&
+		pendingTicketPayment.paymentMethod === "cash";
+
 	if (userRegistrationStatus === "approved") {
 		return (
 			<ApprovedRegisteredView
 				{...stateProps}
 				userCheckinToken={userCheckinToken}
 				discussionLink={discussionLink}
+				payAtDoor={paysCashAtDoor}
 			/>
 		);
 	}
 
 	if (userRegistrationStatus === "pending" && pendingTicketPayment) {
+		if (pendingTicketPayment.provider === CommunitySettings.PaymentProvider.Manual) {
+			return (
+				<PendingManualPaymentView
+					{...stateProps}
+					paymentInstructions={pendingTicketPayment.paymentInstructions}
+					registrationId={pendingTicketPayment.registrationId}
+					hasReceipt={pendingTicketPayment.hasReceipt}
+				/>
+			);
+		}
+
 		return (
 			<PendingPaymentView
 				{...stateProps}

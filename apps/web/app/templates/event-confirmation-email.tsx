@@ -27,6 +27,10 @@ interface EventConfirmationEmailProps {
 	onlineMeetingLink?: string;
 	hasQrCode?: boolean;
 	ticketPrice?: string;
+	/** The organiser confirmed the payment by hand instead of a payment provider. */
+	isPaidManually?: boolean;
+	/** Confirmed now, money collected in cash at the door. */
+	isPayAtDoor?: boolean;
 }
 
 export const EventConfirmationEmail = ({
@@ -41,12 +45,19 @@ export const EventConfirmationEmail = ({
 	onlineMeetingLink,
 	hasQrCode = false,
 	ticketPrice,
+	isPaidManually = false,
+	isPayAtDoor = false,
 }: EventConfirmationEmailProps) => {
 	const rows: DetailRowData[] = [
 		{ label: "Date", value: eventDate },
 		{ label: "Time", value: eventTime },
 	];
-	if (ticketPrice) rows.push({ label: "Ticket", value: ticketPrice });
+	if (ticketPrice) {
+		rows.push({
+			label: "Ticket",
+			value: isPayAtDoor ? `${ticketPrice}, pay at the door` : ticketPrice,
+		});
+	}
 	if (locationAddress)
 		rows.push({
 			label: "Location",
@@ -85,11 +96,18 @@ export const EventConfirmationEmail = ({
 			<Divider />
 			<Paragraph>
 				Hi {recipientName},{" "}
-				{ticketPrice
-					? "your payment went through and your spot at "
-					: "your spot at "}
+				{isPayAtDoor
+					? `your spot at `
+					: ticketPrice
+						? isPaidManually
+							? `${communityName} confirmed your payment and your spot at `
+							: "your payment went through and your spot at "
+						: "your spot at "}
 				<strong style={{ color: emailColors.heading }}>{eventTitle}</strong> is
-				confirmed. A calendar invite is attached.
+				confirmed.
+				{isPayAtDoor
+					? ` Bring ${ticketPrice} in cash to pay at the door. A calendar invite is attached.`
+					: " A calendar invite is attached."}
 			</Paragraph>
 			<SectionLabel>Event details</SectionLabel>
 			<DetailsCard rows={rows} />

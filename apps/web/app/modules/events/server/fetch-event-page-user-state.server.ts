@@ -53,7 +53,7 @@ export async function fetchEventPageUserState(
 		supabase
 			.from("events")
 			.select(
-				"status, registration_deadline, start_time, capacity, registration_type",
+				"status, registration_deadline, start_time, capacity, registration_type, price_minor",
 			)
 			.eq("id", eventId)
 			.single(),
@@ -97,7 +97,13 @@ export async function fetchEventPageUserState(
 			userRegistrationStatus = registration?.approval_status || null;
 			userCheckinToken = registration?.checkin_token || null;
 
-			if (registration?.approval_status === "pending") {
+			if (
+				registration &&
+				(registration.approval_status === "pending" ||
+					(registration.approval_status === "approved" &&
+						event?.price_minor != null &&
+						event.price_minor > 0))
+			) {
 				pendingTicketPayment = await findPendingTicketPayment(registration.id);
 			}
 		}

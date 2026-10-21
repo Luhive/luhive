@@ -14,6 +14,7 @@ export type SendRegistrationOrganizerNotificationsInput = {
 	ticketPrice?: string;
 	registrationCount?: number;
 	totalGain?: string;
+	paymentStatus?: "receipt_sent" | "pays_at_door" | "marked_paid";
 };
 
 export async function sendRegistrationOrganizerNotifications(
@@ -32,6 +33,7 @@ export async function sendRegistrationOrganizerNotifications(
 		ticketPrice,
 		registrationCount,
 		totalGain,
+		paymentStatus,
 	} = input;
 
 	const serviceClient = createServiceRoleClient();
@@ -100,6 +102,7 @@ export async function sendRegistrationOrganizerNotifications(
 					ticketPrice,
 					registrationCount,
 					totalGain,
+					paymentStatus,
 					recipientEmail: ownerData.user.email,
 					recipientName:
 						profile?.full_name || ownerData.user.email.split("@")[0],

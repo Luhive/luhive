@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { isPaidTicketingEnabled } from '@luhive/domain/v1/paid-ticketing-flag';
+import * as CommunitySettings from '@luhive/domain/v1/community-settings';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -31,7 +32,11 @@ export default function EditEventPage() {
   const dashboardData = useDashboardContext();
 
   const [event, setEvent] = useState<Event | null>(null);
+  const [paymentInstructions, setPaymentInstructions] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const paymentProvider = CommunitySettings.getPaymentProvider(
+    dashboardData?.community.settings,
+  );
 
   useEffect(() => {
     if (!dashboardData?.community || !eventId) return;
@@ -63,6 +68,20 @@ export default function EditEventPage() {
           return;
         }
 
+        if (
+          event.price_minor !== null &&
+          paymentProvider === CommunitySettings.PaymentProvider.Manual
+        ) {
+          const response = await fetch(
+            `/api/events/payment-instructions?eventId=${encodeURIComponent(event.id)}`,
+          );
+          const body = response.ok
+            ? ((await response.json()) as { instructions: string | null })
+            : null;
+          if (cancelled) return;
+          setPaymentInstructions(body?.instructions ?? null);
+        }
+
         setEvent(event);
       } catch (error) {
         if (cancelled) return;
@@ -81,7 +100,7 @@ export default function EditEventPage() {
     return () => {
       cancelled = true;
     };
-  }, [dashboardData?.community, eventId, navigate]);
+  }, [dashboardData?.community, eventId, navigate, paymentProvider]);
 
   if (!dashboardData) {
     return <DashboardEventFormSkeleton />;
@@ -125,6 +144,7 @@ export default function EditEventPage() {
     status: event.status,
     isApproveRequired: event.is_approve_required ?? false,
     priceMinor: event.price_minor,
+    paymentInstructions,
     customQuestions: (event.custom_questions ?? null) as CustomQuestionJson | null,
     reminderTimes,
     reminderMessage,
@@ -143,6 +163,7 @@ export default function EditEventPage() {
           isPaidTicketingEnabled={isPaidTicketingEnabled(
             dashboardData.community.settings,
           )}
+          paymentProvider={paymentProvider}
         />
       </div>
     </div>

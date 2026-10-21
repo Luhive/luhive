@@ -1,70 +1,13 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { createClient } from "~/shared/lib/supabase/server";
 import {
   findTicketOrderByRegistrationId,
   listTicketOrderStatusesForEvent,
+  refund as refundTicketOrder,
 } from "~/modules/events/data/ticket-orders-repo.server";
+import { createServiceRoleClient } from "~/shared/lib/supabase/server";
+import { requireEventManager } from "~/modules/events/server/require-event-manager.server";
 import { confirmTicketOrder } from "~/modules/events/server/payments/confirm-ticket-order.server";
 import { sendPaidRegistrationConfirmation } from "~/modules/events/server/payments/send-paid-registration-confirmation.server";
-
-type ManagerResult =
-  | { ok: true; userId: string }
-  | { ok: false; error: string };
-
-/** Same authorisation as the existing registration status update. */
-async function requireEventManager(
-  request: Request,
-  eventId: string,
-): Promise<ManagerResult> {
-  const { supabase } = createClient(request);
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return { ok: false, error: "Unauthorized" };
-  }
-
-  const { data: event, error: eventError } = await supabase
-    .from("events")
-    .select("community_id")
-    .eq("id", eventId)
-    .single();
-  if (eventError || !event) {
-    return { ok: false, error: "Event not found" };
-  }
-
-  const { data: collaboration } = await supabase
-    .from("event_collaborations")
-    .select("role")
-    .eq("event_id", eventId)
-    .eq("community_id", event.community_id)
-    .in("role", ["host", "co-host"])
-    .eq("status", "accepted")
-    .single();
-  if (!collaboration) {
-    return { ok: false, error: "You do not have permission to manage this event" };
-  }
-
-  const { data: membership, error: membershipError } = await supabase
-    .from("community_members")
-    .select("role")
-    .eq("community_id", event.community_id)
-    .eq("user_id", user.id)
-    .single();
-  if (membershipError || !membership || !["owner", "admin"].includes(membership.role || "")) {
-    const { data: community } = await supabase
-      .from("communities")
-      .select("created_by")
-      .eq("id", event.community_id)
-      .single();
-    if (!community || community.created_by !== user.id) {
-      return { ok: false, error: "You do not have permission to manage this event" };
-    }
-  }
-
-  return { ok: true, userId: user.id };
-}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const eventId = new URL(request.url).searchParams.get("eventId");
@@ -91,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (
     typeof registrationId !== "string" ||
     typeof eventId !== "string" ||
-    (intent !== "mark-paid" && intent !== "resend")
+    (intent !== "mark-paid" && intent !== "resend" && intent !== "refund")
   ) {
     return { success: false, error: "Missing required fields" };
   }
@@ -107,6 +50,31 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const origin = new URL(request.url).origin;
+
+  if (intent === "refund") {
+    if (order.status !== "paid") {
+      return { success: false, error: "Only a paid ticket can be refunded" };
+    }
+    const refunded = await refundTicketOrder(order.id);
+    if (!refunded) {
+      return { success: false, error: "This ticket cannot be refunded" };
+    }
+    const { error: registrationError } = await createServiceRoleClient()
+      .from("event_registrations")
+      .update({
+        approval_status: "rejected",
+        checkin_token: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", registrationId);
+    if (registrationError) {
+      console.error("Refunded the ticket, but the registration stayed approved:", registrationError);
+    }
+    return {
+      success: true,
+      message: "Refunded. Return the money yourself. Their ticket no longer works.",
+    };
+  }
 
   if (intent === "resend") {
     if (order.status !== "paid") {

@@ -133,6 +133,12 @@ export default [
     "routes/api/events/update-registration-status.tsx",
   ),
   route("api/events/ticket-orders", "routes/api/events/ticket-orders.tsx"),
+  route("api/events/ticket-payment", "routes/api/events/ticket-payment.tsx"),
+  route("api/events/ticket-receipt", "routes/api/events/ticket-receipt.tsx"),
+  route(
+    "api/events/payment-instructions",
+    "routes/api/events/payment-instructions.tsx",
+  ),
   route("api/events/schedule-update", "routes/api/events/schedule-update.tsx"),
   route("api/events/send-reminders", "routes/api/events/send-reminders.tsx"),
   route("api/join-community", "routes/api/join-community.tsx"),

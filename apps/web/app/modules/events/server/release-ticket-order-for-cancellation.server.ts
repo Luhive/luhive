@@ -2,6 +2,7 @@ import {
   deletePendingTicketOrder,
   findTicketOrderByRegistrationId,
 } from "~/modules/events/data/ticket-orders-repo.server";
+import * as PaymentReceipts from "~/modules/events/data/payment-receipts-storage.server";
 
 type ReleaseTicketOrderResult = { ok: true } | { ok: false; error: string };
 
@@ -21,6 +22,9 @@ export async function releaseTicketOrderForCancellation(input: {
   if (!order || order.event_id !== input.eventId) return { ok: true };
 
   if (order.status === "pending") {
+    if (order.receipt_path) {
+      await PaymentReceipts.remove(order.receipt_path);
+    }
     await deletePendingTicketOrder(input.registrationId);
     return { ok: true };
   }
@@ -28,6 +32,6 @@ export async function releaseTicketOrderForCancellation(input: {
   return {
     ok: false,
     error:
-      "This ticket has been paid for. Please contact the organiser to cancel it.",
+      "This ticket has been paid, so it can't be cancelled here.",
   };
 }

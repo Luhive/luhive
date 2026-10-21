@@ -1,6 +1,8 @@
+import type { PaymentProvider } from "@luhive/domain/v1/community-settings";
 import { createServiceRoleClient } from "~/shared/lib/supabase/server";
 import type { EventListRevenueRow } from "~/modules/events/model/event-revenue.types";
 import type {
+  PaymentMethod,
   TicketOrder,
   TicketOrderStatus,
 } from "~/modules/events/model/ticket-order.types";
@@ -12,7 +14,7 @@ import type {
  */
 
 const TICKET_ORDER_COLUMNS =
-  "id, community_id, event_id, registration_id, amount_minor, currency, status, payment_url, partner_reference";
+  "id, community_id, event_id, registration_id, amount_minor, currency, status, payment_provider, payment_method, payment_url, partner_reference, receipt_path";
 
 export async function hasOpenOrPaidTicketOrders(
   eventId: string,
@@ -122,10 +124,15 @@ export async function listCommunityTicketRevenue(
 
 export async function listTicketOrderStatusesForEvent(
   eventId: string,
-): Promise<{ registrationId: string; status: TicketOrderStatus }[]> {
+): Promise<{
+  registrationId: string;
+  status: TicketOrderStatus;
+  paymentMethod: PaymentMethod | null;
+  hasReceipt: boolean;
+}[]> {
   const { data, error } = await createServiceRoleClient()
     .from("ticket_orders")
-    .select("registration_id, status")
+    .select("registration_id, status, payment_method, receipt_path")
     .eq("event_id", eventId);
 
   if (error) {
@@ -135,7 +142,66 @@ export async function listTicketOrderStatusesForEvent(
   return (data ?? []).map((order) => ({
     registrationId: order.registration_id,
     status: order.status as TicketOrderStatus,
+    paymentMethod: order.payment_method as PaymentMethod | null,
+    hasReceipt: order.receipt_path !== null,
   }));
+}
+
+/** Records a receipt on a pending order. Replacing one while unpaid is allowed. */
+export async function saveReceipt(orderId: string, path: string): Promise<void> {
+  const { error } = await createServiceRoleClient()
+    .from("ticket_orders")
+    .update({
+      payment_method: "card_transfer",
+      receipt_path: path,
+      receipt_uploaded_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .eq("status", "pending");
+
+  if (error) {
+    throw new Error(`Failed to save the receipt: ${error.message}`);
+  }
+}
+
+/** Sets cash only when the attendee has not already chosen a method. */
+export async function chooseCash(orderId: string): Promise<boolean> {
+  const { data, error } = await createServiceRoleClient()
+    .from("ticket_orders")
+    .update({
+      payment_method: "cash",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .eq("status", "pending")
+    .is("payment_method", null)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to choose cash: ${error.message}`);
+  }
+
+  return (data?.length ?? 0) === 1;
+}
+
+/** Paid orders only. paid_at and paid_via stay, so the payment record remains. */
+export async function refund(orderId: string): Promise<boolean> {
+  const { data, error } = await createServiceRoleClient()
+    .from("ticket_orders")
+    .update({
+      status: "refunded",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .eq("status", "paid")
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to refund the ticket: ${error.message}`);
+  }
+
+  return (data?.length ?? 0) === 1;
 }
 
 export async function findTicketOrderByRegistrationId(
@@ -160,6 +226,7 @@ export async function createPendingTicketOrder(input: {
   registrationId: string;
   amountMinor: number;
   currency: string;
+  paymentProvider: PaymentProvider;
 }): Promise<TicketOrder> {
   const { data, error } = await createServiceRoleClient()
     .from("ticket_orders")
@@ -169,6 +236,7 @@ export async function createPendingTicketOrder(input: {
       registration_id: input.registrationId,
       amount_minor: input.amountMinor,
       currency: input.currency,
+      payment_provider: input.paymentProvider,
     })
     .select(TICKET_ORDER_COLUMNS)
     .single();

@@ -1,3 +1,4 @@
+import * as CommunitySettings from "@luhive/domain/v1/community-settings";
 import type { Event } from "~/shared/models/entity.types";
 import type { TicketOrder } from "~/modules/events/model/ticket-order.types";
 import {
@@ -5,6 +6,7 @@ import {
   saveTicketOrderPaymentLink,
 } from "~/modules/events/data/ticket-orders-repo.server";
 import { createCheckilaPayment } from "~/modules/events/server/payments/checkila-client.server";
+import { getCommunityPaymentProvider } from "~/modules/events/server/payments/get-community-payment-provider.server";
 
 type StartTicketPaymentInput = {
   event: Event;
@@ -16,13 +18,14 @@ type StartTicketPaymentInput = {
 };
 
 type StartTicketPaymentResult =
-  | { ok: true; paymentUrl: string }
+  | { ok: true; provider: CommunitySettings.PaymentProvider; paymentUrl: string | null }
   | { ok: false; error: string };
 
 /**
- * Makes sure a pending registration has an order with a payment link and
- * returns that link. Safe to call repeatedly: an order that already has a link
- * is reused, so one registration never owns two partner payments.
+ * Makes sure a pending registration has an order and, for Checkila, a payment
+ * link. Safe to call repeatedly: an existing order is reused, so one
+ * registration never owns two partner payments. Manual orders have no link;
+ * the organiser confirms them with "Mark as paid".
  */
 export async function startTicketPayment({
   event,
@@ -30,8 +33,16 @@ export async function startTicketPayment({
   existingOrder,
   eventReturnUrl,
 }: StartTicketPaymentInput): Promise<StartTicketPaymentResult> {
+  if (existingOrder?.payment_provider === CommunitySettings.PaymentProvider.Manual) {
+    return { ok: true, provider: existingOrder.payment_provider, paymentUrl: null };
+  }
+
   if (existingOrder?.payment_url) {
-    return { ok: true, paymentUrl: existingOrder.payment_url };
+    return {
+      ok: true,
+      provider: CommunitySettings.PaymentProvider.Checkila,
+      paymentUrl: existingOrder.payment_url,
+    };
   }
 
   if (event.price_minor === null || event.price_minor <= 0) {
@@ -46,7 +57,12 @@ export async function startTicketPayment({
       registrationId,
       amountMinor: event.price_minor,
       currency: event.currency,
+      paymentProvider: await getCommunityPaymentProvider(event.community_id),
     }));
+
+  if (order.payment_provider === CommunitySettings.PaymentProvider.Manual) {
+    return { ok: true, provider: order.payment_provider, paymentUrl: null };
+  }
 
   const payment = await createCheckilaPayment({
     registrationId,
@@ -73,5 +89,9 @@ export async function startTicketPayment({
     });
   }
 
-  return { ok: true, paymentUrl: payment.link.paymentUrl };
+  return {
+    ok: true,
+    provider: CommunitySettings.PaymentProvider.Checkila,
+    paymentUrl: payment.link.paymentUrl,
+  };
 }

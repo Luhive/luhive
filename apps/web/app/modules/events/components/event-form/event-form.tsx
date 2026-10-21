@@ -24,7 +24,9 @@ import {
   minorToMajorUnits,
   parsePriceInputToMinor,
 } from '@luhive/domain/v1/money';
+import * as CommunitySettings from '@luhive/domain/v1/community-settings';
 import { EventPrice } from '~/modules/events/components/event-form/fields/event-price';
+import { EventPaymentInstructions } from '~/modules/events/components/event-form/fields/event-payment-instructions';
 import { EventCoverUpload } from '~/modules/events/components/event-form/event-cover-upload';
 import { EventBasicInfo } from '~/modules/events/components/event-form/fields/event-basic-info';
 import { EventDateTime } from '~/modules/events/components/event-form/fields/event-datetime';
@@ -73,6 +75,7 @@ interface EventFormData {
   status: EventStatus;
   isApproveRequired: boolean;
   priceMinor?: number | null;
+  paymentInstructions?: string | null;
   customQuestions?: CustomQuestionJson | null;
   reminderTimes?: ReminderTime[];
   reminderMessage?: string | null;
@@ -86,6 +89,7 @@ interface EventFormProps {
   mode: 'create' | 'edit';
   initialData?: Partial<EventFormData>;
   isPaidTicketingEnabled?: boolean;
+  paymentProvider?: CommunitySettings.PaymentProvider;
 }
 
 const TICKET_CURRENCY = 'AZN';
@@ -98,6 +102,7 @@ export function EventForm({
   mode,
   initialData,
   isPaidTicketingEnabled = false,
+  paymentProvider = CommunitySettings.PaymentProvider.Manual,
 }: EventFormProps) {
   const navigate = useNavigate();
   const initialRef = useRef<Partial<EventFormData> | undefined>(initialData);
@@ -132,6 +137,9 @@ export function EventForm({
       ? minorToMajorUnits(initialData.priceMinor).toFixed(2)
       : ''
   );
+  const [paymentInstructions, setPaymentInstructions] = useState(
+    initialData?.paymentInstructions ?? ''
+  );
   const [customQuestions, setCustomQuestions] = useState<CustomQuestionJson | null>(
     initialData?.customQuestions || null
   );
@@ -165,11 +173,18 @@ export function EventForm({
       : null;
   const priceMinor = priceError ? null : parsedPriceMinor;
   const showPriceCard = isPaidTicketingEnabled || initialData?.priceMinor != null;
+  const needsPaymentInstructions =
+    priceMinor !== null &&
+    paymentProvider === CommunitySettings.PaymentProvider.Manual;
+  const submittedPaymentInstructions = needsPaymentInstructions
+    ? paymentInstructions.trim()
+    : null;
 
   // Validation
   const isValid = () => {
     if (!title.trim()) return false;
     if (priceError) return false;
+    if (needsPaymentInstructions && !paymentInstructions.trim()) return false;
     if (!startDate) return false;
     if (!startTime) return false;
     
@@ -380,6 +395,7 @@ export function EventForm({
         !sameDate(initial.registrationDeadline, registrationDeadline)) ||
       (initial.isApproveRequired || false) !== isApproveRequired ||
       (initial.priceMinor ?? null) !== priceMinor ||
+      (initial.paymentInstructions ?? '') !== paymentInstructions ||
       JSON.stringify(initial.customQuestions ?? null) !==
         JSON.stringify(customQuestions ?? null);
 
@@ -451,6 +467,7 @@ export function EventForm({
           status: submitStatus,
           isApproveRequired,
           priceMinor,
+          paymentInstructions: submittedPaymentInstructions,
           customQuestions: customQuestions ?? null,
           reminderTimes,
           reminderMessage: reminderMessage || null,
@@ -503,6 +520,7 @@ export function EventForm({
           status: submitStatus,
           isApproveRequired,
           priceMinor,
+          paymentInstructions: submittedPaymentInstructions,
           customQuestions: customQuestions ?? null,
           reminderTimes,
           reminderMessage: reminderMessage || null,
@@ -679,6 +697,14 @@ export function EventForm({
               errorMessage={priceError}
               onPriceInputChange={setPriceInput}
             />
+            {needsPaymentInstructions && (
+              <div className="mt-6">
+                <EventPaymentInstructions
+                  value={paymentInstructions}
+                  onChange={setPaymentInstructions}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

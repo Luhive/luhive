@@ -8,6 +8,7 @@ import { Label } from "~/shared/components/ui/label";
 import { Spinner } from "~/shared/components/ui/spinner";
 import { useFetcher, useSubmit } from "react-router";
 import { toast } from "sonner";
+import * as CommunitySettings from "@luhive/domain/v1/community-settings";
 import { OtpInputInline } from "~/modules/auth/components/otp-input-inline";
 import {
   CustomQuestionFields,
@@ -442,9 +443,12 @@ export function RegistrationFlow({
     clearRegistrationOtpDraft(eventId);
     onOtpVerified?.(result);
 
-    const paymentUrl = result.registrationState?.pendingTicketPayment?.paymentUrl;
-    if (paymentUrl) {
-      window.location.assign(paymentUrl);
+    const pendingPayment = result.registrationState?.pendingTicketPayment;
+    if (
+      pendingPayment?.provider === CommunitySettings.PaymentProvider.Checkila &&
+      pendingPayment.paymentUrl
+    ) {
+      window.location.assign(pendingPayment.paymentUrl);
       return;
     }
 

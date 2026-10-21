@@ -35,7 +35,16 @@ export function useEventDetailToasts(options?: UseEventDetailToastsOptions) {
         }
       }
 		} else if (actionData.error) {
-			toast.error(actionData.error);
+			toast.error(actionData.error, actionData.contactUrl
+				? {
+						action: {
+							label: "Contact organiser",
+							onClick: () => {
+							window.location.href = actionData.contactUrl!;
+						},
+						},
+					}
+				: undefined);
 			if (options?.submittedIntentRef) {
 				options.submittedIntentRef.current = null;
 			}

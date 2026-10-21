@@ -22,6 +22,8 @@ import { buildEventReturnUrl } from "~/modules/events/utils/event-return-url";
 import { findTicketOrderByRegistrationId } from "~/modules/events/data/ticket-orders-repo.server";
 import { isPaidTicketingEnabledForCommunity } from "~/modules/events/server/is-paid-ticketing-enabled-for-community.server";
 import { requestRegistrationPayment } from "~/modules/events/server/payments/request-registration-payment.server";
+import { sendPaymentRequestEmails } from "~/modules/events/server/payments/send-payment-request-emails.server";
+import * as CommunitySettings from "@luhive/domain/v1/community-settings";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -63,8 +65,8 @@ export type CompleteEventRegistrationResult = {
   error?: string;
   message?: string;
   alreadyRegistered?: boolean;
-  /** Set when the registration is waiting for payment; send the user here. */
-  paymentUrl?: string;
+  /** Set when the registration is waiting for an online payment; send the user here. */
+  paymentUrl?: string | null;
   registrationState?: EventRegistrationState & { canRegister?: boolean };
   registeredEventCommunityId?: string | null;
 };
@@ -384,12 +386,29 @@ export async function completeEventRegistration({
       };
     }
 
-    return requestRegistrationPayment({
+    const payment = await requestRegistrationPayment({
       event,
       registrationId: createdRegistration.id,
       registrationCount,
       eventReturnUrl: await getEventReturnUrl(request, supabase, event, community),
     });
+
+    // Only on the first registration, so a retry never sends the emails twice.
+    if (
+      payment.success &&
+      payment.provider === CommunitySettings.PaymentProvider.Manual
+    ) {
+      try {
+        await sendPaymentRequestEmails(
+          createdRegistration.id,
+          new URL(request.url).origin,
+        );
+      } catch (error) {
+        console.error("Failed to send payment request emails:", error);
+      }
+    }
+
+    return payment;
   }
 
   if (joinCommunity && joinCommunityId) {

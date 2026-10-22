@@ -9,6 +9,9 @@ export function publicOrigin(request: Request): string {
 }
 
 function forwardedProtocol(request: Request): "http" | "https" {
+  const host = new URL(request.url).host;
+  if (host === "luhive.com" || host === "www.luhive.com") return "https";
+
   const visitor = request.headers.get("cf-visitor");
   if (visitor) {
     try {

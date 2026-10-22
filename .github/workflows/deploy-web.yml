@@ -27,7 +27,9 @@ env:
   REGISTRY: luhiveprodacr
   CONTAINER_APP: web
   IMAGE_REPOSITORY: web
-  SITE_URL: https://luhive.com
+  # The container app's own address. luhive.com sits behind Cloudflare, which
+  # answers GitHub's runners with a 403 bot challenge.
+  ORIGIN_URL: https://web.nicefield-2b9a3355.northeurope.azurecontainerapps.io
 
 jobs:
   # Runs alongside the image build; deploy waits for both.
@@ -140,7 +142,7 @@ jobs:
       - name: Smoke test the site
         run: |
           for path in / /hub; do
-            status=$(curl --silent --output /dev/null --write-out "%{http_code}" --max-time 20 "${SITE_URL}${path}" || true)
+            status=$(curl --silent --output /dev/null --write-out "%{http_code}" --max-time 20 "${ORIGIN_URL}${path}" || true)
             echo "${path} ${status}"
-            [ "$status" = "200" ] || { echo "::error::${SITE_URL}${path} returned ${status}"; exit 1; }
+            [ "$status" = "200" ] || { echo "::error::${ORIGIN_URL}${path} returned ${status}"; exit 1; }
           done

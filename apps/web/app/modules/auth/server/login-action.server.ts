@@ -1,4 +1,5 @@
 import { redirect } from "react-router";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 import { createClient } from "~/shared/lib/supabase/server";
 import type { ActionFunctionArgs } from "react-router";
 
@@ -26,7 +27,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: new URL("/auth/verify", request.url).toString(),
+        redirectTo: new URL("/auth/verify", publicOrigin(request)).toString(),
       },
     });
 

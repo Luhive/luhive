@@ -8,7 +8,7 @@ const SUPABASE_COOKIE_PREFIX = "sb-";
  * Public responses cached by CDNs for every visitor. They get a signed-out client and no
  * session refresh, so one visitor's cookies can never be stored in a shared cache.
  */
-const SESSIONLESS_PATH_PREFIXES = ["/api/og/"];
+const SESSIONLESS_PATH_PREFIXES = ["/api/og/", "/stats.js", "/api/send", "/tools"];
 
 function isSessionlessRequest(request: Request) {
   const { pathname } = new URL(request.url);

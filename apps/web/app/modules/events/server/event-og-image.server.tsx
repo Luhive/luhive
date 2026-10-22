@@ -7,6 +7,7 @@ import {
   OG_IMAGE_WIDTH,
 } from "~/shared/lib/og/og-factory";
 import type { OgFont } from "~/shared/lib/og/og-types";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 const IMAGE_CACHE_HEADERS: Record<string, string> = {
   "Cache-Control": "public, max-age=31536000, immutable",
@@ -215,7 +216,7 @@ export async function generateEventOgImage(
   communitySlug: string | undefined,
   eventSlug: string | undefined,
 ): Promise<Response> {
-  const origin = new URL(request.url).origin;
+  const origin = publicOrigin(request);
 
   try {
     if (!communitySlug || !eventSlug) {

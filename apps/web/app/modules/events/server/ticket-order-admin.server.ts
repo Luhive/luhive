@@ -8,6 +8,7 @@ import { createServiceRoleClient } from "~/shared/lib/supabase/server";
 import { requireEventManager } from "~/modules/events/server/require-event-manager.server";
 import { confirmTicketOrder } from "~/modules/events/server/payments/confirm-ticket-order.server";
 import { sendPaidRegistrationConfirmation } from "~/modules/events/server/payments/send-paid-registration-confirmation.server";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const eventId = new URL(request.url).searchParams.get("eventId");
@@ -49,7 +50,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: false, error: "Ticket order not found" };
   }
 
-  const origin = new URL(request.url).origin;
+  const origin = publicOrigin(request);
 
   if (intent === "refund") {
     if (order.status !== "paid") {

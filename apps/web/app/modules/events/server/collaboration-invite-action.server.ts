@@ -9,6 +9,7 @@ import {
   rejectCollaboration,
 } from "~/modules/events/data/collaborations-repo.server";
 import type { CollaborationInviteEventPreview } from "~/modules/events/model/collaboration-invite.types";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const { supabase } = createClient(request);
@@ -108,7 +109,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         })
       : "TBD";
 
-    const eventLink = Routes.absolute(new URL(request.url).origin, Routes.community.event(hostCommunity.slug, publicEventSlug(eventData)));
+    const eventLink = Routes.absolute(publicOrigin(request), Routes.community.event(hostCommunity.slug, publicEventSlug(eventData)));
 
     console.log("=== Collaboration Notification Debug ===");
     console.log("isNewEvent:", isNewEvent);
@@ -125,7 +126,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     try {
       const response = await fetch(
-        `${new URL(request.url).origin}/api/events/collaboration-notification`,
+        `${publicOrigin(request)}/api/events/collaboration-notification`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

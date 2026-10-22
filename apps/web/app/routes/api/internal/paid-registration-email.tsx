@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { ActionFunctionArgs } from "react-router";
 import { sendPaidRegistrationConfirmation } from "~/modules/events/server/payments/send-paid-registration-confirmation.server";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 // Temporary. The integration API calls this after a payment is confirmed,
 // because the email templates live in the web app. Fold it into the core
@@ -28,7 +29,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const result = await sendPaidRegistrationConfirmation(
     registrationId,
-    new URL(request.url).origin,
+    publicOrigin(request),
   );
 
   if (result.sent || result.reason === "already_sent" || result.reason === "not_ready") {

@@ -1,9 +1,9 @@
 name: Deploy web
 
-# luhive.com is served from development, as it was on Netlify.
+# luhive.com deploys from main, the same branch as core-api.
 on:
   push:
-    branches: [development]
+    branches: [main]
     paths:
       - "apps/web/**"
       - "packages/**"

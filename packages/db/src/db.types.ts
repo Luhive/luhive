@@ -148,6 +148,12 @@ export interface EventCollaborations {
   updated_at: Generated<Timestamp | null>;
 }
 
+export interface EventPaymentInstructions {
+  event_id: string;
+  instructions: string;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface EventRegistrations {
   anonymous_email: string | null;
   anonymous_name: string | null;
@@ -422,7 +428,14 @@ export interface TicketOrders {
    * Checkila paymentId, stored when the payment link is created. The callback must echo it as checkilaRequestId.
    */
   partner_reference: string | null;
+  payment_method: string | null;
+  payment_provider: Generated<string>;
   payment_url: string | null;
+  /**
+   * Object path in the private payment-receipts bucket. NULL until a receipt is uploaded.
+   */
+  receipt_path: string | null;
+  receipt_uploaded_at: Timestamp | null;
   registration_id: string;
   status: Generated<string>;
   /**
@@ -441,6 +454,7 @@ export interface DB {
   community_members: CommunityMembers;
   community_visits: CommunityVisits;
   event_collaborations: EventCollaborations;
+  event_payment_instructions: EventPaymentInstructions;
   event_registrations: EventRegistrations;
   event_reminders: EventReminders;
   event_visits: EventVisits;

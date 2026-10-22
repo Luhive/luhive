@@ -205,7 +205,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
         eventId,
       });
       if (!released.ok) {
-        return { success: false, error: released.error };
+        const { data: owner } = community.created_by
+          ? await createServiceRoleClient().auth.admin.getUserById(community.created_by)
+          : { data: null };
+        const ownerEmail = owner?.user?.email;
+        const subject = encodeURIComponent(`Cancel my ticket: ${event.title}`);
+        return {
+          success: false,
+          error: released.error,
+          contactUrl: ownerEmail ? `mailto:${ownerEmail}?subject=${subject}` : undefined,
+        };
       }
     }
 

@@ -89,6 +89,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
 		if (status === "approved") {
 			const order = await findTicketOrderByRegistrationId(registrationId);
+			if (order?.status === "refunded" && order.event_id === eventId) {
+				return {
+					success: false,
+					error: "This ticket was refunded.",
+				};
+			}
 			if (order?.status === "pending" && order.event_id === eventId) {
 				return {
 					success: false,

@@ -7,6 +7,7 @@ import { EventStatusUpdateEmail } from "~/templates/event-status-update-email";
 import { EventUpdateEmail } from "~/templates/event-update-email";
 import { EventReminderEmail } from "~/templates/event-reminder-email";
 import { EventRegistrationRequestEmail } from "~/templates/event-registration-request-email";
+import { EventPaymentRequestEmail } from "~/templates/event-payment-request-email";
 import { CommunityWaitlistNotification } from "~/templates/community-waitlist-notification";
 import { CommunityJoinNotification } from "~/templates/community-join-notification";
 import { CommunityAnnouncementEmail } from "~/templates/community-announcement-email";
@@ -585,6 +586,8 @@ interface ConfirmationEmailData {
   endTimeISO: string;
   checkinToken?: string | null;
   ticketPrice?: string;
+  isPaidManually?: boolean;
+  isPayAtDoor?: boolean;
 }
 
 interface StatusUpdateEmailData {
@@ -722,6 +725,19 @@ interface EventRegistrationNotificationEmailData {
   ticketPrice?: string;
   registrationCount?: number;
   totalGain?: string;
+  paymentStatus?: "receipt_sent" | "pays_at_door" | "marked_paid";
+}
+
+interface PaymentRequestEmailData {
+  eventTitle: string;
+  communityName: string;
+  eventLink: string;
+  recipientName: string;
+  recipientEmail: string;
+  ticketPrice: string;
+  paymentInstructions: string | null;
+  eventDate: string;
+  eventTime: string;
 }
 
 interface AnnouncementNotificationEmailData {
@@ -797,6 +813,40 @@ export async function sendRegistrationRequestEmail(
     from,
     to: recipientEmail,
   });
+
+  return { success: true, data: { id: result.id } };
+}
+
+export async function sendPaymentRequestEmail(data: PaymentRequestEmailData) {
+  const subject = `Complete your payment: ${data.eventTitle}`;
+  const from = fromCommunity(data.communityName);
+
+  const result = await sendEmailInternal({
+    to: data.recipientEmail,
+    subject,
+    from,
+    react: EventPaymentRequestEmail({
+      eventTitle: data.eventTitle,
+      communityName: data.communityName,
+      eventLink: data.eventLink,
+      recipientName: data.recipientName,
+      ticketPrice: data.ticketPrice,
+      paymentInstructions: data.paymentInstructions,
+      eventDate: data.eventDate,
+      eventTime: data.eventTime,
+    }),
+    metadata: {
+      template: "EventPaymentRequestEmail",
+      eventTitle: data.eventTitle,
+      communityName: data.communityName,
+    },
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to send payment request email: ${result.error?.message || "Unknown error"}`
+    );
+  }
 
   return { success: true, data: { id: result.id } };
 }
@@ -1148,6 +1198,8 @@ export async function sendRegistrationConfirmationEmail(
     endTimeISO,
     checkinToken,
     ticketPrice,
+    isPaidManually,
+    isPayAtDoor,
   } = data;
 
   const from = fromCommunity(communityName);
@@ -1210,6 +1262,8 @@ export async function sendRegistrationConfirmationEmail(
     onlineMeetingLink,
     hasQrCode,
     ticketPrice,
+    isPaidManually,
+    isPayAtDoor,
   };
 
   const result = await sendEmail({
@@ -1840,10 +1894,16 @@ export async function sendEventRegistrationNotificationEmail(
       ticketPrice,
       registrationCount,
       totalGain,
+      paymentStatus,
     }) => {
       return {
         to: recipientEmail,
-        subject: `New registration: ${eventTitle}`,
+        subject:
+          paymentStatus === "receipt_sent"
+            ? `Receipt received: ${eventTitle}`
+            : paymentStatus === "pays_at_door"
+              ? `Pays at the door: ${eventTitle}`
+              : `New registration: ${eventTitle}`,
         from: fromCommunity(hostCommunityName),
         react: EventRegistrationNotificationEmail({
           eventTitle,
@@ -1858,6 +1918,7 @@ export async function sendEventRegistrationNotificationEmail(
           ticketPrice,
           registrationCount,
           totalGain,
+          paymentStatus,
         }),
         metadata: {
           template: "EventRegistrationNotificationEmail",

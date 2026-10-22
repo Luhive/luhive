@@ -10,7 +10,8 @@ to be folded into `apps/core-api` (`slices/ticketing/`) after Stage 1 #9. Every
 shortcut is listed under [Temporary shortcuts](#temporary-shortcuts).
 
 `app/modules/events/**` is unfrozen for this feature only (owner decision,
-29 Sep 2026). The exception is recorded in `docs/spec/12`.
+29 Sep 2026). The exception is recorded in `docs/spec/12`. It also covers the
+manual payment provider added on 19 Oct 2026 (section 13).
 
 ## Status
 
@@ -187,6 +188,47 @@ WHERE slug = '<pilot-community-slug>';
 `jsonb_set` with `create_missing = true` creates `features.paid_ticketing`
 without touching sibling flags. If `settings.features` itself is missing, set it
 first (the 0001 backfill guarantees it exists for existing communities).
+
+### Community settings reference
+
+Read settings in code through `@luhive/domain/v1/community-settings`, imported
+as a namespace. Never index the JSON by hand:
+
+```ts
+import * as CommunitySettings from "@luhive/domain/v1/community-settings";
+
+CommunitySettings.hasFeature(community.settings, CommunitySettings.Feature.PaidTicketing);
+CommunitySettings.getPaymentProvider(community.settings); // "checkila" | "manual"
+```
+
+| Key | Values | Absent means |
+|---|---|---|
+| `features.public_page`, `features.join`, `features.events`, `features.newsletter` | `true` / `false` | off |
+| `features.paid_ticketing` | `true` / `false` | off |
+| `payments.provider` | `"checkila"` / `"manual"` | `manual` |
+
+Only a literal `true` turns a feature on. An unknown provider counts as manual,
+so a community never creates Checkila links by accident: Checkila only calls
+back for communities that have a key.
+
+Turn on paid ticketing with a provider, in one statement:
+
+```sql
+UPDATE public.communities
+SET settings = jsonb_set(
+  jsonb_set(COALESCE(settings, '{}'::jsonb), '{features,paid_ticketing}', 'true'::jsonb, true),
+  '{payments}', '{"provider": "manual"}'::jsonb, true  -- or "checkila"
+)
+WHERE slug = '<community-slug>';
+```
+
+Check what a community has:
+
+```sql
+SELECT slug, settings -> 'features' -> 'paid_ticketing' AS paid_ticketing,
+       settings -> 'payments' ->> 'provider' AS provider
+FROM public.communities WHERE slug = '<community-slug>';
+```
 
 ---
 
@@ -703,6 +745,62 @@ refused.
 
 ---
 
+## 13. Manual payment provider
+
+For communities that collect the money themselves (for example card to card).
+Same orders, Unpaid badge, Mark as paid, emails and revenue as Checkila; only
+the step that starts the payment differs.
+
+| | Checkila | Manual |
+|---|---|---|
+| Chosen by | `settings.payments.provider = "checkila"` | `"manual"`, or absent |
+| On registration | Order + Checkila link, user is sent to pay | Order only, no link |
+| Event page while unpaid | Pay now | Price, instructions, then upload a receipt or pay cash at the door |
+| Registration emails | None until paid | Attendee: how to pay. Organisers hear when a receipt arrives or cash is chosen |
+| Confirmed by | Callback, or Mark as paid | Card: Mark as paid after the receipt. Cash: confirmed at once, marked paid at the door |
+| Confirmation wording | "Your payment went through" | Card: "{community} confirmed your payment". Cash: "Bring {price} in cash" |
+
+- **Migration `0006_add_manual_payments`.** Adds `ticket_orders.payment_provider`
+  (`checkila` | `manual`). It is copied from the community when the order is
+  created, so switching provider never rewrites history. Existing orders were
+  backfilled as `checkila`.
+- **Payment instructions** live in `event_payment_instructions`, one row per
+  event, service-role only. They are not a column on `events`: published events
+  are readable with the anon key, and the text usually holds a card number.
+  Only the registrant's own pending card, their payment-request email and the
+  event's managers (edit form) can read them.
+- **The event form** asks for instructions when the event has a price and the
+  community is manual. The server rejects a priced manual event without them.
+  Saving on update requires the same event-manager check as Mark as paid.
+- **Emails.** The attendee gets the payment email on the first registration
+  only. Organisers are emailed when a receipt is uploaded (`receipt_sent`) or
+  cash is chosen (`pays_at_door`), not at registration. Mark as paid uses
+  `marked_paid` with the registration count and total gain, and sends nothing
+  extra for cash because that confirmation was already stamped.
+- **Card or cash** (`0007_add_ticket_payment_method`). The attendee chooses on
+  the unpaid event card. A receipt is a file in the private `payment-receipts`
+  bucket (`{event_id}/{registration_id}`), reached only through the service
+  role after an ownership or event-manager check. Organisers open it from a
+  link that lasts 60 seconds. Cancelling an unpaid registration deletes the
+  file. There is no scheduled cleanup after the event yet.
+  Registrants show Unpaid, Receipt sent, Pays at the door, or Paid.
+  Cash confirms the spot immediately (venue and QR) while the order stays
+  unpaid until Mark as paid, so revenue still counts only paid orders.
+- **Privacy and responsibility.** Receipts are personal financial data kept
+  for the community. The privacy policy names them. The terms say the community
+  is the seller and is responsible for taxes, refunds, and any receipt the law
+  requires. Luhive does not process or check the transfer, and the product copy
+  says so. This manual path stays limited to communities with the flag on. It
+  will not be the general product: other communities will use Stripe Connect or
+  epoint directly. Automatic receipt deletion is not built, because this path
+  is not the one that scales.
+- **Not changed:** the Checkila callback, integration-api, revenue, Resend
+  confirmation, and blocking manual approve on unpaid card rows.
+- **Known gap:** unpaid registrations do not count towards capacity, so
+  card-to-card can collect more payments than seats before they are marked paid.
+
+---
+
 ## Milestones
 
 Each milestone ends with a stop: it is merged-quality on its own, has a
@@ -774,6 +872,8 @@ callbacks and should ship with it; M8 can follow the day after if time is short.
 - Refunds and paid-ticket cancellation are manual.
 - No partner transaction lookup for reconciliation; **Mark as paid** is the
   safety net.
+- Manual payments are matched by the organiser against their bank app; nothing
+  records which transfer belongs to which registration.
 
 ## Open questions
 

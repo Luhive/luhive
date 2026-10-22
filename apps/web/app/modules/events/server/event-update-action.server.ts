@@ -3,6 +3,9 @@ import { createClient } from "~/shared/lib/supabase/server";
 import { saveEventReminders } from "~/modules/events/server/event-reminders.server";
 import type { Database, Json } from "~/shared/models/database.types";
 import { resolveEventPrice } from "~/modules/events/server/resolve-event-price.server";
+import { resolveEventPaymentInstructions } from "~/modules/events/server/payments/resolve-event-payment-instructions.server";
+import { saveEventPaymentInstructions } from "~/modules/events/data/event-payment-instructions-repo.server";
+import { requireEventManager } from "~/modules/events/server/require-event-manager.server";
 
 type EventType = Database["public"]["Enums"]["event_type"];
 type EventStatus = Database["public"]["Enums"]["event_status"];
@@ -31,6 +34,7 @@ export interface EventUpdatePayload {
   status: EventStatus;
   isApproveRequired: boolean;
   priceMinor?: number | null;
+  paymentInstructions?: string | null;
   customQuestions?: Json | null;
   reminderTimes?: ReminderTime[];
   reminderMessage?: string | null;
@@ -91,6 +95,7 @@ export async function eventUpdateAction({
     status,
     isApproveRequired,
     priceMinor: requestedPriceMinor,
+    paymentInstructions: requestedPaymentInstructions,
     customQuestions,
     reminderTimes,
     reminderMessage,
@@ -129,6 +134,24 @@ export async function eventUpdateAction({
     return { success: false, error: price.error };
   }
 
+  const paymentInstructions = await resolveEventPaymentInstructions({
+    communityId,
+    priceMinor: price.priceMinor,
+    requestedInstructions: requestedPaymentInstructions,
+  });
+  if (!paymentInstructions.ok) {
+    return { success: false, error: paymentInstructions.error };
+  }
+
+  // The instructions are written with the service role, so the caller must be
+  // proven to manage this event before anything is saved.
+  if (paymentInstructions.instructions) {
+    const manager = await requireEventManager(request, eventId);
+    if (!manager.ok) {
+      return { success: false, error: manager.error };
+    }
+  }
+
   const { error: eventError } = await supabase
     .from("events")
     .update({
@@ -163,6 +186,15 @@ export async function eventUpdateAction({
   }
 
   await saveEventReminders(eventId, reminderTimes ?? [], reminderMessage ?? null);
+
+  if (paymentInstructions.instructions) {
+    try {
+      await saveEventPaymentInstructions(eventId, paymentInstructions.instructions);
+    } catch (instructionsError) {
+      console.error("Failed to save payment instructions:", instructionsError);
+      return { success: false, error: "Failed to save payment instructions" };
+    }
+  }
 
   return { success: true, eventId, communitySlug, status };
 }

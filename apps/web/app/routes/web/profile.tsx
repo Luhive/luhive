@@ -82,7 +82,7 @@ export default function ProfilePage() {
         else params.set("tab", next);
         return params;
       },
-      { replace: true },
+      { replace: true, preventScrollReset: true },
     );
   }
 

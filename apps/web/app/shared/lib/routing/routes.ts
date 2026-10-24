@@ -17,6 +17,8 @@ const API_BASE = "/api";
 
 export class Routes {
   static home = "/";
+  /** The landing page for signed-in users too: `/` alone sends them to their profile. */
+  static landing = "/?home";
   static hub = "/hub";
   static hubLegacy = "/hub-legacy";
   static profile = "/profile";

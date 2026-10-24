@@ -306,10 +306,160 @@ body {
   animation: hub-fade 180ms var(--ease-out-strong) both;
 }
 
+@keyframes profile-tab-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.profile-tab-in {
+  animation: profile-tab-in 180ms var(--ease-out-strong) both;
+}
+
+@keyframes profile-window-swap-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes profile-window-swap-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.profile-window-swap-up {
+  display: inline-flex;
+  animation: profile-window-swap-up 180ms var(--ease-out-strong) both;
+}
+
+.profile-window-swap-down {
+  display: inline-flex;
+  animation: profile-window-swap-down 180ms var(--ease-out-strong) both;
+}
+
+@keyframes profile-past-stack {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.profile-past-stack {
+  animation: profile-past-stack 200ms var(--ease-out-strong) both;
+  animation-delay: var(--stack-delay, 0ms);
+}
+
+@keyframes profile-bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.profile-bar-segment {
+  transform-origin: left;
+  animation: profile-bar-grow 700ms var(--ease-out-strong) both;
+  animation-delay: var(--bar-delay, 0ms);
+}
+
+/* Profile activity grid. The full motion inventory is docs/profile-activity.md §8. */
+
+/* M4, M5, M7: one tooltip for the whole grid. Transitions, not keyframes, so it
+   stays interruptible; it is force-mounted and hidden here when closed. */
+.activity-tooltip {
+  pointer-events: none;
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+  transition:
+    opacity 125ms var(--ease-out-strong),
+    transform 125ms var(--ease-out-strong),
+    visibility 0s;
+}
+
+.activity-tooltip[data-state="closed"] {
+  opacity: 0;
+  transform: scale(0.97);
+  visibility: hidden;
+  transition:
+    opacity 100ms var(--ease-out-strong),
+    transform 100ms var(--ease-out-strong),
+    visibility 0s linear 100ms;
+}
+
+.activity-tooltip[data-instant] {
+  transition-duration: 0ms;
+}
+
+/* M2: data reveal over the skeleton */
+.activity-reveal {
+  transition:
+    opacity 200ms var(--ease-out-strong),
+    filter 200ms var(--ease-out-strong);
+}
+
+.activity-reveal[data-follow] {
+  transition-delay: 40ms;
+}
+
+@starting-style {
+  .activity-reveal {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+
+/* M3: skeleton pulse, only once a load is slow */
+.activity-skeleton-pulse {
+  animation: activity-pulse 1.6s ease-in-out 1s infinite alternate;
+}
+
+@keyframes activity-pulse {
+  to {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activity-tooltip,
+  .activity-tooltip[data-state="closed"] {
+    transform: none;
+  }
+
+  .activity-reveal {
+    transition: opacity 150ms var(--ease-out-strong);
+  }
+
+  @starting-style {
+    .activity-reveal {
+      opacity: 0;
+      filter: none;
+    }
+  }
+
+  .activity-skeleton-pulse {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-hub-rise {
     animation-name: hub-fade;
     animation-duration: 200ms;
+  }
+
+  .profile-tab-in,
+  .profile-window-swap-up,
+  .profile-window-swap-down,
+  .profile-past-stack {
+    animation-name: hub-fade;
+    animation-duration: 150ms;
+  }
+
+  .profile-bar-segment {
+    animation: none;
+    transform: none;
   }
 
   /* vaul always slides; fade instead. Selector must outrank vaul's own drawer rules. */

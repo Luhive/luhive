@@ -13,7 +13,9 @@
     "pricing": "Pricing",
     "faqs": "FAQ's",
     "contact": "Contact",
-    "tryForFree": "Start Your Community"
+    "tryForFree": "Start Your Community",
+    "profile": "Profile",
+    "yourProfile": "Your profile"
   },
   "hero": {
     "title": "You're running a community",

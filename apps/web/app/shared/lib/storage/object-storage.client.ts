@@ -151,6 +151,15 @@ export class ObjectStorageService {
     return { valid: true };
   }
 
+  async uploadProfilePhoto(file: File, userId: string): Promise<UploadResult> {
+    return this.uploadFile(file, {
+      bucket: "community-profile-pictures",
+      folder: `avatars/${userId}`,
+      maxFileSize: 2 * 1024 * 1024,
+      allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+    });
+  }
+
   /**
    * Upload community logo
    */
@@ -203,6 +212,11 @@ export class ObjectStorageService {
 }
 
 // Export utility functions for client-side usage
+export const uploadProfilePhoto = (file: File, userId: string) => {
+  const storage = new ObjectStorageService();
+  return storage.uploadProfilePhoto(file, userId);
+};
+
 export const uploadCommunityLogo = (file: File, communitySlug: string) => {
   const storage = new ObjectStorageService();
   return storage.uploadCommunityLogo(file, communitySlug);

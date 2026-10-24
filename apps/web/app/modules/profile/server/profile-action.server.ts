@@ -1,5 +1,7 @@
 import { redirect } from "react-router";
+import { ProfileLinks } from "~/modules/profile/model/profile-social-links";
 import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
+import type { Json } from "~/shared/models/database.types";
 import type { ActionFunctionArgs } from "react-router";
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -21,11 +23,38 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const fullName = formData.get("full_name") as string;
   const bio = formData.get("bio") as string;
 
+  const socialLinks: Record<string, string | null> = {};
+  for (const id of ProfileLinks.ids) {
+    const raw = formData.get(id);
+    const trimmed = typeof raw === "string" ? raw.trim() : "";
+    if (!trimmed) {
+      socialLinks[id] = null;
+      continue;
+    }
+    const url = ProfileLinks.url(id, trimmed);
+    if (!url) {
+      return { success: false, error: `Enter a valid ${id} link` };
+    }
+    socialLinks[id] = url;
+  }
+
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("metadata")
+    .eq("id", user.id)
+    .single();
+
+  const metadata =
+    existing?.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
+      ? existing.metadata
+      : {};
+
   const { error } = await supabase
     .from("profiles")
     .update({
       full_name: fullName,
       bio: bio || null,
+      metadata: { ...metadata, social_links: socialLinks } as Json,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);

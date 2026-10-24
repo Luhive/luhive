@@ -16,6 +16,7 @@ import { readFirstTouchSource } from "~/shared/lib/first-touch.server";
 import { sharedCacheGuardMiddleware } from "~/shared/lib/http/shared-cache-guard.server";
 import { getPublicEnv } from "~/shared/lib/public-env";
 import { supabaseMiddleware } from "~/shared/lib/supabase/supabase-middleware.server";
+import { rememberBrowserTimezone } from "~/shared/lib/timezone-cookie";
 import { PublicEnvScript } from "~/shared/components/public-env-script";
 
 import type { Route } from "./+types/root";
@@ -72,6 +73,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     analytics.trackPageView(location.pathname);
   }, [location.pathname]);
+
+  useEffect(() => {
+    rememberBrowserTimezone();
+  }, []);
 
   return (
     <html lang="en">

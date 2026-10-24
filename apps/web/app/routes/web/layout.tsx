@@ -13,11 +13,13 @@ import { HubFooter } from "~/modules/hub/components/hub-footer";
 import { CurrentUserAccountActions } from "~/modules/hub/components/current-user-account-actions";
 import { HubLegacyNavigation } from "~/modules/hub/components/legacy/hub-legacy-navigation";
 import Footer from "~/shared/components/footer";
+import { safeAreaGutterClassName } from "~/modules/hub/components/hub-grid-layout";
 import { Routes } from "~/shared/lib/routing/routes";
 
 export { links } from "~/modules/hub/model/hub-meta";
 
-const pageWidthClassName = "container px-5";
+const layoutWidthClassName = "container px-5";
+const hubWidthClassName = `max-w-[1040px] ${safeAreaGutterClassName}`;
 
 export async function loader({ context }: Route.LoaderArgs) {
 	const { supabase, findAuthUser } = context.get(requestSupabaseContext);
@@ -71,6 +73,8 @@ export default function TopNavigationLayout() {
 			typeof m.id === "string" &&
 			(m.id.includes("announcement-new") || m.id.includes("event-register")),
 	);
+	const pageWidthClassName =
+		location.pathname === Routes.profile ? hubWidthClassName : layoutWidthClassName;
 
 	if (location.pathname === Routes.hubLegacy) {
 		return (
@@ -102,7 +106,9 @@ export default function TopNavigationLayout() {
 				)}
 				<main
 					className={
-						isFocusedRoute ? "flex-1" : `mx-auto w-full flex-1 pb-16 ${pageWidthClassName}`
+						isFocusedRoute
+							? "flex-1"
+							: `mx-auto flex w-full flex-1 flex-col pb-16 ${pageWidthClassName}`
 					}
 				>
 					<Outlet />

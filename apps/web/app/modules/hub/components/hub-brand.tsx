@@ -5,9 +5,9 @@ import luhiveMark from "~/assets/images/hub/luhive-mark.svg";
 export function HubBrand() {
   return (
     <Link
-      to={Routes.hub}
+      to={Routes.landing}
       prefetch="intent"
-      aria-label="Luhive hub"
+      aria-label="Luhive home"
       className="flex origin-left items-center gap-[4.71px] rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15 md:scale-[0.8]"
     >
       <span className="relative size-[20px] shrink-0">

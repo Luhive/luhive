@@ -22,6 +22,8 @@ import { ProfileSignedOut } from "~/modules/profile/components/profile-signed-ou
 // import { ProfileStatCards } from "~/modules/profile/components/profile-stat-cards";
 import { parseProfileTab, ProfileTabs, type EventWindow, type ProfileTab } from "~/modules/profile/components/profile-tabs";
 import { profileCardClassName, profileRiseStyle } from "~/modules/profile/components/profile-tokens";
+import { ProfileCompletionCard } from "~/modules/profile/components/profile-completion-card";
+import { ProfileCompleteness } from "~/modules/profile/model/profile-completeness";
 import { ProfileLinks } from "~/modules/profile/model/profile-social-links";
 import type { loader } from "~/modules/profile/server/profile-loader.server";
 
@@ -50,7 +52,7 @@ export function shouldRevalidate({
 export default function ProfilePage() {
   const { user, communities, stats, events, activityWindow, activity } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const actionData = useActionData<{ success?: boolean; error?: string; message?: string }>();
+  const actionData = useActionData<{ success?: boolean; justCompleted?: boolean; error?: string; message?: string }>();
   const tab = parseProfileTab(searchParams.get("tab"));
   const [eventWindow, setEventWindow] = useState<EventWindow>("upcoming");
   const [isEditing, setIsEditing] = useState(false);
@@ -89,6 +91,12 @@ export default function ProfilePage() {
   if (!user) return <ProfileSignedOut />;
 
   const socialLinks = ProfileLinks.read(user.metadata);
+  const completeness = ProfileCompleteness.check({
+    fullName: user.full_name,
+    avatarUrl,
+    bio: user.bio,
+    links: socialLinks,
+  });
   // On a wrapper outside the boundary, so the skeleton-to-data swap doesn't replay the entrance.
   const activityRise = profileRiseStyle(0);
 
@@ -108,7 +116,10 @@ export default function ProfilePage() {
           avatarUrl={avatarUrl}
           onAvatarChange={setAvatarUrl}
           onEdit={() => setIsEditing(true)}
+          completeness={completeness}
+          celebrate={Boolean(actionData?.justCompleted)}
         />
+        <ProfileCompletionCard completeness={completeness} onEdit={() => setIsEditing(true)} />
         {/* Stat cards hidden for now, kept for later.
         <Suspense fallback={<ProfileStatSkeleton />}>
           <Await resolve={stats}>

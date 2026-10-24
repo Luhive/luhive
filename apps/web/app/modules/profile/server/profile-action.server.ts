@@ -1,4 +1,5 @@
 import { redirect } from "react-router";
+import { ProfileCompleteness } from "~/modules/profile/model/profile-completeness";
 import { ProfileLinks } from "~/modules/profile/model/profile-social-links";
 import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import type { Json } from "~/shared/models/database.types";
@@ -40,7 +41,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const { data: existing } = await supabase
     .from("profiles")
-    .select("metadata")
+    .select("metadata, avatar_url, gamification")
     .eq("id", user.id)
     .single();
 
@@ -49,12 +50,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
       ? existing.metadata
       : {};
 
+  const { complete } = ProfileCompleteness.check({
+    fullName,
+    avatarUrl: existing?.avatar_url,
+    bio,
+    links: socialLinks as ProfileLinks.Map,
+  });
+  const justCompleted = complete && !ProfileCompleteness.hasBadge(existing?.gamification);
+
   const { error } = await supabase
     .from("profiles")
     .update({
       full_name: fullName,
       bio: bio || null,
       metadata: { ...metadata, social_links: socialLinks } as Json,
+      ...(complete ? { gamification: ProfileCompleteness.award(existing?.gamification) } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -68,6 +78,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   return {
     success: true,
+    justCompleted,
     message: "Profile updated successfully!",
   };
 }

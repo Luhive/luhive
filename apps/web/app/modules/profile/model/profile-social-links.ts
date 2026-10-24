@@ -12,10 +12,31 @@ export namespace ProfileLinks {
     instagram: "instagram.com/",
   };
 
+  /** Pages that show the signed-in person their own handle, for people who don't know it. */
+  const findUrlById: Record<Id, string> = {
+    x: "https://x.com/settings/screen_name",
+    linkedin: "https://www.linkedin.com/in/me/",
+    instagram: "https://www.instagram.com/accounts/edit/",
+  };
+
+  const placeholderById: Record<Id, string> = {
+    x: "handle or paste link",
+    linkedin: "paste your profile link",
+    instagram: "handle or paste link",
+  };
+
   const empty: Map = { x: null, linkedin: null, instagram: null };
 
   export function prefix(id: Id) {
     return prefixById[id];
+  }
+
+  export function findUrl(id: Id) {
+    return findUrlById[id];
+  }
+
+  export function placeholder(id: Id) {
+    return placeholderById[id];
   }
 
   export function handle(id: Id, url: string | null) {

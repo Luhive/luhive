@@ -1,6 +1,8 @@
 import { ArrowLeft, SquarePen } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
+import { ProfileCompleteBadge } from "~/modules/profile/components/profile-complete-badge";
 import { ProfilePhoto } from "~/modules/profile/components/profile-photo";
+import type { ProfileCompleteness } from "~/modules/profile/model/profile-completeness";
 import { linkifyText } from "~/modules/profile/utils/linkify-text";
 import { Routes } from "~/shared/lib/routing/routes";
 import type { Profile } from "~/shared/models/entity.types";
@@ -10,6 +12,10 @@ type ProfileHeaderProps = {
   avatarUrl: string | null;
   onAvatarChange: (avatarUrl: string) => void;
   onEdit: () => void;
+  /** Whether the four fields are filled right now; the stored badge only records that it was earned once. */
+  completeness: ReturnType<typeof ProfileCompleteness.check>;
+  /** True right after the save that completed the profile, to open the perks drawer once. */
+  celebrate?: boolean;
 };
 
 function ProfileBio({ bio }: { bio: string }) {
@@ -39,6 +45,8 @@ export function ProfileHeader({
   avatarUrl,
   onAvatarChange,
   onEdit,
+  completeness,
+  celebrate = false,
 }: ProfileHeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -79,9 +87,12 @@ export function ProfileHeader({
           onAvatarChange={onAvatarChange}
         />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[28px] font-semibold leading-tight tracking-tight text-[#111]">
-            {displayName}
-          </h1>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <h1 className="truncate text-[28px] font-semibold leading-tight tracking-tight text-[#111]">
+              {displayName}
+            </h1>
+            {completeness.complete ? <ProfileCompleteBadge completeness={completeness} celebrate={celebrate} /> : null}
+          </div>
           {user.bio?.trim() ? <ProfileBio bio={user.bio.trim()} /> : null}
         </div>
       </div>

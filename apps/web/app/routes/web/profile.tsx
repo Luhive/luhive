@@ -139,8 +139,14 @@ export default function ProfilePage() {
             />
           </div>
         {tab === "communities" ? (
-          <div key={tab} className={`${profileCardClassName} overflow-hidden`}>
-            <Suspense fallback={<ProfileCommunitiesSkeleton />}>
+          <Suspense
+            key={tab}
+            fallback={
+              <div className={`${profileCardClassName} overflow-hidden`}>
+                <ProfileCommunitiesSkeleton />
+              </div>
+            }
+          >
               <Await resolve={communities}>
                 {(resolvedCommunities) => (
                   <Await resolve={stats}>
@@ -154,7 +160,6 @@ export default function ProfilePage() {
                 )}
               </Await>
             </Suspense>
-          </div>
         ) : (
           <Suspense
             fallback={

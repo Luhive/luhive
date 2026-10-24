@@ -1,15 +1,16 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router";
 import { CommunityLogo } from "~/modules/hub/components/community-logo";
 import type { ProfileCommunity } from "~/modules/profile/model/profile-community";
 import type { ProfileMemberCount } from "~/modules/profile/model/profile-stats";
 import {
+  profileCardClassName,
   profileSecondaryButtonClassName,
   profileTextButtonClassName,
 } from "~/modules/profile/components/profile-tokens";
 import { Routes } from "~/shared/lib/routing/routes";
 
-const MOBILE_PREVIEW_COUNT = 2;
+const PREVIEW_COUNT = 3;
 
 type ProfileCommunityListProps = {
   communities: ProfileCommunity[];
@@ -21,9 +22,31 @@ function roleLabel(role: string | null) {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
-function CommunityRow({ community, members }: { community: ProfileCommunity; members: number | undefined }) {
+function roleRank(role: string | null) {
+  const normalized = role?.toLowerCase();
+  if (normalized === "owner") return 0;
+  if (normalized === "admin") return 1;
+  return 2;
+}
+
+function CommunityRow({
+  community,
+  members,
+  stackIndex,
+}: {
+  community: ProfileCommunity;
+  members: number | undefined;
+  stackIndex?: number;
+}) {
   return (
-    <li className="flex items-center gap-3 border-b border-black/[0.06] px-4 py-3 last:border-b-0">
+    <li
+      className={`flex items-center gap-3 border-b border-black/[0.06] px-4 py-3 last:border-b-0 ${stackIndex === undefined ? "" : "profile-past-stack"}`}
+      style={
+        stackIndex === undefined
+          ? undefined
+          : ({ "--stack-delay": `${Math.min(stackIndex, 6) * 40}ms` } as CSSProperties)
+      }
+    >
       <Link
         to={Routes.community.detail(community.slug)}
         prefetch="intent"
@@ -109,33 +132,53 @@ export function ProfileCommunityList({ communities, memberCounts }: ProfileCommu
   );
   const ranked = useMemo(
     () =>
-      [...communities].sort(
-        (a, b) => (countById.get(b.id) ?? -1) - (countById.get(a.id) ?? -1),
-      ),
+      [...communities].sort((a, b) => {
+        const byRole = roleRank(a.role) - roleRank(b.role);
+        if (byRole !== 0) return byRole;
+        return (countById.get(b.id) ?? -1) - (countById.get(a.id) ?? -1);
+      }),
     [communities, countById],
   );
 
-  if (communities.length === 0) return <CommunitiesEmpty />;
+  if (communities.length === 0) {
+    return (
+      <div className={`${profileCardClassName} overflow-hidden`}>
+        <CommunitiesEmpty />
+      </div>
+    );
+  }
 
-  const mobileCommunities = showAll ? ranked : ranked.slice(0, MOBILE_PREVIEW_COUNT);
+  const visible = ranked.slice(0, PREVIEW_COUNT);
+  const rest = ranked.slice(PREVIEW_COUNT);
 
   return (
-    <>
-      <ul className="sm:hidden">
-        {mobileCommunities.map((community) => (
-          <CommunityRow key={community.id} community={community} members={countById.get(community.id)} />
-        ))}
-      </ul>
-      {ranked.length > MOBILE_PREVIEW_COUNT && !showAll ? (
-        <button type="button" onClick={() => setShowAll(true)} className={`${profileTextButtonClassName} sm:hidden`}>
+    <div>
+      <div className={`${profileCardClassName} overflow-hidden`}>
+        <ul>
+          {visible.map((community) => (
+            <CommunityRow key={community.id} community={community} members={countById.get(community.id)} />
+          ))}
+          {showAll
+            ? rest.map((community, index) => (
+                <CommunityRow
+                  key={community.id}
+                  community={community}
+                  members={countById.get(community.id)}
+                  stackIndex={index}
+                />
+              ))
+            : null}
+        </ul>
+      </div>
+      {rest.length > 0 && !showAll ? (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="mx-auto mt-3 block w-fit text-[13px] font-medium text-[#8c8e9a] outline-none transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:ring-2 focus-visible:ring-[#111]/15 active:scale-[0.97] [@media(hover:hover)]:hover:text-[#6e6e73]"
+        >
           Show more
         </button>
       ) : null}
-      <ul className="hidden sm:block">
-        {communities.map((community) => (
-          <CommunityRow key={community.id} community={community} members={countById.get(community.id)} />
-        ))}
-      </ul>
-    </>
+    </div>
   );
 }

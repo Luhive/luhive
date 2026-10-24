@@ -3,6 +3,7 @@ import type { ActionFunctionArgs } from "react-router";
 import { getCommunityMemberEmailsWithIds } from "~/modules/community/utils/community-members";
 import { sendAnnouncementNotificationEmail } from "~/shared/lib/email.server";
 import { Routes } from "~/shared/lib/routing/routes";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -46,8 +47,8 @@ export async function action({ request }: ActionFunctionArgs) {
       return { success: true, message: "No members to notify" };
     }
 
-    const announcementLink = Routes.absolute(new URL(request.url).origin, Routes.community.detail(communitySlug));
-    const emailOrigin = new URL(request.url).origin;
+    const announcementLink = Routes.absolute(publicOrigin(request), Routes.community.detail(communitySlug));
+    const emailOrigin = publicOrigin(request);
 
     const payloads = memberEmailsWithIds.map(({ email, userId }) => ({
       title,

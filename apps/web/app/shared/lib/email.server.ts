@@ -80,15 +80,13 @@ function validateEmailConfig(): EmailConfig {
     }
   }
 
-  // Log validation results
+  // Never log any part of the API key
   if (!isValid) {
     console.error("❌ Email configuration validation failed:");
     errors.forEach((error) => console.error(`  - ${error}`));
-    console.error(`  RESEND_API_KEY: ${maskValue(resendApiKey)}`);
     console.error(`  EMAIL_SENDER: ${emailSender || "undefined"}`);
   } else {
     console.log("✅ Email configuration validated successfully");
-    console.log(`  RESEND_API_KEY: ${maskValue(resendApiKey)}`);
     console.log(`  EMAIL_SENDER: ${emailSender || "using fallback"}`);
   }
 
@@ -115,20 +113,30 @@ function getFromEmail(): string {
   return `Luhive <${emailSender}>`;
 }
 
-// Validate configuration on module load
-const emailConfig = validateEmailConfig();
+// Validated and created on first send, never at import: importing this module must not
+// require secrets or produce side effects.
+let emailConfig: EmailConfig | undefined;
+function loadEmailConfig(): EmailConfig {
+  return (emailConfig ??= validateEmailConfig());
+}
 
-// Initialize Resend client only if API key exists
-let resend: Resend | null = null;
-if (emailConfig.resendApiKey) {
+let resend: Resend | null | undefined;
+function getResendClient(): Resend | null {
+  if (resend !== undefined) return resend;
+
+  const { resendApiKey } = loadEmailConfig();
+  if (!resendApiKey) {
+    console.error("❌ Resend client not initialized: RESEND_API_KEY is missing");
+    return (resend = null);
+  }
+
   try {
-    resend = new Resend(emailConfig.resendApiKey);
-    console.log("✅ Resend client initialized successfully");
+    resend = new Resend(resendApiKey);
   } catch (error) {
     console.error("❌ Failed to initialize Resend client:", error);
+    resend = null;
   }
-} else {
-  console.error("❌ Resend client not initialized: RESEND_API_KEY is missing");
+  return resend;
 }
 
 const FROM_EMAIL = getFromEmail();
@@ -242,6 +250,7 @@ async function sendEmailsInternal(
 ): Promise<EmailSendResult[]> {
   if (rawPayloads.length === 0) return [];
 
+  const resend = getResendClient();
   if (!resend) {
     const errorMsg =
       "Resend client not initialized. Check RESEND_API_KEY environment variable.";
@@ -543,11 +552,12 @@ async function sendEmailsBatch(
 
 // Export configuration for debugging
 export function getEmailConfig() {
+  const config = loadEmailConfig();
   return {
-    ...emailConfig,
+    ...config,
     fromEmail: FROM_EMAIL,
-    resendInitialized: resend !== null,
-    maskedApiKey: maskValue(emailConfig.resendApiKey),
+    resendInitialized: getResendClient() !== null,
+    maskedApiKey: maskValue(config.resendApiKey),
   };
 }
 

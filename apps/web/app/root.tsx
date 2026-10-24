@@ -7,12 +7,17 @@ import {
   ScrollRestoration,
   useLocation,
   useMatches,
+  useRouteLoaderData,
 } from "react-router";
 import { useEffect } from "react";
 
 import { analytics } from "~/shared/lib/analytics/analytics";
 import { readFirstTouchSource } from "~/shared/lib/first-touch.server";
+import { sharedCacheGuardMiddleware } from "~/shared/lib/http/shared-cache-guard.server";
+import { getPublicEnv } from "~/shared/lib/public-env";
 import { supabaseMiddleware } from "~/shared/lib/supabase/supabase-middleware.server";
+import { rememberBrowserTimezone } from "~/shared/lib/timezone-cookie";
+import { PublicEnvScript } from "~/shared/components/public-env-script";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -25,10 +30,16 @@ import { NavigationProgress } from "~/shared/components/navigation-progress";
 import ErrorComponent from "./routes/error";
 import { QueryProvider } from "~/shared/lib/query/query-provider";
 
-export const middleware: Route.MiddlewareFunction[] = [supabaseMiddleware];
+export const middleware: Route.MiddlewareFunction[] = [
+  sharedCacheGuardMiddleware,
+  supabaseMiddleware,
+];
 
 export async function loader({ request }: Route.LoaderArgs) {
-  return { firstTouchSource: readFirstTouchSource(request) };
+  return {
+    firstTouchSource: readFirstTouchSource(request),
+    publicEnv: getPublicEnv(),
+  };
 }
 
 export const links: Route.LinksFunction = () => [
@@ -57,16 +68,22 @@ function useViewportContent() {
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const viewportContent = useViewportContent();
+  const rootData = useRouteLoaderData<typeof loader>("root");
 
   useEffect(() => {
     analytics.trackPageView(location.pathname);
   }, [location.pathname]);
+
+  useEffect(() => {
+    rememberBrowserTimezone();
+  }, []);
 
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content={viewportContent} />
+        {rootData && <PublicEnvScript env={rootData.publicEnv} />}
         <Meta />
         <Links />
         <script

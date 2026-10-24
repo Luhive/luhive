@@ -205,4 +205,10 @@ export default [
     "api/integrations/google-forms/:formId/responses",
     "routes/api/integrations/google-forms/form-id-responses.tsx",
   ),
+
+  // Formerly Netlify rewrites and an edge function.
+  route("stats.js", "routes/stats.tsx"),
+  route("api/send", "routes/api/send.tsx"),
+  route("tools", "routes/tools.tsx"),
+  route("tools/*", "routes/tools-proxy.tsx"),
 ] satisfies RouteConfig;

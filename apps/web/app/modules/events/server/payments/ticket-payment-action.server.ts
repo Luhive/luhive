@@ -12,6 +12,7 @@ import * as PaymentReceipts from "~/modules/events/data/payment-receipts-storage
 import { choosePayAtDoor } from "~/modules/events/server/payments/choose-pay-at-door.server";
 import { sendRegistrationOrganizerNotifications } from "~/modules/events/server/send-registration-notification.server";
 import type { TicketOrder } from "~/modules/events/model/ticket-order.types";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -66,7 +67,7 @@ export async function ticketPaymentAction({ request }: ActionFunctionArgs) {
     if (owned.order.payment_method === "card_transfer") {
       return { success: false, error: "You have already sent a receipt." };
     }
-    const result = await choosePayAtDoor(registrationId, new URL(request.url).origin);
+    const result = await choosePayAtDoor(registrationId, publicOrigin(request));
     return result.ok
       ? { success: true, message: "Your spot is confirmed. Pay cash at the door." }
       : { success: false, error: result.error };
@@ -98,7 +99,7 @@ export async function ticketPaymentAction({ request }: ActionFunctionArgs) {
   }
 
   if (!previousPath) {
-    await notifyReceiptSent(owned.order, new URL(request.url).origin);
+    await notifyReceiptSent(owned.order, publicOrigin(request));
   }
 
   return { success: true, message: "Receipt sent. The organiser will confirm your spot." };

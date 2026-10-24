@@ -51,6 +51,11 @@ const ensureServerBuildEntry = (): PluginOption => {
   };
 };
 
+// Netlify sets NETLIFY=true in its builds. Everywhere else the output is a
+// plain Node server for `react-router-serve`. Delete both Netlify plugins once
+// web is cut over to Azure and Netlify no longer deploys it.
+const onNetlify = process.env.NETLIFY === "true";
+
 export default defineConfig(() => {
   return {
     ssr: {},
@@ -61,9 +66,7 @@ export default defineConfig(() => {
       tailwindcss(),
       reactRouter(),
       tsconfigPaths(),
-      netlifyReactRouter(),
-
-      ensureServerBuildEntry(),
+      ...(onNetlify ? [netlifyReactRouter(), ensureServerBuildEntry()] : []),
     ],
     assetsInclude: ["**/*.lottie"],
   };

@@ -3,6 +3,7 @@ import type { ActionFunctionArgs } from "react-router";
 import { getCommunityMemberEmailsWithIds } from "~/modules/community/utils/community-members";
 import { sendNewCollaborationEventEmail } from "~/shared/lib/email.server";
 import { sendRegistrationOrganizerNotifications } from "~/modules/events/server/send-registration-notification.server";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -33,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
     } = body;
 
     const serviceClient = createServiceRoleClient();
-    const emailOrigin = new URL(request.url).origin;
+    const emailOrigin = publicOrigin(request);
 
     console.log("type:", type);
     console.log("coHostCommunityId:", coHostCommunityId);

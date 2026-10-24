@@ -1,7 +1,12 @@
+import type { PublicEnv } from "~/shared/models/public-env";
+
 declare module '*.lottie';
 
 declare global {
   interface Window {
+    // Written by the root layout from the server's runtime environment
+    ENV?: PublicEnv;
+
     // Google Analytics
     dataLayer: unknown[];
     gtag: (...args: unknown[]) => void;

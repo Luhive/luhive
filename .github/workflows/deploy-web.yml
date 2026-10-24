@@ -1,0 +1,148 @@
+name: Deploy web
+
+# luhive.com deploys from main, the same branch as core-api.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".dockerignore"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Only the newest push matters. An older run still building is superseded.
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+env:
+  RESOURCE_GROUP: luhive-prod-ne
+  REGISTRY: luhiveprodacr
+  CONTAINER_APP: web
+  IMAGE_REPOSITORY: web
+  # The container app's own address. luhive.com sits behind Cloudflare, which
+  # answers GitHub's runners with a 403 bot challenge.
+  ORIGIN_URL: https://web.nicefield-2b9a3355.northeurope.azurecontainerapps.io
+
+jobs:
+  # Runs alongside the image build; deploy waits for both.
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile --filter "@luhive/web..."
+      - run: pnpm --filter "@luhive/web..." --if-present typecheck
+      - run: pnpm --filter "@luhive/web..." --if-present test
+
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      tag: ${{ steps.image.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: image
+        run: echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to the registry
+        run: az acr login --name "$REGISTRY"
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Built on the runner rather than with `az acr build`: ACR Tasks keep no
+      # layer cache between runs, so every build reinstalled every dependency.
+      # The GitHub Actions cache keeps the dependency stages until the lockfile
+      # or a manifest changes.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          provenance: false
+          tags: ${{ env.REGISTRY }}.azurecr.io/${{ env.IMAGE_REPOSITORY }}:${{ steps.image.outputs.tag }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [checks, image]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Resolve revision suffix
+        id: revision
+        run: echo "suffix=${GITHUB_SHA:0:7}-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install the containerapp extension
+        run: |
+          az config set extension.use_dynamic_install=yes_without_prompt
+          az extension add --name containerapp --upgrade --only-show-errors
+
+      - name: Deploy a new revision
+        run: |
+          az containerapp update \
+            --name "$CONTAINER_APP" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "${REGISTRY}.azurecr.io/${IMAGE_REPOSITORY}:${{ needs.image.outputs.tag }}" \
+            --revision-suffix "${{ steps.revision.outputs.suffix }}" \
+            --output none
+
+      # The outgoing revision keeps answering until the switch, so a 200 alone
+      # proves nothing. Confirm the new revision is the one serving first.
+      - name: Wait for the new revision to take traffic
+        run: |
+          expected="${CONTAINER_APP}--${{ steps.revision.outputs.suffix }}"
+          for attempt in $(seq 1 30); do
+            ready=$(az containerapp show \
+              --name "$CONTAINER_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query properties.latestReadyRevisionName -o tsv)
+            if [ "$ready" = "$expected" ]; then
+              echo "$expected is ready"
+              exit 0
+            fi
+            echo "attempt $attempt: latest ready revision is '$ready', waiting for '$expected'"
+            sleep 10
+          done
+          echo "::error::$expected never became the latest ready revision"
+          exit 1
+
+      - name: Smoke test the site
+        run: |
+          for path in / /hub; do
+            status=$(curl --silent --output /dev/null --write-out "%{http_code}" --max-time 20 "${ORIGIN_URL}${path}" || true)
+            echo "${path} ${status}"
+            [ "$status" = "200" ] || { echo "::error::${ORIGIN_URL}${path} returned ${status}"; exit 1; }
+          done

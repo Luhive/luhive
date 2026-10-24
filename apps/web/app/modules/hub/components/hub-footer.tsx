@@ -29,7 +29,7 @@ export function HubFooter({
       <div className="flex flex-col-reverse items-center gap-x-6 gap-y-3 border-t border-[#ededed] pb-8 pt-5 sm:flex-row sm:flex-wrap sm:justify-between">
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[14px] leading-none">
           <Link
-            to={Routes.home}
+            to={Routes.landing}
             aria-label="Luhive home"
             className="rounded-md opacity-80 transition-opacity duration-150 ease-standard hover:opacity-100 outline-none focus-visible:ring-2 focus-visible:ring-[#111]/15"
           >
@@ -46,7 +46,7 @@ export function HubFooter({
           <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className={linkClassName}>
             Meet with founder
           </a>
-          <Link to={`${Routes.home}#pricing`} className={linkClassName}>
+          <Link to={`${Routes.landing}#pricing`} className={linkClassName}>
             Pricing
           </Link>
           <a href="#" className={linkClassName}>

@@ -13,6 +13,7 @@ import {
 import { sendCollaborationInviteEmail, sendCollaborationAcceptedEmail } from "~/shared/lib/email.server";
 import { resolvePublicEvent } from "~/modules/events/server/resolve-public-event.server";
 import { publicEventSlug } from "~/modules/events/utils/event-slug";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 export type CollaborationActionData = {
   success?: boolean;
@@ -168,8 +169,8 @@ export async function collaborationAction({
           throw new Response("Community slug required", { status: 400 });
         }
 
-        const inviteLink = Routes.absolute(new URL(request.url).origin, Routes.community.collaborationInvite(coHostCommunity.slug, collaboration.id));
-        const eventLink = Routes.absolute(new URL(request.url).origin, Routes.community.event(linkCommunitySlug, publicEventSlug(event)));
+        const inviteLink = Routes.absolute(publicOrigin(request), Routes.community.collaborationInvite(coHostCommunity.slug, collaboration.id));
+        const eventLink = Routes.absolute(publicOrigin(request), Routes.community.event(linkCommunitySlug, publicEventSlug(event)));
 
         await sendCollaborationInviteEmail({
           eventTitle: event.title,
@@ -254,7 +255,7 @@ export async function collaborationAction({
         if (ownerData?.user?.email) {
           const communityData = collaboration.community as { name: string; slug: string };
           const eventLink = Routes.absolute(
-            new URL(request.url).origin,
+            publicOrigin(request),
             Routes.community.event(hostCommunityData.slug, publicEventSlug(eventData)),
           );
 
@@ -301,7 +302,7 @@ export async function collaborationAction({
       ? eventDateTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })
       : 'TBD';
 
-    const eventLink = Routes.absolute(new URL(request.url).origin, Routes.community.event(slug, publicEventSlug(event)));
+    const eventLink = Routes.absolute(publicOrigin(request), Routes.community.event(slug, publicEventSlug(event)));
 
     // Trigger community member notifications
     console.log("=== Collaboration Notification Debug ===");
@@ -316,7 +317,7 @@ export async function collaborationAction({
     console.log("notificationType:", notificationType);
     
     try {
-      const response = await fetch(`${new URL(request.url).origin}/api/events/collaboration-notification`, {
+      const response = await fetch(`${publicOrigin(request)}/api/events/collaboration-notification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -6,6 +6,7 @@ import { createClient, createServiceRoleClient } from "~/shared/lib/supabase/ser
 import { Routes } from "~/shared/lib/routing/routes";
 import { publicEventSlug } from "~/modules/events/utils/event-slug";
 import { sendEventInviteEmail } from "~/shared/lib/email.server";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 import {
   canUserInviteToEvent,
   createInvite,
@@ -207,7 +208,7 @@ export async function action({ request }: ActionFunctionArgs) {
     .eq("id", user.id)
     .maybeSingle();
 
-  const origin = new URL(request.url).origin;
+  const origin = publicOrigin(request);
   const acceptLink = Routes.absolute(
     origin,
     `${Routes.community.eventInviteAccept(community.slug, publicEventSlug(event))}?token=${verificationToken}`,

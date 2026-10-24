@@ -43,23 +43,27 @@ export function CommunityPageSkeleton({ community }: CommunityPageSkeletonProps)
           )}
 
           {/* Profile Content */}
-          <div className="pb-4 flex flex-col items-center justify-center text-center flex-1 space-y-4 -mt-10 sm:-mt-12">
-            {displayLogo ? (
-              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
-                <AvatarImage src={displayLogo} alt={displayName} />
-                <AvatarFallback className="text-xl sm:text-2xl bg-primary/10 text-primary">
-                  {displayName.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+          <div className="pb-4 flex flex-col items-center justify-center text-center flex-1 space-y-4 -mt-5">
+            {displayName ? (
+              <div className="inline-flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-xl border border-border bg-background px-2.5 py-1.5">
+                {displayLogo ? (
+                  <Avatar className="size-7 rounded-md">
+                    <AvatarImage src={displayLogo} alt="" />
+                    <AvatarFallback className="rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
+                      {displayName.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <Skeleton className="size-7 rounded-md bg-muted" />
+                )}
+                <h1 className="truncate text-[15px] font-bold tracking-tight text-foreground">
+                  {displayName}
+                </h1>
+              </div>
             ) : (
-              <Skeleton className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-muted" />
+              <Skeleton className="h-10 w-40 rounded-xl bg-muted" />
             )}
             <div className="space-y-2 px-4 w-full max-w-md">
-              {displayName ? (
-                <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">{displayName}</h1>
-              ) : (
-                <Skeleton className="h-8 w-48 mx-auto bg-muted" />
-              )}
               {displayTagline ? (
                 <p className="text-base sm:text-lg text-primary font-medium">{displayTagline}</p>
               ) : (

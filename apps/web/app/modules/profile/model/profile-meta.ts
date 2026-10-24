@@ -1,4 +1,4 @@
-import type { ProfileLoaderData } from "~/modules/profile/server/profile-loader.server";
+import type { ProfileLoaderData } from "~/modules/profile/model/profile-loader";
 
 export function meta({ data }: { data?: ProfileLoaderData }) {
   const user = data?.user;

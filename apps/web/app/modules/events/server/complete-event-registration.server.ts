@@ -24,6 +24,7 @@ import { isPaidTicketingEnabledForCommunity } from "~/modules/events/server/is-p
 import { requestRegistrationPayment } from "~/modules/events/server/payments/request-registration-payment.server";
 import { sendPaymentRequestEmails } from "~/modules/events/server/payments/send-payment-request-emails.server";
 import * as CommunitySettings from "@luhive/domain/v1/community-settings";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -125,7 +126,7 @@ async function getEventReturnUrl(
   const resolved = await resolveCommunity(supabase, event, community);
   if (!resolved) return undefined;
 
-  return buildEventReturnUrl(new URL(request.url).origin, resolved.slug, event);
+  return buildEventReturnUrl(publicOrigin(request), resolved.slug, event);
 }
 
 export async function completeEventRegistration({
@@ -401,7 +402,7 @@ export async function completeEventRegistration({
       try {
         await sendPaymentRequestEmails(
           createdRegistration.id,
-          new URL(request.url).origin,
+          publicOrigin(request),
         );
       } catch (error) {
         console.error("Failed to send payment request emails:", error);
@@ -431,7 +432,7 @@ export async function completeEventRegistration({
     .eq("id", user.id)
     .maybeSingle();
 
-  const origin = new URL(request.url).origin;
+  const origin = publicOrigin(request);
   const eventDate = dayjs(event.start_time).tz(event.timezone);
   const eventLink = Routes.absolute(
     origin,

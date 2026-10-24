@@ -11,6 +11,8 @@ import {
 } from "~/shared/components/ui/avatar";
 import { createClient } from '~/shared/lib/supabase/client';
 import { useCalBookingUrl } from "~/shared/hooks/use-cal-booking-url";
+import { Routes } from "~/shared/lib/routing/routes";
+import { LandingAccountLink } from "~/modules/landing/components/landing-account-link";
 import * as LandingAnalytics from "~/modules/landing/utils/landing-analytics";
 import { cn } from "~/shared/lib/utils/cn";
 
@@ -183,7 +185,7 @@ export function LandingNavbar() {
         <div className="flex justify-between items-center w-full h-full md:h-auto md:gap-px md:px-3 md:py-2">
           {/* Logo */}
           <Link
-            to="/"
+            to={Routes.landing}
             aria-label="Luhive home"
             className="flex shrink-0 select-none rounded-full px-2 py-1 hover:bg-black/[0.04] transition-colors"
           >
@@ -215,32 +217,36 @@ export function LandingNavbar() {
             })}
           </nav>
 
-          {/* CTA — same Book a Call on mobile + desktop */}
+          {/* CTA — Book a Call for visitors; signed-in users already have a community, so their profile instead */}
           <div className="flex items-center gap-1 shrink-0">
-            <a
-              href={bookingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => LandingAnalytics.trackBookDemoClicked("header")}
-              className={cn(
-                "inline-flex items-center gap-1.5 font-medium py-2 px-3 md:ml-1 rounded-full border border-foreground/6 hover:bg-foreground/5 transition-colors text-sm whitespace-nowrap select-none text-foreground",
-                scrolled &&
-                  "border-primary bg-primary text-white shadow-sm transition-all duration-300 ease-out hover:border-primary/90 hover:bg-primary/90 hover:text-white",
-              )}
-            >
-              <Avatar
+            {user ? (
+              <LandingAccountLink fullName={user.full_name} avatarUrl={user.avatar_url} scrolled={scrolled} />
+            ) : (
+              <a
+                href={bookingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => LandingAnalytics.trackBookDemoClicked("header")}
                 className={cn(
-                  "size-5 shrink-0",
-                  scrolled && "ring-2 ring-white/90",
+                  "inline-flex items-center gap-1.5 font-medium py-2 px-3 md:ml-1 rounded-full border border-foreground/6 hover:bg-foreground/5 transition-colors text-sm whitespace-nowrap select-none text-foreground",
+                  scrolled &&
+                    "border-primary bg-primary text-white shadow-sm transition-all duration-300 ease-out hover:border-primary/90 hover:bg-primary/90 hover:text-white",
                 )}
               >
-                <AvatarImage src="/landing/ali-founder.png" alt="" />
-                <AvatarFallback className="text-[9px] font-medium">
-                  A
-                </AvatarFallback>
-              </Avatar>
-              Book a Call
-            </a>
+                <Avatar
+                  className={cn(
+                    "size-5 shrink-0",
+                    scrolled && "ring-2 ring-white/90",
+                  )}
+                >
+                  <AvatarImage src="/landing/ali-founder.png" alt="" />
+                  <AvatarFallback className="text-[9px] font-medium">
+                    A
+                  </AvatarFallback>
+                </Avatar>
+                Book a Call
+              </a>
+            )}
 
             {/* Hamburger — disabled for now (Book a Call is enough on mobile)
             <button

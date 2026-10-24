@@ -20,6 +20,7 @@ import type { PendingEventInvite } from "~/modules/events/model/invite.types";
 import type { CustomAnswerJson } from "~/modules/events/model/event.types";
 import { sendRegistrationAttendeeEmail } from "~/modules/events/server/send-registration-attendee-email.server";
 import { sendRegistrationOrganizerNotifications } from "~/modules/events/server/send-registration-notification.server";
+import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -267,7 +268,7 @@ async function sendInviteRegistrationEmails({
 
   const tz = event.timezone ?? "UTC";
   const eventDate = dayjs(event.start_time).tz(tz);
-  const origin = new URL(request.url).origin;
+  const origin = publicOrigin(request);
   const eventLink = Routes.absolute(
     origin,
     Routes.community.event(hostCommunity?.slug ?? "unknown", publicEventSlug(event)),

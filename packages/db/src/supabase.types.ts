@@ -1552,6 +1552,20 @@ export type Database = {
         Returns: string
       }
       get_user_role: { Args: { p_community_id: string }; Returns: string }
+      profile_activity: {
+        Args: { p_tz?: string }
+        Returns: {
+          attended: number
+          communities_joined: number
+          day: string
+          events_created: number
+          hosted: number
+          items: Json
+          registered: number
+          updates_opened: number
+          updates_sent: number
+        }[]
+      }
       slugify_event_title: { Args: { title: string }; Returns: string }
     }
     Enums: {

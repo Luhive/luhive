@@ -346,6 +346,21 @@ export interface HubEvents {
   title: string | null;
 }
 
+export interface MobileAppWaitlist {
+  created_at: Generated<Timestamp>;
+  email: string;
+  first_feature: string | null;
+  id: Generated<string>;
+  platform: string | null;
+  updated_at: Generated<Timestamp>;
+  user_id: string | null;
+  utm_campaign: string | null;
+  utm_content: string | null;
+  utm_medium: string | null;
+  utm_source: Generated<string>;
+  utm_term: string | null;
+}
+
 export interface PaymentCallbacks {
   id: Generated<string>;
   key_id: string | null;
@@ -462,6 +477,7 @@ export interface DB {
   google_forms_tokens: GoogleFormsTokens;
   hub_communities: HubCommunities;
   hub_events: HubEvents;
+  mobile_app_waitlist: MobileAppWaitlist;
   payment_callbacks: PaymentCallbacks;
   people: People;
   person_events: PersonEvents;

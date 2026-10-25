@@ -28,6 +28,7 @@ export class Routes {
   static privacyPolicy = "/privacy-policy";
   static termsOfService = "/terms-of-service";
   static unsubscribe = "/unsubscribe";
+  static mobileApp = "/app";
   static createCommunity = "/create-community";
   static createCommunitySuccess = "/create-community/success";
 

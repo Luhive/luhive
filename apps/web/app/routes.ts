@@ -63,6 +63,9 @@ export default [
   route("terms-of-service", "routes/web/terms-conditions.tsx"),
   route("unsubscribe", "routes/web/unsubscribe.tsx"),
 
+  // Mobile app waitlist, reached only from a LinkedIn post (not in navigation)
+  route("app", "routes/web/mobile-app.tsx"),
+
   // Dashboard: parent route owns :slug, children are relative
   route("dashboard/:slug", "routes/dashboard/layout.tsx", [
     index("routes/dashboard/overview.tsx"),

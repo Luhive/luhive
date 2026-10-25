@@ -3,7 +3,7 @@ const MOBILE_APP_CANONICAL_URL = "https://luhive.com/app";
 export function meta() {
   const title = "Luhive mobile apps on the way";
   const description =
-    "Luhive mobil tətbiqi hazır olanda ilk xəbər tutanlardan olun.";
+    "Be the first to know when the Luhive mobile apps are ready.";
 
   return [
     { title },

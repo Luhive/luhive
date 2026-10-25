@@ -27,7 +27,7 @@ export async function action({
   const email = user ? (user.email ?? "") : readString(formData, "email");
 
   if (!EMAIL_PATTERN.test(email) || email.length > 320) {
-    return { success: false, error: "Düzgün e-poçt ünvanı daxil edin." };
+    return { success: false, error: "Please enter a valid email address." };
   }
 
   // The page forwards the visit's utm_* as hidden fields.
@@ -46,7 +46,7 @@ export async function action({
   if (!joined) {
     return {
       success: false,
-      error: "Nəsə alınmadı. Bir az sonra yenidən cəhd edin.",
+      error: "Something went wrong. Please try again in a moment.",
     };
   }
 

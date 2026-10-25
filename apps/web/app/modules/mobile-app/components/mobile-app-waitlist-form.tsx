@@ -26,9 +26,9 @@ export function MobileAppWaitlistForm({ user, utm, error }: MobileAppWaitlistFor
           <input
             name="email"
             type="email"
-            aria-label="E-poçt"
+            aria-label="Email"
             autoComplete="email"
-            placeholder="E-poçt ünvanınız"
+            placeholder="Your email address"
             required
             maxLength={320}
             className="h-12 w-full max-w-sm rounded-full border border-foreground/10 bg-white/70 px-5 text-center text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-primary/40 focus-visible:ring-[3px] focus-visible:ring-primary/20 md:text-sm"
@@ -41,7 +41,7 @@ export function MobileAppWaitlistForm({ user, utm, error }: MobileAppWaitlistFor
           disabled={isSubmitting}
           className="group inline-flex items-center gap-3 rounded-full bg-[#FF6D23] py-3 pl-7 pr-3 text-base text-white shadow-[0px_2px_8px_rgba(255,109,35,0.4),0px_1px_2px_rgba(0,0,0,0.06)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-[#E55A1A] hover:shadow-[0px_6px_18px_rgba(255,109,35,0.5)] active:scale-95 disabled:opacity-70"
         >
-          Məni də xəbərdar et
+          Notify me
           <span className="flex size-7 items-center justify-center rounded-full bg-white/20">
             {isSubmitting ? (
               <Spinner className="size-3.5" />
@@ -56,7 +56,7 @@ export function MobileAppWaitlistForm({ user, utm, error }: MobileAppWaitlistFor
 
         {user?.email && (
           <p className="text-xs text-muted-foreground">
-            Xəbəri {user.email} ünvanına göndərəcəyik.
+            We'll let you know at {user.email}.
           </p>
         )}
         {error && <p className="text-sm text-destructive">{error}</p>}

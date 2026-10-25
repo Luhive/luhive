@@ -56,8 +56,8 @@ export default function MobileAppPage() {
           </h1>
 
           <p className="mx-auto mb-8 max-w-3xl text-sm leading-relaxed text-muted-foreground md:mb-10 lg:text-lg">
-            Tədbirlər, biletlər və icmalarınız bir yerdə, telefonunuzda. Hazır
-            olanda ilk xəbər tutanlardan olun.
+            Your events, tickets and communities in one place, on your phone.
+            Be the first to know when it's ready.
           </p>
 
           {joined ? (
@@ -65,9 +65,9 @@ export default function MobileAppPage() {
               <span className="flex size-12 items-center justify-center rounded-full bg-primary text-white shadow-[0px_2px_8px_rgba(255,109,35,0.4),0px_1px_2px_rgba(0,0,0,0.06)]">
                 <Check className="size-6" aria-hidden />
               </span>
-              <p className="text-lg font-semibold text-foreground">Siyahıdasınız</p>
+              <p className="text-lg font-semibold text-foreground">You're on the list</p>
               <p className="text-sm text-muted-foreground lg:text-base">
-                Tətbiq hazır olanda sizə ilk xəbər verəcəyik.
+                We'll let you know first when the app is ready.
               </p>
             </div>
           ) : (

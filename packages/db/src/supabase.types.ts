@@ -1048,9 +1048,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string
-          first_feature: string | null
           id: string
-          platform: string | null
           updated_at: string
           user_id: string | null
           utm_campaign: string | null
@@ -1062,9 +1060,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
-          first_feature?: string | null
           id?: string
-          platform?: string | null
           updated_at?: string
           user_id?: string | null
           utm_campaign?: string | null
@@ -1076,9 +1072,7 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
-          first_feature?: string | null
           id?: string
-          platform?: string | null
           updated_at?: string
           user_id?: string | null
           utm_campaign?: string | null

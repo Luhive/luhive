@@ -1,10 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { parseUTMFromSearchParams } from "~/modules/events/utils/utm-source";
-import {
-  parseFirstFeature,
-  parsePlatform,
-} from "~/modules/mobile-app/model/mobile-app-waitlist";
 import { joinMobileAppWaitlist } from "~/modules/mobile-app/data/mobile-app-waitlist-repo.server";
 
 export type MobileAppActionData = {
@@ -44,8 +40,6 @@ export async function action({
   const joined = await joinMobileAppWaitlist({
     email,
     userId: user?.id ?? null,
-    firstFeature: parseFirstFeature(formData.get("firstFeature")),
-    platform: parsePlatform(formData.get("platform")),
     utm: parseUTMFromSearchParams(utmParams),
   });
 

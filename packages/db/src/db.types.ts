@@ -349,9 +349,7 @@ export interface HubEvents {
 export interface MobileAppWaitlist {
   created_at: Generated<Timestamp>;
   email: string;
-  first_feature: string | null;
   id: Generated<string>;
-  platform: string | null;
   updated_at: Generated<Timestamp>;
   user_id: string | null;
   utm_campaign: string | null;

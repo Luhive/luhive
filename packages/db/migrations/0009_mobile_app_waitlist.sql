@@ -6,8 +6,6 @@ CREATE TABLE public.mobile_app_waitlist (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     email text NOT NULL,
     user_id uuid,
-    first_feature text,
-    platform text,
     utm_source text DEFAULT 'direct' NOT NULL,
     utm_medium text,
     utm_campaign text,
@@ -19,11 +17,7 @@ CREATE TABLE public.mobile_app_waitlist (
     CONSTRAINT mobile_app_waitlist_email_key UNIQUE (email),
     -- Stored normalised so the unique constraint is case-insensitive.
     CONSTRAINT mobile_app_waitlist_email_normalised
-      CHECK (email = lower(btrim(email)) AND email <> ''),
-    CONSTRAINT mobile_app_waitlist_first_feature_check
-      CHECK (first_feature IS NULL OR first_feature IN ('event_notifications', 'qr_tickets', 'discover_events')),
-    CONSTRAINT mobile_app_waitlist_platform_check
-      CHECK (platform IS NULL OR platform IN ('ios', 'android'))
+      CHECK (email = lower(btrim(email)) AND email <> '')
 );
 
 COMMENT ON TABLE public.mobile_app_waitlist IS

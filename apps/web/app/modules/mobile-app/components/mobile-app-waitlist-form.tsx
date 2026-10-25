@@ -2,10 +2,6 @@ import { Form, useNavigation } from "react-router";
 import { ArrowRight } from "lucide-react";
 import { Spinner } from "~/shared/components/ui/spinner";
 import type { UTMAttribution } from "~/modules/events/utils/utm-source";
-import {
-  FIRST_FEATURE_OPTIONS,
-  PLATFORM_OPTIONS,
-} from "~/modules/mobile-app/model/mobile-app-waitlist";
 
 type MobileAppWaitlistFormProps = {
   user: { email: string | null } | null;
@@ -13,59 +9,12 @@ type MobileAppWaitlistFormProps = {
   error?: string;
 };
 
-type Option = { value: string; label: string };
-
-// Chips use the landing hero's secondary pill (DiscoverCommunitiesLink).
-function ChoiceGroup({
-  name,
-  legend,
-  options,
-}: {
-  name: string;
-  legend: string;
-  options: readonly Option[];
-}) {
-  return (
-    <fieldset className="flex flex-col items-center gap-3">
-      <legend className="mb-3 w-full text-center text-sm font-medium text-foreground/70">
-        {legend}
-      </legend>
-      <div className="flex flex-wrap justify-center gap-2">
-        {options.map((option) => (
-          <label key={option.value} className="cursor-pointer">
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              className="peer sr-only"
-            />
-            <span className="inline-flex items-center rounded-full border border-primary/15 bg-primary/[0.06] px-4 py-2 text-sm font-medium text-foreground/70 transition-[color,background-color,border-color,transform] duration-150 ease-out hover:border-primary/30 hover:bg-primary/10 hover:text-foreground active:scale-[0.97] peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-primary/30">
-              {option.label}
-            </span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
-
 export function MobileAppWaitlistForm({ user, utm, error }: MobileAppWaitlistFormProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
   return (
     <Form method="post" className="mx-auto flex max-w-xl flex-col items-center gap-8">
-      <ChoiceGroup
-        name="firstFeature"
-        legend="İlk versiyada nə olsun?"
-        options={FIRST_FEATURE_OPTIONS}
-      />
-      <ChoiceGroup
-        name="platform"
-        legend="Hansı telefondan istifadə edirsiniz?"
-        options={PLATFORM_OPTIONS}
-      />
-
       <input type="hidden" name="utm_source" value={utm.utmSource} />
       {utm.utmMedium && <input type="hidden" name="utm_medium" value={utm.utmMedium} />}
       {utm.utmCampaign && <input type="hidden" name="utm_campaign" value={utm.utmCampaign} />}

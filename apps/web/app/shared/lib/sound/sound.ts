@@ -16,13 +16,3 @@ export type Emphasis = "subtle" | "normal" | "strong";
 export function play(name: Cue, options: { emphasis?: Emphasis } = {}): void {
   Engine.play(name, options);
 }
-
-/** Turns all sound on or off. Not persisted; the caller owns the preference. */
-export function setEnabled(enabled: boolean): void {
-  Engine.setEnabled(enabled);
-}
-
-/** Starts audio. Call inside a user gesture; resolves to whether sound can play. */
-export function unlock(): Promise<boolean> {
-  return Engine.unlock();
-}

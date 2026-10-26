@@ -16,7 +16,6 @@ import { LandingFooter } from "~/modules/landing/components/landing-footer";
 import { WaitlistCard } from "~/modules/mobile-app/components/waitlist-card";
 import { SubscribedCounter } from "~/modules/mobile-app/components/subscribed-counter";
 import { HeroStickers } from "~/modules/mobile-app/components/hero-stickers";
-import { SoundToggle } from "~/modules/mobile-app/components/sound-toggle";
 import type { MobileAppLoaderData } from "~/modules/mobile-app/server/mobile-app-loader.server";
 
 // The chip answer changes nothing the loader returns. Skipping the reload also
@@ -91,7 +90,6 @@ export default function MobileAppPage() {
       </section>
 
       <LandingFooter />
-      <SoundToggle />
     </div>
   );
 }

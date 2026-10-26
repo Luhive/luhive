@@ -421,12 +421,11 @@ click alongside the optimistic success state. No other sounds on the page.
 
 `cuelume@0.2.8` (MIT, no runtime deps, Web Audio, SSR-safe) sits behind
 `shared/lib/sound/sound.ts`, used as a namespace (`import * as Sound from
-"~/shared/lib/sound/sound"`): `Sound.play`, `Sound.setEnabled`, `Sound.unlock`, with our
-own cue types. Only that file imports cuelume.
+"~/shared/lib/sound/sound"`): `Sound.play`, with our own cue type. Only that file imports
+cuelume.
 
-A round **sound toggle** (bottom right) wires `Sound.setEnabled()`. It is on by default,
-stored per browser in `localStorage` (`luhive_sound`), and calls `Sound.unlock()` inside
-the click that turns it on.
+No sound toggle: with a single cue on a click the visitor makes, it was removed on request
+(26 Oct 2026). The browser's own mute and the OS volume cover it.
 
 ## 9. Change list
 

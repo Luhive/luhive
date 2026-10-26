@@ -250,22 +250,15 @@ function SuccessState({
             <input type="hidden" name="signupId" value={joined.signupId} />
             <fieldset
               className="flex flex-col items-center gap-3"
-              disabled={isAnswering || Boolean(answeredWith)}
+              disabled={isAnswering}
             >
-              {/* M8: the legend and the other chips fade; the chosen chip stays where it is. */}
-              <legend
-                data-dim={answeredWith ? "" : undefined}
-                className="waitlist-dim mb-3 text-sm font-medium text-foreground/70"
-              >
+              {/* All chips stay; the chosen one is filled and can still be changed. */}
+              <legend className="mb-3 text-sm font-medium text-foreground/70">
                 What should the first version have?
               </legend>
               <div className="flex flex-wrap justify-center gap-2">
                 {FEATURE_OPTIONS.map((option) => (
-                  <label
-                    key={option.value}
-                    data-dim={answeredWith && answeredWith !== option.value ? "" : undefined}
-                    className="waitlist-dim cursor-pointer"
-                  >
+                  <label key={option.value} className="cursor-pointer">
                     <input
                       type="radio"
                       name="feature"

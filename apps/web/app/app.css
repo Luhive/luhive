@@ -760,20 +760,6 @@ select:-webkit-autofill:active {
   filter: none;
 }
 
-/* M8: the legend and the unchosen chips fade out in place, so nothing reflows */
-.waitlist-dim {
-  transition:
-    opacity 120ms var(--ease-out-strong),
-    visibility 0s;
-}
-.waitlist-dim[data-dim] {
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 120ms var(--ease-out-strong),
-    visibility 0s linear 120ms;
-}
-
 /* M6: the form exits faster than the success state enters */
 .waitlist-leave {
   transition:

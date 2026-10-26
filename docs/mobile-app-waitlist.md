@@ -258,7 +258,7 @@ height.
 | **Submitting** | The button keeps its width. The label crossfades to a spinner (M5). The input is `readOnly`, not `disabled`, so the keyboard doesn't drop on iOS. |
 | **Error** | The message sits in a reserved line under the field. `aria-invalid` and `aria-describedby` are set on the input. |
 | **Success** | Check mark, "You're on the list", "We'll let you know first when the app is ready. Check your inbox for a note from Ali." Then the question, "What should the first version have?", with three chips: Event notifications / QR tickets / Discover new events. |
-| **Answered** | The chips are replaced by "Thanks, noted." The chosen chip stays visible, filled. |
+| **Answered** | All three chips stay; the chosen one is filled and can still be changed. "Thanks, noted." appears under them. |
 | **Already joined (logged in, on load)** | The success state without "check your inbox", with the question shown if `first_feature` is still empty. |
 
 **Button:** the same pill as `BookACallButton`: `#FF6D23`, the same shadow,
@@ -349,7 +349,7 @@ Built from the repo's Emil Kowalski skills: `.agents/skills/emil-design-eng`,
 | M5 | Submitting: label → spinner | Once per visitor | State indication | CSS transition on `data-state` | Label and spinner crossfade, `opacity` plus `blur(2px)`, 150 ms `--ease-out-strong`. Button width is fixed by the label, so nothing reflows. | Opacity only |
 | M6 | Form → success | Once per visitor (rare tier: the delight budget) | Preventing a jarring change | CSS: exit by transition, enter with `@starting-style` | The form exits: `opacity` 0, `blur(2px)`, 120 ms. Success enters as a stagger: check, heading, line, question. Each is `opacity` 0 → 1 and `translateY(6px)` → 0, 220 ms `--ease-out-strong`, 50 ms apart. The check also goes `scale(0.9)` → 1 (never from 0). The exit is faster than the enter. | Opacity only, 150 ms, no stagger |
 | M7 | Counter tick on own signup | Once per visitor | State indication: "you're in this number" | CSS transition, two stacked spans in an `overflow: hidden` line box | Old number `translateY(-100%)` and `opacity` 0. New number from `translateY(100%)` to 0. 250 ms `--ease-out-strong`, starting 150 ms after M6 begins. | Instant swap |
-| M8 | Chips → "Thanks, noted." | Once per visitor | Preventing a jarring change | Same as M6 | The unchosen chips fade out, `opacity` 0, 120 ms. The thanks line enters `opacity` plus `translateY(4px)`, 200 ms. | Opacity only |
+| M8 | "Thanks, noted." after a chip | Once per visitor | Feedback | `@starting-style` | All chips stay; the chosen one fills (M3) and can still be changed. The thanks line enters `opacity` + `translateY(4px)`, 200 ms. (Changed on request 26 Oct 2026: the other chips no longer disappear.) | Opacity only |
 | M9 | Error line appears | Rare | State indication | `@starting-style` | `opacity` 0 → 1, `translateY(-4px)` → 0, 150 ms. No shake. The line's space is reserved, so nothing moves. | Opacity only |
 | M10 | Navbar | — | — | **Unchanged** (the landing page's existing behaviour) | — | — |
 

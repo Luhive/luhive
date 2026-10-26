@@ -810,6 +810,25 @@ select:-webkit-autofill:active {
   to { transform: translateY(-4px); }
 }
 
+/* /app FAQ: same open/close as LandingFAQ (height + opacity, 250 ms) on native <details>.
+   Browsers without ::details-content (Safari < 18.4, Firefox < 143) open instantly. */
+.app-faq-item {
+  interpolate-size: allow-keywords;
+}
+.app-faq-item::details-content {
+  height: 0;
+  opacity: 0;
+  overflow: clip;
+  transition:
+    height 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    content-visibility 250ms allow-discrete;
+}
+.app-faq-item[open]::details-content {
+  height: auto;
+  opacity: 1;
+}
+
 /* M5: label and spinner share one grid cell, so the button keeps its width */
 .waitlist-swap > * {
   grid-area: 1 / 1;
@@ -962,6 +981,9 @@ select:-webkit-autofill:active {
   }
   .app-icon-sweep {
     animation: none;
+  }
+  .app-faq-item::details-content {
+    transition-duration: 0ms;
   }
   .hero-enter,
   .hero-sticker-frame[data-launch] .hero-sticker-pop {

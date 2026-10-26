@@ -304,8 +304,11 @@ Indexable, server-rendered, ready for Google Search Console.
   offer, which an unreleased app cannot honestly give, and Search Console would report it
   as an invalid item.
 - **Content** (`components/mobile-app-details.tsx`, copy in `model/mobile-app-content.ts`):
-  below the hero, an h2 "What's coming in the Luhive app" with three h3 feature cards, and
-  an h2 "Questions" FAQ in `<details>` (answers stay in the HTML when closed). The FAQPage
+  below the hero, an h2 "What's coming in the Luhive app" with three h3 features, and an
+  h2 "Got questions?" FAQ in `<details>` (answers stay in the HTML when closed). Styled one
+  to one on the landing page's LandingFeatures (left-border items, no cards or icons) and
+  LandingFAQ (divided list, +/−, first item open, 250 ms height/opacity via
+  `::details-content`). The FAQPage
   JSON-LD is generated from the same content, so it always matches the page.
 - **Headings**: one h1 ("Luhive Mobile app on the way"; "Luhive" is `sr-only`, the app icon
   carries it visually), then h2 → h3.

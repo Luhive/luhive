@@ -35,7 +35,7 @@ export default function MobileAppPage() {
         <div className="mx-auto w-[95vw] 3xl:w-[60rem] text-center">
           {/* The Luhive mark as an app icon tile: rounded square, white-to-grey face, soft drop shadow. */}
           <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-[1.375rem] border border-black/[0.04] bg-gradient-to-b from-white to-[#ECECEC] shadow-[0px_8px_20px_rgba(0,0,0,0.08),0px_1px_2px_rgba(0,0,0,0.06),inset_0px_1px_0px_rgba(255,255,255,0.9)] md:mb-8 md:size-24 md:rounded-[1.625rem]">
-            <img src={luhiveMark} alt="Luhive" width={60} height={60} className="size-[3.25rem] md:size-[3.75rem]" />
+            <img src={luhiveMark} alt="Luhive" width={56} height={56} className="size-12 md:size-14" />
           </div>
 
           <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-snug md:leading-tight text-3xl md:text-4xl lg:text-5xl xl:text-6xl">

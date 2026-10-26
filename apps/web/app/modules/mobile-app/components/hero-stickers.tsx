@@ -4,8 +4,8 @@ import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
  * Sticker-style icons scattered around the /app hero, anchored to the content block
  * (not the viewport) so they stay centred at any width. Each one is a small inline SVG;
  * the white die-cut outline, shadow and tilt come from CSS (`.hero-sticker*` in app.css).
- * Motion M12 in docs/mobile-app-waitlist.md: staggered pop-in, idle float, and a spring
- * pointer drift on desktop. Swap the SVGs for Ali's designs without touching the layout.
+ * Motion M12 in docs/mobile-app-waitlist.md: a flight out from the hero's centre once the
+ * hero has loaded, an idle float, and a pointer drift on desktop. Swap the SVGs for Ali's designs without touching the layout.
  */
 
 function BellSticker() {
@@ -82,8 +82,31 @@ const STICKERS: StickerSpec[] = [
   { key: "phone", node: <PhoneSticker />, style: { bottom: "18%", right: "5%" }, tilt: -9, depth: 12, width: "3.25rem" },
 ];
 
+/** When the last hero piece (step 6: 360 ms delay + 300 ms) has finished. */
+const HERO_LANDED_MS = 660;
+
 export function HeroStickers() {
   const frameRef = useRef<HTMLDivElement>(null);
+
+  // Launch (M12): once the hero stagger (M13) has landed, each sticker flies out from the
+  // centre of the hero to its place. Its offset to the centre is measured here, since it
+  // depends on the layout; the frame then gets data-launch and CSS runs the flight.
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const box = frame.getBoundingClientRect();
+    const centreX = box.left + box.width / 2;
+    const centreY = box.top + box.height / 2;
+    for (const item of frame.querySelectorAll<HTMLElement>(".hero-sticker-pop")) {
+      const r = item.getBoundingClientRect();
+      item.style.setProperty("--from-x", `${(centreX - (r.left + r.width / 2)).toFixed(1)}px`);
+      item.style.setProperty("--from-y", `${(centreY - (r.top + r.height / 2)).toFixed(1)}px`);
+    }
+    // The hero's last piece lands at ~660 ms after load; start then, or now if hydration was slower.
+    const wait = Math.max(0, HERO_LANDED_MS - performance.now());
+    frame.style.setProperty("--launch-wait", `${Math.round(wait)}ms`);
+    frame.dataset.launch = "";
+  }, []);
 
   // Pointer drift, desktop only: each sticker eases towards the pointer offset scaled by its
   // depth. A critically damped follow written by hand, so no motion library on the main thread
@@ -129,8 +152,12 @@ export function HeroStickers() {
     <div
       ref={frameRef}
       aria-hidden
-      className="pointer-events-none absolute inset-y-0 left-1/2 w-full max-w-[780px] -translate-x-1/2"
+      className="hero-sticker-frame pointer-events-none absolute inset-y-0 left-1/2 w-full max-w-[780px] -translate-x-1/2"
     >
+      {/* Without JS nothing measures the flight, so just show the stickers. */}
+      <noscript>
+        <style>{".hero-sticker-pop{opacity:1!important}"}</style>
+      </noscript>
       {STICKERS.map((sticker, index) => (
         <div
           key={sticker.key}

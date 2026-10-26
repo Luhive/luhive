@@ -779,16 +779,25 @@ select:-webkit-autofill:active {
   }
 }
 
-/* Entrance: once, staggered 60 ms, from 90% (never from 0). */
+/* Launch: hidden until JS has measured each sticker's offset to the hero centre, then each
+   flies out from the centre to its place (scale from 0.5, never 0), 40 ms apart. Entering
+   motion, so strong ease-out; marketing motion, so it may run longer than UI (700 ms). */
 .hero-sticker-pop {
-  animation: hero-sticker-pop 360ms var(--ease-out-strong) both;
-  /* Starts as the hero's last piece (step 6) lands. */
-  animation-delay: calc(420ms + var(--i, 0) * 60ms);
+  opacity: 0;
 }
-@keyframes hero-sticker-pop {
+.hero-sticker-frame[data-launch] .hero-sticker-pop {
+  opacity: 1;
+  animation: hero-sticker-launch 700ms var(--ease-out-strong) both;
+  animation-delay: calc(var(--launch-wait, 0ms) + var(--i, 0) * 40ms);
+}
+@keyframes hero-sticker-launch {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: translate(var(--from-x, 0), var(--from-y, 0)) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -905,8 +914,8 @@ select:-webkit-autofill:active {
   .app-icon-sweep {
     animation: none;
   }
-  .hero-sticker-pop,
-  .hero-enter {
+  .hero-enter,
+  .hero-sticker-frame[data-launch] .hero-sticker-pop {
     animation-name: hub-fade;
     animation-duration: 200ms;
   }

@@ -151,7 +151,7 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
                   focusTracked.current = true;
                   MobileAppAnalytics.trackEmailFocused();
                 }}
-                className="h-11 min-w-0 flex-1 bg-transparent pl-4 pr-2 text-base text-foreground outline-none placeholder:text-muted-foreground md:text-sm"
+                className="h-11 min-w-0 flex-1 bg-transparent pl-4 pr-2 text-base text-foreground outline-none placeholder:text-muted-foreground"
               />
               <button
                 type="submit"

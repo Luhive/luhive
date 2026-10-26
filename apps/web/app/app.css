@@ -997,3 +997,70 @@ select:-webkit-autofill:active {
     transform: rotate(var(--tilt, 0deg));
   }
 }
+
+/* Closed mobile bar matches the desktop pill. Glass shadow and blur arrive only once it opens. */
+.landing-mobile-nav {
+  position: relative;
+  isolation: isolate;
+  transition:
+    box-shadow 280ms var(--ease-out-strong),
+    background-color 280ms var(--ease-out-strong),
+    border-color 280ms var(--ease-out-strong);
+}
+
+.landing-mobile-nav[data-open="true"] {
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(246, 244, 241, 0.62) 100%);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8);
+  backdrop-filter: blur(28px) saturate(1.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 18px 40px -16px rgba(42, 30, 18, 0.22),
+    0 2px 8px rgba(42, 30, 18, 0.05);
+}
+
+.landing-mobile-nav[data-open="true"]::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.28) 42%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.landing-mobile-nav-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 280ms var(--ease-out-strong),
+    opacity 180ms var(--ease-out-strong);
+}
+
+.landing-mobile-nav-panel[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-mobile-nav,
+  .landing-mobile-nav-panel {
+    transition: none;
+  }
+}

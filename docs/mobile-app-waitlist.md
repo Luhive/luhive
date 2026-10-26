@@ -14,7 +14,7 @@ Signing up means two things:
 ## Status
 
 Spec, 26 Oct 2026. Built the same day on `feat/mobile-app-waitlist` and tested
-against the validation DB. Production migration, Resend segment and webhook are
+against the validation DB. Production migration and the Resend segment are
 still to do (section 11). The earlier attempt (PR #180) was closed and removed.
 
 ---
@@ -199,7 +199,7 @@ Footer, one line: "You're getting this because you joined at luhive.com/app."
 - The audience is a **Resend segment** "Mobile app waitlist" (`RESEND_MOBILE_APP_SEGMENT_ID`). The repo's `resend@6.12` has `contacts`, `segments`, `broadcasts` and `webhooks`.
 - The contact is created at signup (step 4 of `join`). `resend_contact_id` is stored.
 - Ali writes and sends each week from Resend Broadcasts: from `Ali from Luhive <ali@news.luhive.com>`, with the same Google Workspace Reply-To, in English, in his voice. Resend adds the unsubscribe link and the `List-Unsubscribe` headers.
-- **Unsubscribe sync:** route `api/webhooks/resend` verifies the signature (`RESEND_WEBHOOK_SECRET`) and, on `contact.updated` with `unsubscribed: true`, sets `unsubscribed_at` on the matching row. That keeps the counter honest about unsubscribes. **Needed before the first weekly send**, not before launch day.
+- **Unsubscribes are handled by hand** (decided 26 Oct 2026; no webhook code). Resend owns the unsubscribe link. To take someone out of the counter, set `unsubscribed_at` on their row.
 - No scheduler and no mail queue. The mail queue spec (`docs/spec/10 Mail Queue.md`) is Stage 2 and is not a dependency.
 
 ---
@@ -285,12 +285,11 @@ submitting happens on change (one tap), with a `<noscript>` submit button.
 
 ## 7. Analytics (Umami only)
 
-Use a page-local tracker so nothing reaches GA4:
-
-```ts
-// modules/mobile-app/utils/mobile-app-analytics.ts
-const umami = createAnalytics([createUmamiProvider()]);
-```
+Reuse the shared analytics tool. `shared/lib/analytics/analytics.ts` exports
+`umamiAnalytics` next to the default `analytics`, so nothing reaches GA4.
+`modules/mobile-app/utils/mobile-app-analytics.ts` wraps it in named track
+functions, the same way `landing-analytics.ts` does, and components import it as
+`* as MobileAppAnalytics`.
 
 Page views already come from the Umami script in `root.tsx`, and Umami records
 the `utm_*` query on its own.
@@ -411,15 +410,14 @@ browsers show the success state instantly, which is acceptable.
 |---|---|
 | `packages/db/migrations/0009_mobile_app_waitlist.sql` | New (section 3) |
 | `packages/db/src/db.types.ts`, `supabase.types.ts` | `mobile_app_waitlist` blocks only |
-| `apps/web/app/routes.ts`, `shared/lib/routing/routes.ts` | `/app`, `/api/og/app`, `/api/webhooks/resend` |
+| `apps/web/app/routes.ts`, `shared/lib/routing/routes.ts` | `/app`, `/api/og/app` |
 | `apps/web/app/routes/web/mobile-app.tsx` | New page |
 | `apps/web/app/modules/mobile-app/**` | New module (section 4) |
 | `apps/web/app/modules/landing/components/landing-navbar.tsx` | `sectionBase`, `trackActiveSection` props |
 | `apps/web/app/templates/mobile-app-welcome-email.tsx` | New |
 | `apps/web/app/routes/api/og/app.tsx` | New OG image |
-| `apps/web/app/routes/api/webhooks/resend.tsx` | New (needed before the first weekly send) |
 | `apps/web/app/app.css` | Section 8.3 |
-| env | `RESEND_MOBILE_APP_SEGMENT_ID`, `RESEND_WEBHOOK_SECRET` |
+| env | `RESEND_MOBILE_APP_SEGMENT_ID` |
 
 ---
 
@@ -434,7 +432,6 @@ browsers show the success state instantly, which is acceptable.
 - Feature answer: `first_feature` is set. Answering again overwrites it.
 - Honeypot filled: success shown, no row.
 - Resend down (bad key locally): signup succeeds, `welcome_sent_at` stays null, the error is logged.
-- Webhook: a signed `contact.updated` with `unsubscribed: true` sets `unsubscribed_at`, and the counter drops by 1. A bad signature returns 401.
 
 **Environment:**
 
@@ -466,8 +463,8 @@ browsers show the success state instantly, which is acceptable.
 5. Before posting, sign up once on production with Ali's own email. Check the
    welcome email arrives in the inbox, not spam, in Gmail and Outlook.
 6. Wed 28 Oct: post, then add the first-comment link.
-7. Before the first weekly email: the webhook is live, and a test broadcast to
-   Ali alone checks the unsubscribe link end to end.
+7. Before the first weekly email: a test broadcast to Ali alone checks the
+   unsubscribe link end to end.
 
 ---
 

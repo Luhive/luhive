@@ -4,7 +4,7 @@ import { COUNTER_BASE, type Feature } from "~/modules/mobile-app/model/mobile-ap
 
 const UNIQUE_VIOLATION = "23505";
 
-export function normalizeWaitlistEmail(email: string): string {
+export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
@@ -28,7 +28,7 @@ export async function countSubscribed(): Promise<number> {
   return COUNTER_BASE + (count ?? 0);
 }
 
-export async function findWaitlistRowForUser(
+export async function findForUser(
   userId: string,
   email: string | undefined,
 ): Promise<WaitlistRow | null> {
@@ -43,7 +43,7 @@ export async function findWaitlistRowForUser(
   const { data: byEmail } = await supabase
     .from("mobile_app_waitlist")
     .select(ROW_COLUMNS)
-    .eq("email", normalizeWaitlistEmail(email))
+    .eq("email", normalizeEmail(email))
     .maybeSingle();
   return byEmail;
 }
@@ -64,9 +64,9 @@ export type JoinResult =
  * UTM. It links the account when an anonymous signup is now signed in, and clears
  * an earlier unsubscribe.
  */
-export async function joinWaitlist(input: JoinInput): Promise<JoinResult> {
+export async function join(input: JoinInput): Promise<JoinResult> {
   const supabase = createServiceRoleClient();
-  const email = normalizeWaitlistEmail(input.email);
+  const email = normalizeEmail(input.email);
 
   const { data: created, error } = await supabase
     .from("mobile_app_waitlist")
@@ -91,7 +91,7 @@ export async function joinWaitlist(input: JoinInput): Promise<JoinResult> {
   // A signed-in user's row may sit under an older account email, so match the
   // account first; otherwise the row with this email.
   const existing = input.userId
-    ? await findWaitlistRowForUser(input.userId, email)
+    ? await findForUser(input.userId, email)
     : (
         await supabase
           .from("mobile_app_waitlist")
@@ -140,17 +140,4 @@ export async function saveFeatureAnswer(id: string, feature: Feature): Promise<b
     .select("id");
   if (error) console.error("Error saving mobile app feature answer:", error);
   return !error && data.length > 0;
-}
-
-/** From the Resend contact.updated webhook. */
-export async function markUnsubscribed(email: string, unsubscribed: boolean) {
-  const supabase = createServiceRoleClient();
-  const { error } = await supabase
-    .from("mobile_app_waitlist")
-    .update({
-      unsubscribed_at: unsubscribed ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("email", normalizeWaitlistEmail(email));
-  if (error) console.error("Error syncing mobile app unsubscribe:", error);
 }

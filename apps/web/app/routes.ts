@@ -114,9 +114,6 @@ export default [
   route("api/og/hub/:week", "routes/api/og/hub.tsx"),
   route("api/og/app", "routes/api/og/app.tsx"),
 
-  // Resend webhooks: mobile app waitlist unsubscribes
-  route("api/webhooks/resend", "routes/api/webhooks/resend.tsx"),
-
   // Events API routes
   route("api/events/create", "routes/api/events/create.tsx"),
   route("api/events/update", "routes/api/events/update.tsx"),

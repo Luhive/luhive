@@ -4,10 +4,7 @@ import {
   parseUTMFromSearchParams,
   type UTMAttribution,
 } from "~/modules/events/utils/utm-source";
-import {
-  countSubscribed,
-  findWaitlistRowForUser,
-} from "~/modules/mobile-app/data/mobile-app-waitlist-repo.server";
+import * as Waitlist from "~/modules/mobile-app/data/mobile-app-waitlist-repo.server";
 
 export type MobileAppLoaderData = {
   /** Null for logged-out visitors, who are asked for an email instead. */
@@ -26,12 +23,12 @@ export async function loader({
   const utm = parseUTMFromSearchParams(new URL(request.url).searchParams);
 
   // Free for anonymous visitors: with no session cookie, findAuthUser resolves without a call.
-  const [user, subscribedCount] = await Promise.all([findAuthUser(), countSubscribed()]);
+  const [user, subscribedCount] = await Promise.all([findAuthUser(), Waitlist.countSubscribed()]);
   if (!user) {
     return { user: null, joined: null, subscribedCount, utm };
   }
 
-  const row = await findWaitlistRowForUser(user.id, user.email);
+  const row = await Waitlist.findForUser(user.id, user.email);
   return {
     user: { email: user.email ?? null },
     joined: row && !row.unsubscribed_at

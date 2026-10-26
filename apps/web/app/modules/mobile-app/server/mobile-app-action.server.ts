@@ -2,15 +2,8 @@ import type { ActionFunctionArgs } from "react-router";
 import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { parseUTMFromSearchParams } from "~/modules/events/utils/utm-source";
 import { parseFeature } from "~/modules/mobile-app/model/mobile-app-waitlist";
-import {
-  countSubscribed,
-  joinWaitlist,
-  saveFeatureAnswer,
-} from "~/modules/mobile-app/data/mobile-app-waitlist-repo.server";
-import {
-  resubscribeContact,
-  welcomeNewSignup,
-} from "~/modules/mobile-app/server/mobile-app-welcome.server";
+import * as Waitlist from "~/modules/mobile-app/data/mobile-app-waitlist-repo.server";
+import * as Welcome from "~/modules/mobile-app/server/mobile-app-welcome.server";
 
 export type MobileAppActionData =
   | { intent: "join"; ok: true; signupId: string; subscribedCount: number; isNew: boolean }
@@ -34,13 +27,13 @@ export async function action({
   if (readString(formData, "intent") === "answer") {
     const signupId = readString(formData, "signupId");
     const feature = parseFeature(formData.get("feature"));
-    const ok = Boolean(signupId && feature) && (await saveFeatureAnswer(signupId, feature!));
+    const ok = Boolean(signupId && feature) && (await Waitlist.saveFeatureAnswer(signupId, feature!));
     return { intent: "answer", ok };
   }
 
   // Honeypot: bots fill every field. Pretend it worked and store nothing.
   if (readString(formData, "company")) {
-    return { intent: "join", ok: true, signupId: "", subscribedCount: await countSubscribed(), isNew: false };
+    return { intent: "join", ok: true, signupId: "", subscribedCount: await Waitlist.countSubscribed(), isNew: false };
   }
 
   // Signed-in users are tied to their account; a submitted email is ignored.
@@ -64,7 +57,7 @@ export async function action({
     if (value) utmParams.set(key, value.slice(0, 200));
   }
 
-  const result = await joinWaitlist({
+  const result = await Waitlist.join({
     email,
     userId: user?.id ?? null,
     utm: parseUTMFromSearchParams(utmParams),
@@ -80,16 +73,16 @@ export async function action({
   }
 
   if (result.status === "created") {
-    await welcomeNewSignup(result.id, email);
+    await Welcome.sendToNewSignup(result.id, email);
   } else if (result.resubscribed) {
-    await resubscribeContact(email);
+    await Welcome.resubscribe(email);
   }
 
   return {
     intent: "join",
     ok: true,
     signupId: result.id,
-    subscribedCount: await countSubscribed(),
+    subscribedCount: await Waitlist.countSubscribed(),
     isNew: result.status === "created" || result.resubscribed,
   };
 }

@@ -237,6 +237,11 @@ The navbar was written for one page. Two small, backwards-compatible props:
 | `sectionBase` | `""` | `"/?home"` | Features / Pricing / FAQ's link to `/?home#features`, and so on. On `/app` the anchors don't exist. |
 | `trackActiveSection` | `true` | `false` | Without it, "Features" sits highlighted orange on a page that has no Features section. |
 
+**App link (26 Oct 2026):** the navbar ends with "[Apple logo] App" (`navV2.app`: "App" /
+"Tətbiq"), on every page that uses `LandingNavbar`, the landing page included. It points to
+`/app?utm_source=landing&utm_content=nav`, or plain `/app` when already there, where it shows
+in `--primary`. This is the "link from the landing page" from section 12.
+
 The Book a Call button, the signed-in avatar link and the scroll behaviour are
 unchanged. `LandingFooter` is reused without changes.
 

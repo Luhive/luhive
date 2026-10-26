@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AppleIcon } from "@hugeicons/core-free-icons";
 
 import { Button } from "~/shared/components/ui/button";
 import {
@@ -63,6 +65,7 @@ export function LandingNavbar({
   trackActiveSection = true,
 }: LandingNavbarProps = {}) {
   const { t } = useTranslation('landing');
+  const isOnMobileApp = useLocation().pathname === Routes.mobileApp;
   const bookingUrl = useCalBookingUrl();
   const [user, setUser] = useState<UserData | null>(null);
   const [, setIsLoadingUser] = useState(true);
@@ -228,6 +231,17 @@ export function LandingNavbar({
                 </a>
               );
             })}
+            {/* The mobile app waitlist. From other pages the visit is tagged as coming from this nav. */}
+            <Link
+              to={isOnMobileApp ? Routes.mobileApp : `${Routes.mobileApp}?utm_source=landing&utm_content=nav`}
+              className={cn(
+                "inline-flex items-center gap-1 px-3 transition-colors hover:text-foreground",
+                isOnMobileApp && "text-primary",
+              )}
+            >
+              <HugeiconsIcon icon={AppleIcon} size={15} color="currentColor" strokeWidth={1.75} aria-hidden />
+              {t("navV2.app")}
+            </Link>
           </nav>
 
           {/* CTA — Book a Call for visitors; signed-in users already have a community, so their profile instead */}

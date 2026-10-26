@@ -188,7 +188,7 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
             ) : user?.email ? (
               <>We'll send updates to {shortenEmail(user.email)}.</>
             ) : (
-              "Weekly build updates from Ali. Unsubscribe anytime."
+              "Weekly build updates from founder. Unsubscribe anytime."
             )}
           </p>
         </Form>

@@ -1,14 +1,14 @@
 import { FAQ, FEATURES } from "~/modules/mobile-app/model/mobile-app-content";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Notification03Icon,
+  AiMagicIcon,
   CalendarCheckIn01Icon,
   Ticket01Icon,
 } from "@hugeicons/core-free-icons";
 
-// Hugeicons leading each feature title: a notification bell, a ticket, a checked calendar.
+// Hugeicons leading each feature title: AI sparkles (personalized), a ticket, a checked calendar.
 const FEATURE_ICONS = {
-  notifications: Notification03Icon,
+  notifications: AiMagicIcon,
   tickets: Ticket01Icon,
   discover: CalendarCheckIn01Icon,
 } as const;

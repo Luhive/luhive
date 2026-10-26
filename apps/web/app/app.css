@@ -746,6 +746,20 @@ select:-webkit-autofill:active {
   to { transform: rotate(1turn); }
 }
 
+/* M13: first-load stagger of the /app hero, from the skills' "Stagger a group entrance"
+   recipe: 300 ms, translateY(8px) + fade, strong ease-out, 60 ms between pieces.
+   Opacity never blocks clicks, so nothing waits on the stagger. */
+.hero-enter {
+  animation: hero-enter 300ms var(--ease-out-strong) both;
+  animation-delay: calc(var(--hero-i, 0) * 60ms);
+}
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 /* M12: hero stickers. Die-cut look: a white outline built from four hard drop-shadows,
    then one soft shadow. The tilt lives on the same element; hover straightens it a little. */
 .hero-sticker {
@@ -768,7 +782,8 @@ select:-webkit-autofill:active {
 /* Entrance: once, staggered 60 ms, from 90% (never from 0). */
 .hero-sticker-pop {
   animation: hero-sticker-pop 360ms var(--ease-out-strong) both;
-  animation-delay: calc(120ms + var(--i, 0) * 60ms);
+  /* Starts as the hero's last piece (step 6) lands. */
+  animation-delay: calc(420ms + var(--i, 0) * 60ms);
 }
 @keyframes hero-sticker-pop {
   from {
@@ -890,7 +905,8 @@ select:-webkit-autofill:active {
   .app-icon-sweep {
     animation: none;
   }
-  .hero-sticker-pop {
+  .hero-sticker-pop,
+  .hero-enter {
     animation-name: hub-fade;
     animation-duration: 200ms;
   }

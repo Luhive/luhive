@@ -212,7 +212,7 @@ Footer, one line: "You're getting this because you joined at luhive.com/app."
 LandingNavbar          (reused, section 6.2)
 Hero section           (LandingAbout classes, 1:1)
   Stickers             4 die-cut icons around the content (bell, QR ticket, pin, phone), anchored
-                       to a 780 px frame so they stay centred; phones show only bell and ticket
+                       to a 960 px frame so they stay centred; phones show only bell and ticket
   App icon tile        Luhive mark in a rounded-square, white-to-grey tile (added 26 Oct 2026)
   h1                   Luhive [mobile apps] / on the way
   p                    subtitle
@@ -358,13 +358,13 @@ Built from the repo's Emil Kowalski skills: `.agents/skills/emil-design-eng`,
 | M9 | Error line appears | Rare | State indication | `@starting-style` | `opacity` 0 → 1, `translateY(-4px)` → 0, 150 ms. No shake. The line's space is reserved, so nothing moves. | Opacity only |
 | M11 | App icon "live" border | Constant while on the page | Delight (requested 26 Oct 2026) | CSS keyframes (continuous, off the main thread) | A silver highlight (grey to white to grey) sweeps around the 1.5 px border, `rotate(1turn)` 4 s `linear` infinite. No background glow. Transform only. | None: static silver border |
 | M12 | Hero stickers (bell, QR ticket, map pin, phone) | Entrance once; float constant | Delight (requested 26 Oct 2026, Luma-style) | CSS keyframes; pointer drift is one rAF lerp loop that sleeps when settled | Pop-in `opacity` 0 → 1 and `scale(0.9)` → 1, 360 ms `--ease-out-strong`, 60 ms stagger. Float `translateY` 0 ↔ −4 px, 4.6–6.1 s `ease-in-out` alternate, each on its own phase. Desktop pointer drift, a few px scaled by depth. Hover on fine pointers straightens the tilt, lifts 3 px, `scale(1.04)`, 200 ms. | Fade-in only, no float, no drift |
+| M13 | First-load hero stagger | Once per page load | Delight / orientation (requested 26 Oct 2026) | CSS keyframes, the skills' "Stagger a group entrance" recipe | App icon → "Mobile apps" → "on the way" → subtitle line 1 → line 2 → form → counter: each `opacity` 0 → 1 and `translateY(8px)` → 0, 300 ms `--ease-out-strong`, 60 ms apart. Stickers (M12) start at 420 ms, after the counter. Never blocks interaction. | Fade only, 200 ms |
 | M10 | Navbar | — | — | **Unchanged** (the landing page's existing behaviour) | — | — |
 
 ### 8.2 Rejected (do not build)
 
 | Candidate | Why not |
 |---|---|
-| Hero entrance or stagger on load | The landing hero doesn't animate, and the two pages have to feel the same. |
 | Counter count-up on load | The number is read, not admired. It would also draw attention to a figure that includes the display offset. |
 | Confetti or burst on success | Too loud for a quiet launch. The M6 stagger is the delight budget. |
 | Input shake on error | Reads as a scold. M9 states the error calmly. |

@@ -24,8 +24,8 @@ export function SubscribedCounter({ count }: { count: number }) {
   }, [outgoing]);
 
   return (
-    <p className="text-sm text-muted-foreground">
-      <span className="waitlist-count font-medium text-foreground tabular-nums">
+    <p className="text-base text-muted-foreground">
+      <span className="waitlist-count font-semibold tracking-tight text-foreground">
         {outgoing !== null && (
           <span key={outgoing} data-out aria-hidden>
             {formatCount(outgoing)}

@@ -213,8 +213,8 @@ LandingNavbar          (reused, section 6.2)
 Hero section           (LandingAbout classes, 1:1)
   h1                   Luhive [mobile apps] / on the way
   p                    subtitle
-  Counter              "{N} people subscribed"
   WaitlistCard         form → success state (6.4)
+  Counter              "{N} people subscribed"
 [design slot]          empty until Ali's designs arrive
 LandingFooter          (reused as-is)
 ```
@@ -272,7 +272,7 @@ submitting happens on change (one tap), with a `<noscript>` submit button.
 
 ### 6.5 Counter
 
-- Placed directly above the card, as a small line: `text-sm text-muted-foreground`, number in `font-medium text-foreground tabular-nums`. Example: "**52** people subscribed".
+- Placed under the card (moved back below on request, 26 Oct 2026), `text-base text-muted-foreground`, number in `font-semibold tracking-tight text-foreground` (no `tabular-nums`, which spread "51" too wide). Example: "**52** people subscribed". It shifts when the card changes height; accepted.
 - `tabular-nums` so digits don't jitter when they change.
 - The number never animates on page load. It moves once, for the visitor's own new signup (M7).
 

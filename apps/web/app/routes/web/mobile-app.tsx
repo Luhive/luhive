@@ -45,12 +45,11 @@ export default function MobileAppPage() {
             the first to know when it's ready.
           </p>
 
-          {/* Above the card so it never moves when the card changes state. */}
-          <div className="mb-5">
+          <WaitlistCard user={user} joined={joined} utm={utm} />
+
+          <div className="mt-4">
             <SubscribedCounter count={subscribedCount} />
           </div>
-
-          <WaitlistCard user={user} joined={joined} utm={utm} />
 
           {/* Design slot: Ali's designs go here, where the dashboard sits on the landing page. */}
         </div>

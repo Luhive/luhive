@@ -6,7 +6,7 @@
 export const FEATURES = [
   {
     key: "notifications",
-    title: "Personalized event notifications",
+    title: "Personalized notifications",
     body: "Get told about the events that fit you, based on the events you have been to before and the interests you have, with a reminder before they start.",
   },
   {

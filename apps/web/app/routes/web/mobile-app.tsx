@@ -17,6 +17,7 @@ import { WaitlistCard } from "~/modules/mobile-app/components/waitlist-card";
 import { SubscribedCounter } from "~/modules/mobile-app/components/subscribed-counter";
 import { HeroStickers } from "~/modules/mobile-app/components/hero-stickers";
 import { MobileAppDetails } from "~/modules/mobile-app/components/mobile-app-details";
+import { MobileAppWhileWaiting } from "~/modules/mobile-app/components/mobile-app-while-waiting";
 import type { MobileAppLoaderData } from "~/modules/mobile-app/server/mobile-app-loader.server";
 
 // The chip answer changes nothing the loader returns. Skipping the reload also
@@ -30,7 +31,7 @@ const heroStep = (i: number) => ({ "--hero-i": i }) as CSSProperties;
 
 // Spec: docs/mobile-app-waitlist.md. Nav, hero and footer match the landing page one to one.
 export default function MobileAppPage() {
-  const { user, joined, subscribedCount, utm } = useLoaderData<MobileAppLoaderData>();
+  const { user, joined, subscribedCount, utm, waiting } = useLoaderData<MobileAppLoaderData>();
   // Optimistic counter: +1 while a join is in flight; the reload after it brings the real count.
   const navigation = useNavigation();
   const joinPending = navigation.formData?.get("intent") === "join";
@@ -93,6 +94,7 @@ export default function MobileAppPage() {
       </section>
 
       <MobileAppDetails />
+      <MobileAppWhileWaiting waiting={waiting} />
 
       <LandingFooter />
     </div>

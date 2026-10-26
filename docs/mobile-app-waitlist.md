@@ -317,6 +317,21 @@ Indexable, server-rendered, ready for Google Search Console.
   `Allow: /api/og/` ahead of `Disallow: /api/`, so link-preview crawlers (LinkedIn obeys
   robots.txt) can fetch the share image.
 
+## 6.8 "While you are waiting" (26 Oct 2026)
+
+The last section before the footer gives visitors something to do on Luhive today
+(`components/mobile-app-while-waiting.tsx`, data from `server/mobile-app-waiting.server.ts`):
+
+- **Upcoming events first:** the next three from `hub_events`, through the hub's own
+  `listUpcomingHubEvents` (it now takes an optional `limit`). Each one is a compact copy of
+  the hub's event card (cover, date and time, title, place and community) linking to the
+  event page, without the hub's preview drawer.
+- **No upcoming events:** the three most active communities (most events, then most
+  members), shown with the hub's own `ExploreCommunityCard`.
+- **"Explore more on the Hub"** button (the Notify me pill) to `/hub`.
+- Fewer than three items stay centred. The loader fetches this in parallel with the rest.
+- Umami: `mobile_app_waiting_clicked` with `item` = `event`, `community` or `explore`.
+
 ## 7. Analytics (Umami only)
 
 Reuse the shared analytics tool. `shared/lib/analytics/analytics.ts` exports

@@ -63,6 +63,7 @@ function toHubEventSummaries(rows: HubEventColumns[] | null) {
 export async function listUpcomingHubEvents(
   supabase: SupabaseClient<Database>,
   now: Date,
+  limit = HUB_EVENT_LIMIT,
 ) {
   const nowIso = now.toISOString();
   const { data, error } = await supabase
@@ -70,7 +71,7 @@ export async function listUpcomingHubEvents(
     .select(HUB_EVENT_COLUMNS)
     .or(`end_time.gte.${nowIso},and(end_time.is.null,start_time.gte.${nowIso})`)
     .order("start_time", { ascending: true })
-    .limit(HUB_EVENT_LIMIT);
+    .limit(limit);
 
   return { events: toHubEventSummaries(data), error };
 }

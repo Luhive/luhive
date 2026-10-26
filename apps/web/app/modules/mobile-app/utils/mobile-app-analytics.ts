@@ -28,3 +28,6 @@ export const trackSignupFailed = (reason: "invalid_email" | "server") =>
 
 export const trackFeatureAnswered = (feature: string) =>
   analytics.track("mobile_app_feature_answered", { feature });
+
+export const trackWaitingClicked = (item: "event" | "community" | "explore") =>
+  analytics.track("mobile_app_waiting_clicked", { item });

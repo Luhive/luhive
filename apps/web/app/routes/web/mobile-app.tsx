@@ -33,9 +33,16 @@ export default function MobileAppPage() {
       {/* At least one screen tall (svh, so mobile browser bars don't push it), so the footer starts below the fold. */}
       <section className="flex min-h-svh flex-col justify-center bg-[#F6F4F1] pt-32 pb-12 md:pt-28 lg:pt-36 lg:pb-20">
         <div className="mx-auto w-[95vw] 3xl:w-[60rem] text-center">
-          {/* The Luhive mark as an app icon tile: rounded square, white-to-grey face, soft drop shadow. */}
-          <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-[1.375rem] border border-black/[0.04] bg-gradient-to-b from-white to-[#ECECEC] shadow-[0px_8px_20px_rgba(0,0,0,0.08),0px_1px_2px_rgba(0,0,0,0.06),inset_0px_1px_0px_rgba(255,255,255,0.9)] md:mb-8 md:size-24 md:rounded-[1.625rem]">
-            <img src={luhiveMark} alt="Luhive" width={56} height={56} className="size-12 md:size-14" />
+          {/* The Luhive mark as an app icon tile. A soft orange glow breathes behind it and a
+              light sweeps around its border (motion M11), so it reads as live. */}
+          <div className="relative mx-auto mb-6 size-20 md:mb-8 md:size-24">
+            <span aria-hidden className="app-icon-glow absolute -inset-3 rounded-[2rem] bg-[#FF6D23] blur-xl" />
+            <div className="relative size-full overflow-hidden rounded-[1.375rem] p-[1.5px] shadow-[0px_8px_20px_rgba(0,0,0,0.08),0px_1px_2px_rgba(0,0,0,0.06)] md:rounded-[1.625rem]">
+              <span aria-hidden className="app-icon-sweep absolute -inset-1/2 bg-[conic-gradient(from_0deg,rgba(0,0,0,0.05)_0%,rgba(0,0,0,0.05)_62%,#FF6D23_80%,#FFD3BC_86%,rgba(0,0,0,0.05)_100%)]" />
+              <div className="relative flex size-full items-center justify-center rounded-[calc(1.375rem-1.5px)] bg-gradient-to-b from-white to-[#ECECEC] shadow-[inset_0px_1px_0px_rgba(255,255,255,0.9)] md:rounded-[calc(1.625rem-1.5px)]">
+                <img src={luhiveMark} alt="Luhive" width={56} height={56} className="size-12 md:size-14" />
+              </div>
+            </div>
           </div>
 
           <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-snug md:leading-tight text-3xl md:text-4xl lg:text-5xl xl:text-6xl">

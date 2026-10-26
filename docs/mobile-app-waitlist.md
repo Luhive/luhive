@@ -353,6 +353,7 @@ Built from the repo's Emil Kowalski skills: `.agents/skills/emil-design-eng`,
 | M7 | Counter tick on own signup | Once per visitor | State indication: "you're in this number" | CSS transition, two stacked spans in an `overflow: hidden` line box | Old number `translateY(-100%)` and `opacity` 0. New number from `translateY(100%)` to 0. 250 ms `--ease-out-strong`, starting 150 ms after M6 begins. | Instant swap |
 | M8 | "Thanks, noted." after a chip | Once per visitor | Feedback | `@starting-style` | All chips stay; the chosen one fills (M3) and can still be changed. The thanks line enters `opacity` + `translateY(4px)`, 200 ms. (Changed on request 26 Oct 2026: the other chips no longer disappear.) | Opacity only |
 | M9 | Error line appears | Rare | State indication | `@starting-style` | `opacity` 0 → 1, `translateY(-4px)` → 0, 150 ms. No shake. The line's space is reserved, so nothing moves. | Opacity only |
+| M11 | App icon "live" border | Constant while on the page | Delight (requested 26 Oct 2026) | CSS keyframes (continuous, off the main thread) | A conic orange highlight sweeps around the 1.5 px border, `rotate(1turn)` 4 s `linear` infinite. A blurred orange glow behind the tile breathes `opacity` 0.18 ↔ 0.38, 3 s `ease-in-out` alternate. Transform and opacity only. | None: static border and glow |
 | M10 | Navbar | — | — | **Unchanged** (the landing page's existing behaviour) | — | — |
 
 ### 8.2 Rejected (do not build)

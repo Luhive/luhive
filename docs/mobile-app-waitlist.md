@@ -260,6 +260,7 @@ height.
 | **Submitting** | The button keeps its width. The label crossfades to a spinner (M5). The input is `readOnly`, not `disabled`, so the keyboard doesn't drop on iOS. |
 | **Error** | The message sits in a reserved line under the field. `aria-invalid` and `aria-describedby` are set on the input. |
 | **Success** | Check mark and "You're on the list" (the line under it was removed on request, 26 Oct 2026). Then the question, "What should the first version have?", with three chips: Event notifications / QR tickets / Discover new events. |
+| **Add another email** | A link at the bottom of the success state (added 26 Oct 2026). It brings back an empty, focused form so a person can add a friend; each new signup ticks the counter again. Without JS it is a plain link that reloads `/app`. |
 | **Answered** | All three chips stay; the chosen one is filled and can still be changed. "Thanks, noted." appears under them. |
 | **Already joined (logged in, on load)** | The success state, static, with the question shown if `first_feature` is still empty. |
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
-import { Bell, Check } from "lucide-react";
+import { Bell, Check, Plus } from "lucide-react";
+import { Routes } from "~/shared/lib/routing/routes";
 import { Spinner } from "~/shared/components/ui/spinner";
 import type { UTMAttribution } from "~/modules/events/utils/utm-source";
 import { FEATURE_OPTIONS } from "~/modules/mobile-app/model/mobile-app-waitlist";
@@ -55,7 +56,15 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
       : null;
   });
   const [answer, setAnswer] = useState<string | null>(null);
+  // Set from "Add another email": the form comes back empty, for a friend's address.
+  const [addingAnother, setAddingAnother] = useState(false);
   const focusTracked = useRef(false);
+
+  const addAnother = () => {
+    setAddingAnother(true);
+    setAnswer(null);
+    setJoined(null);
+  };
 
   useEffect(() => {
     if (!actionData) return;
@@ -81,6 +90,7 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center">
       {shown === "form" ? (
+        <div className={`w-full ${addingAnother ? "waitlist-enter" : ""}`}>
         <Form
           method="post"
           preventScrollReset
@@ -118,7 +128,8 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
                 placeholder="Your email address"
                 required
                 maxLength={320}
-                defaultValue={user?.email ?? undefined}
+                defaultValue={addingAnother ? undefined : (user?.email ?? undefined)}
+                autoFocus={addingAnother}
                 readOnly={isJoining}
                 onFocus={() => {
                   if (focusTracked.current) return;
@@ -163,8 +174,14 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
             )}
           </p>
         </Form>
+        </div>
       ) : joined ? (
-        <SuccessState joined={joined} answer={answer} onAnswer={setAnswer} />
+        <SuccessState
+          joined={joined}
+          answer={answer}
+          onAnswer={setAnswer}
+          onAddAnother={addAnother}
+        />
       ) : null}
     </div>
   );
@@ -174,10 +191,12 @@ function SuccessState({
   joined,
   answer,
   onAnswer,
+  onAddAnother,
 }: {
   joined: Joined;
   answer: string | null;
   onAnswer: (feature: string) => void;
+  onAddAnother: () => void;
 }) {
   const navigation = useNavigation();
   const isAnswering =
@@ -252,6 +271,20 @@ function SuccessState({
           )}
         </div>
       )}
+
+      {/* A real link so it still works without JS (reloads to an empty form). */}
+      <a
+        href={Routes.mobileApp}
+        onClick={(event) => {
+          event.preventDefault();
+          onAddAnother();
+        }}
+        className={`${enterClass} waitlist-press mt-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/[0.06]`}
+        style={enterStyle(3)}
+      >
+        <Plus aria-hidden className="size-4" />
+        Add another email
+      </a>
     </div>
   );
 }

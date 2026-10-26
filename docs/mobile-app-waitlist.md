@@ -13,9 +13,12 @@ Signing up means two things:
 
 ## Status
 
-Spec, 26 Oct 2026. Built the same day on `feat/mobile-app-waitlist` and tested
-against the validation DB. The production migration is
-still to do (section 11). The earlier attempt (PR #180) was closed and removed.
+Spec, 26 Oct 2026. Built the same day on `feat/mobile-app-waitlist`. Migration `0009`
+applied to development (validation) and, on 26 Oct 2026, to production by the manual run
+in `packages/db/README.md`: recorded in `kysely_migration`, RLS off, no grants to `anon`
+or `authenticated` (PostgREST answers 401), and `codegen` against production matches the
+committed types. Left: deploy, then Search Console. The earlier attempt (PR #180) was
+closed and removed.
 
 ---
 

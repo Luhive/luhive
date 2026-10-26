@@ -243,7 +243,8 @@ Copy the classes from `LandingAbout`:
 - h1 `text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold tracking-tight`;
 - subtitle `max-w-3xl text-sm lg:text-lg text-muted-foreground`.
 
-> Your events, tickets and communities in one place, on your phone. Be the first to know when it's ready.
+> Your events, tickets and communities on your [Apple logo] [Android logo] phone.
+> Be the first to know when it's ready. (Two centred lines, logos from Hugeicons; changed on request 26 Oct 2026.)
 
 ### 6.4 Waitlist card states
 

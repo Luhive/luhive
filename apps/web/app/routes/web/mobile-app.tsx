@@ -1,5 +1,7 @@
 import { useLoaderData, type ShouldRevalidateFunction } from "react-router";
 import { useTranslation } from "react-i18next";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AndroidIcon, AppleIcon } from "@hugeicons/core-free-icons";
 
 import "~/shared/lib/i18n";
 
@@ -41,8 +43,15 @@ export default function MobileAppPage() {
           </h1>
 
           <p className="mx-auto mb-8 md:mb-10 max-w-3xl text-sm lg:text-lg leading-relaxed text-muted-foreground">
-            Your events, tickets and communities in one place, on your phone. Be
-            the first to know when it's ready.
+            <span className="block">
+              Your events, tickets and communities on your{" "}
+              <span className="inline-flex translate-y-[0.125em] items-center gap-1 text-foreground">
+                <HugeiconsIcon icon={AppleIcon} size="1.1em" color="currentColor" strokeWidth={1.5} aria-label="iPhone" />
+                <HugeiconsIcon icon={AndroidIcon} size="1.1em" color="currentColor" strokeWidth={1.5} aria-label="Android" />
+              </span>{" "}
+              phone.
+            </span>
+            <span className="block">Be the first to know when it's ready.</span>
           </p>
 
           <WaitlistCard user={user} joined={joined} utm={utm} />

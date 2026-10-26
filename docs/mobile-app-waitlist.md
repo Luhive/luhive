@@ -291,6 +291,28 @@ submitting happens on change (one tap), with a `<noscript>` submit button.
 
 ---
 
+## 6.7 SEO (26 Oct 2026)
+
+Indexable, server-rendered, ready for Google Search Console.
+
+- **Meta** (`model/mobile-app-meta.ts`): title "Luhive Mobile App for iPhone and Android – Join
+  the Waitlist", a 155-character description, `robots: index, follow, max-image-preview:large`,
+  canonical `https://luhive.com/app`, full Open Graph and Twitter cards.
+- **Structured data**: one JSON-LD `@graph` with Organization (logo, social profiles),
+  WebSite, WebPage, BreadcrumbList (Luhive › Mobile app) and FAQPage. Deliberately **no
+  MobileApplication/SoftwareApplication**: Google's app rich result needs ratings and an
+  offer, which an unreleased app cannot honestly give, and Search Console would report it
+  as an invalid item.
+- **Content** (`components/mobile-app-details.tsx`, copy in `model/mobile-app-content.ts`):
+  below the hero, an h2 "What's coming in the Luhive app" with three h3 feature cards, and
+  an h2 "Questions" FAQ in `<details>` (answers stay in the HTML when closed). The FAQPage
+  JSON-LD is generated from the same content, so it always matches the page.
+- **Headings**: one h1 ("Luhive Mobile app on the way"; "Luhive" is `sr-only`, the app icon
+  carries it visually), then h2 → h3.
+- **Sitemap / robots**: `/app` added to `public/sitemap.xml`. `robots.txt` now
+  `Allow: /api/og/` ahead of `Disallow: /api/`, so link-preview crawlers (LinkedIn obeys
+  robots.txt) can fetch the share image.
+
 ## 7. Analytics (Umami only)
 
 Reuse the shared analytics tool. `shared/lib/analytics/analytics.ts` exports

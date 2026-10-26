@@ -16,6 +16,7 @@ import { LandingFooter } from "~/modules/landing/components/landing-footer";
 import { WaitlistCard } from "~/modules/mobile-app/components/waitlist-card";
 import { SubscribedCounter } from "~/modules/mobile-app/components/subscribed-counter";
 import { HeroStickers } from "~/modules/mobile-app/components/hero-stickers";
+import { MobileAppDetails } from "~/modules/mobile-app/components/mobile-app-details";
 import type { MobileAppLoaderData } from "~/modules/mobile-app/server/mobile-app-loader.server";
 
 // The chip answer changes nothing the loader returns. Skipping the reload also
@@ -58,7 +59,9 @@ export default function MobileAppPage() {
           </div>
 
           <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-[1.05] md:leading-tight text-5xl lg:text-5xl xl:text-6xl">
-            <span className="hero-enter block text-primary" style={heroStep(1)}>Mobile app</span>
+            {/* The brand is in the visual app icon; crawlers and screen readers get it here. */}
+            <span className="sr-only">Luhive </span>
+            <span className="hero-enter block text-primary" style={heroStep(1)}>Mobile app</span>{" "}
             <span className="hero-enter block text-foreground" style={heroStep(2)}>on the way</span>
           </h1>
 
@@ -88,6 +91,8 @@ export default function MobileAppPage() {
           {/* Design slot: Ali's designs go here, where the dashboard sits on the landing page. */}
         </div>
       </section>
+
+      <MobileAppDetails />
 
       <LandingFooter />
     </div>

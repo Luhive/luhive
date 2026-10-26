@@ -1,13 +1,16 @@
 import { FAQ, FEATURES } from "~/modules/mobile-app/model/mobile-app-content";
-import notificationsIcon from "~/assets/images/mobile-app/feature-notifications.webp";
-import ticketsIcon from "~/assets/images/mobile-app/feature-tickets.webp";
-import discoverIcon from "~/assets/images/mobile-app/feature-discover.webp";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  BubbleChatNotificationIcon,
+  CalendarCheckIn01Icon,
+  Ticket01Icon,
+} from "@hugeicons/core-free-icons";
 
-// 3D icons leading each feature title (192 px sources, shown at 48 px for crisp 2-4x screens).
+// Hugeicons leading each feature title: a notification bubble, a ticket, a checked calendar.
 const FEATURE_ICONS = {
-  notifications: notificationsIcon,
-  tickets: ticketsIcon,
-  discover: discoverIcon,
+  notifications: BubbleChatNotificationIcon,
+  tickets: Ticket01Icon,
+  discover: CalendarCheckIn01Icon,
 } as const;
 
 /**
@@ -35,14 +38,13 @@ export function MobileAppDetails() {
                 className="flex flex-col gap-3 border-l-[1.5px] border-solid border-[#DFDDCE] pl-5"
               >
                 <div className="flex items-center gap-3">
-                  <img
-                    src={FEATURE_ICONS[feature.key]}
-                    alt=""
-                    width={48}
-                    height={48}
-                    loading="lazy"
-                    decoding="async"
-                    className="size-12 shrink-0"
+                  <HugeiconsIcon
+                    icon={FEATURE_ICONS[feature.key]}
+                    size={26}
+                    color="currentColor"
+                    strokeWidth={1.5}
+                    aria-hidden
+                    className="shrink-0 text-primary"
                   />
                   <h3 className="text-xl font-medium leading-[1.2] text-[#141414]">
                     {feature.title}

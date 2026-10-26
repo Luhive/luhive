@@ -1,6 +1,6 @@
 // Values match the CHECK constraint on public.mobile_app_waitlist.first_feature.
 export const FEATURE_OPTIONS = [
-  { value: "event_notifications", label: "Event notifications" },
+  { value: "event_notifications", label: "Personalized notifications" },
   { value: "qr_tickets", label: "QR tickets" },
   { value: "discover_events", label: "Discover new events" },
 ] as const;

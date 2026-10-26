@@ -65,21 +65,21 @@ function PhoneSticker() {
 type StickerSpec = {
   key: string;
   node: ReactNode;
-  /** Position inside the 780 px sticker frame, as CSS lengths. */
-  style: CSSProperties;
+  /**
+   * Position and size inside the 780 px sticker frame. Phones: the bell and ticket flank
+   * the app icon, the pin and phone flank the "on the way" line. md+: the four corners.
+   */
+  className: string;
   tilt: number;
   /** Pointer drift strength: further-out stickers move more. */
   depth: number;
-  /** Shown on phones too; the rest are md+ only. */
-  mobile?: boolean;
-  width: string;
 };
 
 const STICKERS: StickerSpec[] = [
-  { key: "bell", node: <BellSticker />, style: { top: "4%", left: "2%" }, tilt: -12, depth: 14, mobile: true, width: "clamp(2.75rem, 7vw, 4.25rem)" },
-  { key: "ticket", node: <TicketSticker />, style: { top: "8%", right: "0%" }, tilt: 9, depth: 10, mobile: true, width: "clamp(3.5rem, 9vw, 5.5rem)" },
-  { key: "pin", node: <PinSticker />, style: { bottom: "22%", left: "4%" }, tilt: 8, depth: 8, width: "3.5rem" },
-  { key: "phone", node: <PhoneSticker />, style: { bottom: "18%", right: "5%" }, tilt: -9, depth: 12, width: "3.25rem" },
+  { key: "bell", node: <BellSticker />, className: "top-1 left-[6%] w-11 md:top-[4%] md:left-[2%] md:w-[4.25rem]", tilt: -12, depth: 14 },
+  { key: "ticket", node: <TicketSticker />, className: "top-3 right-[3%] w-14 md:top-[8%] md:right-0 md:w-[5.5rem]", tilt: 9, depth: 10 },
+  { key: "pin", node: <PinSticker />, className: "top-[11.25rem] left-[2%] w-9 md:top-auto md:bottom-[22%] md:left-[4%] md:w-14", tilt: 8, depth: 8 },
+  { key: "phone", node: <PhoneSticker />, className: "top-[11rem] right-[3%] w-8 md:top-auto md:bottom-[18%] md:right-[5%] md:w-[3.25rem]", tilt: -9, depth: 12 },
 ];
 
 /** When the last hero piece (step 6: 360 ms delay + 300 ms) has finished. */
@@ -161,8 +161,7 @@ export function HeroStickers() {
       {STICKERS.map((sticker, index) => (
         <div
           key={sticker.key}
-          className={`absolute ${sticker.mobile ? "" : "max-md:hidden"}`}
-          style={{ ...sticker.style, width: sticker.width }}
+          className={`absolute ${sticker.className}`}
         >
           <div data-depth={sticker.depth}>
             <div

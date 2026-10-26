@@ -39,8 +39,10 @@ export default function MobileAppPage() {
     <div className="min-h-screen bg-background">
       <LandingNavbar sectionBase="/?home" trackActiveSection={false} />
 
-      {/* At least one screen tall (svh, so mobile browser bars don't push it), so the footer starts below the fold. */}
-      <section className="flex min-h-svh flex-col justify-center bg-[#F6F4F1] pt-32 pb-12 md:pt-28 lg:pt-36 lg:pb-20">
+      {/* At least one screen tall (svh, so mobile browser bars don't push it), so the footer
+          starts below the fold. Centred on md+; on phones it starts under the navbar, since
+          centring a short column in a tall screen leaves a big empty top. */}
+      <section className="flex min-h-svh flex-col justify-start bg-[#F6F4F1] pt-24 pb-12 md:justify-center md:pt-28 lg:pt-36 lg:pb-20">
         <div className="relative mx-auto w-[95vw] 3xl:w-[60rem] text-center">
           <HeroStickers />
 
@@ -55,7 +57,7 @@ export default function MobileAppPage() {
             </div>
           </div>
 
-          <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-snug md:leading-tight text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
+          <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-[1.05] md:leading-tight text-5xl lg:text-5xl xl:text-6xl">
             <span className="hero-enter block text-primary" style={heroStep(1)}>Mobile app</span>
             <span className="hero-enter block text-foreground" style={heroStep(2)}>on the way</span>
           </h1>

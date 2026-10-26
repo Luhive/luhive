@@ -1,5 +1,4 @@
 import { useEffect, useRef, type CSSProperties } from "react";
-import { bind } from "cuelume";
 import { useLoaderData, useNavigation, type ShouldRevalidateFunction } from "react-router";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -18,6 +17,7 @@ import { WaitlistCard } from "~/modules/mobile-app/components/waitlist-card";
 import { SubscribedCounter } from "~/modules/mobile-app/components/subscribed-counter";
 import { HeroStickers } from "~/modules/mobile-app/components/hero-stickers";
 import { SoundToggle } from "~/modules/mobile-app/components/sound-toggle";
+import * as Sound from "~/shared/lib/sound/sound";
 import type { MobileAppLoaderData } from "~/modules/mobile-app/server/mobile-app-loader.server";
 
 // The chip answer changes nothing the loader returns. Skipping the reload also
@@ -37,10 +37,10 @@ export default function MobileAppPage() {
   const joinPending = navigation.formData?.get("intent") === "join";
   useTranslation();
 
-  // Interaction sounds (cuelume), scoped to this page: bind() wires the data-cuelume-*
-  // attributes below this root and returns its own cleanup.
+  // Interaction sounds, scoped to this page: Sound.bind wires every Sound.cue(...) element
+  // below this root and returns its own cleanup.
   const rootRef = useRef<HTMLDivElement>(null);
-  useEffect(() => (rootRef.current ? bind(rootRef.current) : undefined), []);
+  useEffect(() => (rootRef.current ? Sound.bind(rootRef.current) : undefined), []);
 
   return (
     <div ref={rootRef} className="min-h-screen bg-background">

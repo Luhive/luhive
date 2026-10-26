@@ -417,13 +417,19 @@ browsers show the success state instantly, which is acceptable.
 
 Added 26 Oct 2026, following https://cuelume.dev/agents.md. `cuelume@0.2.8` (MIT, no
 runtime deps, Web Audio, SSR-safe) is bound to the `/app` page root only, with
-`useEffect(() => bind(root), [])`.
+`useEffect(() => Sound.bind(root), [])`.
+
+The engine is wrapped by `shared/lib/sound/sound.ts`, used as a namespace
+(`import * as Sound from "~/shared/lib/sound/sound"`): `Sound.cue(name, { emphasis })`
+returns the element props, and `Sound.bind`, `Sound.play`, `Sound.setEnabled` and
+`Sound.unlock` cover the rest, with our own cue and emphasis types. Only that file
+imports cuelume, so swapping the engine is a one-file change.
 
 | Moment | Cue | How |
 |---|---|---|
-| Typing the email | `type`, subtle | `data-cuelume-type` |
-| Picking a feature chip | `select` | `data-cuelume-select` on the radio |
-| "Add another email" | `open` | `data-cuelume-open` |
+| Typing the email | `type`, subtle | `Sound.cue("type", { emphasis: "subtle" })` |
+| Picking a feature chip | `select` | `Sound.cue("select")` on the radio |
+| "Add another email" | `open` | `Sound.cue("open")` |
 | Valid "Notify me" (optimistic success) | `success`, strong | `play()` inside the click |
 | Invalid email caught on the client | `warning` | `play()` |
 | Server rejects the signup | `error` | `play()` when the action returns |

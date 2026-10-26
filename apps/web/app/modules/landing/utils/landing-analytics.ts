@@ -12,3 +12,6 @@ export const trackSocialLinkClicked = (platform: string) =>
 
 export const trackToolClicked = (tool: string) =>
   analytics.track("landing_tool_clicked", { tool });
+
+export const trackProfileClaimClicked = () =>
+  analytics.track("landing_profile_claim_clicked", { placement: "hero" });

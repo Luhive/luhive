@@ -51,14 +51,26 @@ const SOCIAL_LINKS = [
 
 type NavSectionId = "features" | "pricing" | "faqs";
 
-export function LandingNavbar() {
+type LandingNavbarProps = {
+  /** Prefix for the section links when the navbar sits on another page, e.g. "/?home". */
+  sectionBase?: string;
+  /** Highlight the section in view. Off on pages that don't have the landing sections. */
+  trackActiveSection?: boolean;
+};
+
+export function LandingNavbar({
+  sectionBase = "",
+  trackActiveSection = true,
+}: LandingNavbarProps = {}) {
   const { t } = useTranslation('landing');
   const bookingUrl = useCalBookingUrl();
   const [user, setUser] = useState<UserData | null>(null);
   const [, setIsLoadingUser] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<NavSectionId>("features");
+  const [activeSection, setActiveSection] = useState<NavSectionId | null>(
+    trackActiveSection ? "features" : null,
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -142,12 +154,13 @@ export function LandingNavbar() {
     href: string;
     labelKey: string;
   }> = [
-    { id: "features", href: "#features", labelKey: "navV2.features" },
-    { id: "pricing", href: "#pricing", labelKey: "navV2.pricing" },
-    { id: "faqs", href: "#faqs", labelKey: "navV2.faqs" },
+    { id: "features", href: `${sectionBase}#features`, labelKey: "navV2.features" },
+    { id: "pricing", href: `${sectionBase}#pricing`, labelKey: "navV2.pricing" },
+    { id: "faqs", href: `${sectionBase}#faqs`, labelKey: "navV2.faqs" },
   ];
 
   useEffect(() => {
+    if (!trackActiveSection) return;
     const sectionIds = navItems.map((item) => item.id);
 
     const observer = new IntersectionObserver(
@@ -171,7 +184,7 @@ export function LandingNavbar() {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [trackActiveSection]);
 
   return (
     <>

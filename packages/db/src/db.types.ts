@@ -346,6 +346,26 @@ export interface HubEvents {
   title: string | null;
 }
 
+export interface MobileAppWaitlist {
+  created_at: Generated<Timestamp>;
+  email: string;
+  first_feature: string | null;
+  id: Generated<string>;
+  resend_contact_id: string | null;
+  /**
+   * Set from the Resend contact.updated webhook when the person unsubscribes from the weekly email.
+   */
+  unsubscribed_at: Timestamp | null;
+  updated_at: Generated<Timestamp>;
+  user_id: string | null;
+  utm_campaign: string | null;
+  utm_content: string | null;
+  utm_medium: string | null;
+  utm_source: Generated<string>;
+  utm_term: string | null;
+  welcome_sent_at: Timestamp | null;
+}
+
 export interface PaymentCallbacks {
   id: Generated<string>;
   key_id: string | null;
@@ -462,6 +482,7 @@ export interface DB {
   google_forms_tokens: GoogleFormsTokens;
   hub_communities: HubCommunities;
   hub_events: HubEvents;
+  mobile_app_waitlist: MobileAppWaitlist;
   payment_callbacks: PaymentCallbacks;
   people: People;
   person_events: PersonEvents;

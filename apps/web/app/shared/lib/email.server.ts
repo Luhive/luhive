@@ -10,6 +10,7 @@ import { EventRegistrationRequestEmail } from "~/templates/event-registration-re
 import { EventPaymentRequestEmail } from "~/templates/event-payment-request-email";
 import { CommunityWaitlistNotification } from "~/templates/community-waitlist-notification";
 import { CommunityJoinNotification } from "~/templates/community-join-notification";
+import { MobileAppWelcomeEmail } from "~/templates/mobile-app-welcome-email";
 import { CommunityAnnouncementEmail } from "~/templates/community-announcement-email";
 import { CollaborationInviteEmail } from "~/templates/collaboration-invite-email";
 import { EventInviteEmail } from "~/templates/event-invite-email";
@@ -1360,6 +1361,65 @@ export async function sendCommunityWaitlistNotification(
   });
 
   return { success: true, data: { id: result.id } };
+}
+
+/**
+ * Welcome note for the mobile app waitlist (/app). Sent from Ali by name on the
+ * usual transactional address, whose replies already reach the team's inbox.
+ */
+export async function sendMobileAppWelcomeEmail(to: string) {
+  const result = await sendEmail({
+    to,
+    from: `Ali from Luhive <${FROM_EMAIL_ADDRESS}>`,
+    subject: "You're on the Luhive app list",
+    react: MobileAppWelcomeEmail(),
+    metadata: { template: "MobileAppWelcomeEmail" },
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to send mobile app welcome email: ${result.error?.message || "Unknown error"}`
+    );
+  }
+
+  return { id: result.id };
+}
+
+/**
+ * Adds a waitlist signup to the Resend segment the weekly progress email is
+ * broadcast to. Returns the contact id, or null when the segment is not configured.
+ */
+export async function addMobileAppWaitlistContact(email: string): Promise<string | null> {
+  const segmentId = process.env.RESEND_MOBILE_APP_SEGMENT_ID;
+  const resend = getResendClient();
+  if (!segmentId || !resend) {
+    console.warn("⚠️ Mobile app waitlist contact skipped: RESEND_MOBILE_APP_SEGMENT_ID or Resend client missing");
+    return null;
+  }
+
+  const { data, error } = await resend.contacts.create({
+    email,
+    unsubscribed: false,
+    segments: [{ id: segmentId }],
+  });
+  if (data) return data.id;
+
+  // Already a contact (another list, or an earlier unsubscribe): subscribe and add to the segment.
+  const { data: updated, error: updateError } = await resend.contacts.update({
+    email,
+    unsubscribed: false,
+  });
+  if (updateError) {
+    throw new Error(
+      `Failed to add mobile app waitlist contact: ${error?.message}; update: ${updateError.message}`
+    );
+  }
+  const { error: segmentError } = await resend.contacts.segments.add({ email, segmentId });
+  if (segmentError) {
+    throw new Error(`Failed to add contact to the mobile app segment: ${segmentError.message}`);
+  }
+
+  return updated?.id ?? null;
 }
 
 export async function sendCommunityJoinNotification(

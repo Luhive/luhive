@@ -1050,7 +1050,6 @@ export type Database = {
           email: string
           first_feature: string | null
           id: string
-          resend_contact_id: string | null
           unsubscribed_at: string | null
           updated_at: string
           user_id: string | null
@@ -1066,7 +1065,6 @@ export type Database = {
           email: string
           first_feature?: string | null
           id?: string
-          resend_contact_id?: string | null
           unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -1082,7 +1080,6 @@ export type Database = {
           email?: string
           first_feature?: string | null
           id?: string
-          resend_contact_id?: string | null
           unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string | null

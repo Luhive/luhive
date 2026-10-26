@@ -2,8 +2,8 @@ const MOBILE_APP_CANONICAL_URL = "https://luhive.com/app";
 const MOBILE_APP_OG_IMAGE_URL = "https://luhive.com/api/og/app";
 
 export function meta() {
-  const title = "Luhive mobile apps on the way";
-  const description = "Be the first to know when the Luhive mobile apps are ready.";
+  const title = "Luhive mobile app on the way";
+  const description = "Be the first to know when the Luhive mobile app is ready.";
 
   return [
     { title },

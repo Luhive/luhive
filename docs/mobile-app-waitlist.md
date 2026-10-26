@@ -25,7 +25,7 @@ still to do (section 11). The earlier attempt (PR #180) was closed and removed.
 |---|---|
 | Language | English across the whole page and both emails. |
 | Template | The landing page's own `LandingNavbar` and `LandingFooter`, reused, not copied. The hero matches `LandingAbout` one to one. |
-| Title | "**Mobile app** / on the way", with "Mobile app" in `--primary` (the word "Luhive" was dropped from the heading on 26 Oct 2026; the app icon above carries the brand). The `<title>` and OG image keep "Luhive mobile apps on the way". |
+| Title | "**Mobile app** / on the way", with "Mobile app" in `--primary` (the word "Luhive" was dropped from the heading on 26 Oct 2026; the app icon above carries the brand). The `<title>` and OG image read "Luhive mobile app on the way" (singular since 26 Oct 2026). |
 | Launch date | Never shown. |
 | Form | One grouped email field and **Notify me**. Logged in: the account email is prefilled, editable (to add a friend). |
 | Feature question | Not on the form. It's asked once on the success state, optional, one tap. |
@@ -214,7 +214,7 @@ Hero section           (LandingAbout classes, 1:1)
   Stickers             4 die-cut icons around the content (bell, QR ticket, pin, phone), anchored
                        to a 960 px frame so they stay centred; phones show only bell and ticket
   App icon tile        Luhive mark in a rounded-square, white-to-grey tile (added 26 Oct 2026)
-  h1                   Luhive [mobile apps] / on the way
+  h1                   [Mobile app] / on the way
   p                    subtitle
   WaitlistCard         form → success state (6.4)
   Counter              "{N} people subscribed"
@@ -283,7 +283,7 @@ submitting happens on change (one tap), with a `<noscript>` submit button.
 
 ### 6.6 Meta and link preview
 
-- `<title>`: "Luhive mobile apps on the way". Description: "Be the first to know when the Luhive mobile apps are ready." Canonical `https://luhive.com/app`.
+- `<title>`: "Luhive mobile app on the way". Description: "Be the first to know when the Luhive mobile app is ready." Canonical `https://luhive.com/app`.
 - **OG image** at `api/og/app`, built with the existing `og-factory`, like `api/og/hub/:week`. LinkedIn shows a preview card for the comment link, and that card is the first impression. It uses the hero title on `#F6F4F1`, 1200×630.
 
 ---
@@ -358,7 +358,7 @@ Built from the repo's Emil Kowalski skills: `.agents/skills/emil-design-eng`,
 | M9 | Error line appears | Rare | State indication | `@starting-style` | `opacity` 0 → 1, `translateY(-4px)` → 0, 150 ms. No shake. The line's space is reserved, so nothing moves. | Opacity only |
 | M11 | App icon "live" border | Constant while on the page | Delight (requested 26 Oct 2026) | CSS keyframes (continuous, off the main thread) | A silver highlight (grey to white to grey) sweeps around the 1.5 px border, `rotate(1turn)` 4 s `linear` infinite. No background glow. Transform only. | None: static silver border |
 | M12 | Hero stickers (bell, QR ticket, map pin, phone) | Launch once; float constant | Delight (requested 26 Oct 2026, Luma-style) | CSS keyframes; JS only measures each sticker's offset to the hero centre, and the pointer drift is one rAF lerp loop that sleeps when settled | Launch after the hero stagger (M13) lands (~660 ms after load, or at hydration if later): each sticker flies from the hero centre to its place, `translate(offset)` + `scale(0.5)` → none and `opacity` 0 → 1, 700 ms `--ease-out-strong`, 40 ms apart. Float `translateY` 0 ↔ −4 px, 4.6–6.1 s `ease-in-out` alternate. Desktop pointer drift and hover lift as before. Without JS the stickers simply show. | Fade only, in place; no float, no drift |
-| M13 | First-load hero stagger | Once per page load | Delight / orientation (requested 26 Oct 2026) | CSS keyframes, the skills' "Stagger a group entrance" recipe | App icon → "Mobile apps" → "on the way" → subtitle line 1 → line 2 → form → counter: each `opacity` 0 → 1 and `translateY(8px)` → 0, 300 ms `--ease-out-strong`, 60 ms apart. Stickers (M12) launch after the counter has landed. Never blocks interaction. | Fade only, 200 ms |
+| M13 | First-load hero stagger | Once per page load | Delight / orientation (requested 26 Oct 2026) | CSS keyframes, the skills' "Stagger a group entrance" recipe | App icon → "Mobile app" → "on the way" → subtitle line 1 → line 2 → form → counter: each `opacity` 0 → 1 and `translateY(8px)` → 0, 300 ms `--ease-out-strong`, 60 ms apart. Stickers (M12) launch after the counter has landed. Never blocks interaction. | Fade only, 200 ms |
 | M10 | Navbar | — | — | **Unchanged** (the landing page's existing behaviour) | — | — |
 
 ### 8.2 Rejected (do not build)

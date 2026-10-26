@@ -50,7 +50,7 @@ async function render(origin: string): Promise<ArrayBuffer> {
       </div>
       <div style={{ display: "flex", fontSize: 88, letterSpacing: -3, lineHeight: 1.1 }}>
         <span>Luhive&nbsp;</span>
-        <span style={{ color: "#FF6D23" }}>mobile apps</span>
+        <span style={{ color: "#FF6D23" }}>mobile app</span>
       </div>
       <div style={{ display: "flex", fontSize: 88, letterSpacing: -3, lineHeight: 1.1 }}>
         on the way

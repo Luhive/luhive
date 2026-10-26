@@ -6,3 +6,6 @@ export const analytics = createAnalytics([
   createUmamiProvider(),
   createGoogleAnalyticsProvider("G-EM0ZMM2JPL"),
 ]);
+
+/** For events that must stay out of GA4 (e.g. the mobile app waitlist). */
+export const umamiAnalytics = createAnalytics([createUmamiProvider()]);

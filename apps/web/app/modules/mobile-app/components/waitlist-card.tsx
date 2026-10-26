@@ -1,0 +1,334 @@
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Form, useActionData, useNavigation } from "react-router";
+import { Bell, Plus } from "lucide-react";
+import * as Sound from "~/shared/lib/sound/sound";
+import { Routes } from "~/shared/lib/routing/routes";
+import { Spinner } from "~/shared/components/ui/spinner";
+import type { UTMAttribution } from "~/modules/events/utils/utm-source";
+import {
+  FEATURE_OPTIONS,
+  INVALID_EMAIL_MESSAGE,
+  isValidWaitlistEmail,
+} from "~/modules/mobile-app/model/mobile-app-waitlist";
+import type { MobileAppActionData } from "~/modules/mobile-app/server/mobile-app-action.server";
+import type { MobileAppLoaderData } from "~/modules/mobile-app/server/mobile-app-loader.server";
+import * as MobileAppAnalytics from "~/modules/mobile-app/utils/mobile-app-analytics";
+
+// M6/M8 exit: the leaving state fades for this long before the next one mounts.
+const LEAVE_MS = 120;
+
+type Joined = { signupId: string; answered: string | boolean; fresh: boolean };
+
+type WaitlistCardProps = Pick<MobileAppLoaderData, "user" | "joined" | "utm">;
+
+/** Fades the current content out, then swaps to `next` (motion M6 and M8 exits). */
+function useLeaveThenSwap<T>(next: T): { shown: T; leaving: boolean } {
+  const [shown, setShown] = useState(next);
+  const [leaving, setLeaving] = useState(false);
+
+  useEffect(() => {
+    if (next === shown) return;
+    setLeaving(true);
+    const timer = setTimeout(() => {
+      setShown(next);
+      setLeaving(false);
+    }, LEAVE_MS);
+    return () => clearTimeout(timer);
+  }, [next, shown]);
+
+  return { shown, leaving };
+}
+
+const enter = (i: number): CSSProperties => ({ "--i": i }) as CSSProperties;
+
+// Shown the moment "Notify me" is pressed, before the server answers. The real signup id
+// replaces it when the action returns; until then the feature chips stay disabled.
+const OPTIMISTIC_JOINED: Joined = { signupId: "", answered: false, fresh: true };
+
+export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardProps) {
+  const actionData = useActionData<MobileAppActionData>();
+  const navigation = useNavigation();
+  const intent = navigation.formData?.get("intent");
+  // Through the loader revalidation too, so the spinner never flips back to the label.
+  const isJoining = navigation.state !== "idle" && intent === "join";
+
+  const [joined, setJoined] = useState<Joined | null>(() => {
+    // Without JS the result arrives server-rendered, so seed from it as well.
+    if (actionData?.intent === "join" && actionData.ok) {
+      return { signupId: actionData.signupId, answered: false, fresh: true };
+    }
+    if (actionData?.intent === "answer" && actionData.ok) {
+      return { signupId: "", answered: true, fresh: false };
+    }
+    return joinedOnLoad
+      ? { signupId: joinedOnLoad.signupId, answered: joinedOnLoad.answered, fresh: false }
+      : null;
+  });
+  const [answer, setAnswer] = useState<string | null>(null);
+  // Set from "Add another email": the form comes back empty, for a friend's address.
+  const [addingAnother, setAddingAnother] = useState(false);
+  // The last submitted email, so a failed optimistic signup comes back with it filled in.
+  const [lastEmail, setLastEmail] = useState<string | null>(null);
+  // Caught before submitting, so an invalid email never flashes the optimistic success.
+  const [clientError, setClientError] = useState<string | null>(null);
+  const focusTracked = useRef(false);
+
+  const addAnother = () => {
+    setAddingAnother(true);
+    setAnswer(null);
+    setLastEmail(null);
+    setJoined(null);
+  };
+
+  useEffect(() => {
+    if (!actionData) return;
+    if (actionData.intent === "join") {
+      if (actionData.ok) {
+        MobileAppAnalytics.trackSignupSucceeded(Boolean(user), utm.utmContent);
+        setJoined({ signupId: actionData.signupId, answered: false, fresh: true });
+      } else {
+        MobileAppAnalytics.trackSignupFailed(actionData.reason);
+      }
+    } else if (actionData.ok && answer) {
+      MobileAppAnalytics.trackFeatureAnswered(answer);
+      setJoined((current) => current && { ...current, answered: answer });
+    }
+    // Only react to a new action result.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionData]);
+
+  // Optimistic: success shows while the join is in flight; an error brings the form back.
+  const shownJoined = joined ?? (isJoining ? OPTIMISTIC_JOINED : null);
+  const phase = shownJoined ? "success" : "form";
+  const { shown, leaving } = useLeaveThenSwap(phase);
+  const error =
+    clientError ?? (actionData?.intent === "join" && !actionData.ok ? actionData.error : null);
+
+  return (
+    <div className="mx-auto flex w-full max-w-md flex-col items-center">
+      {shown === "form" ? (
+        <div className={`w-full ${addingAnother ? "waitlist-enter" : ""}`}>
+        <Form
+          method="post"
+          preventScrollReset
+          onSubmit={(event) => {
+            const raw = new FormData(event.currentTarget).get("email");
+            const email = typeof raw === "string" ? raw.trim() : "";
+            if (!isValidWaitlistEmail(email)) {
+              event.preventDefault();
+              setClientError(INVALID_EMAIL_MESSAGE);
+              MobileAppAnalytics.trackSignupFailed("invalid_email");
+              return;
+            }
+            setClientError(null);
+            setLastEmail(email);
+            // The page's only sound: played inside the click, with the optimistic success.
+            Sound.play("success", { emphasis: "strong" });
+            MobileAppAnalytics.trackSignupSubmitted(Boolean(user));
+          }}
+          data-leaving={leaving ? "" : undefined}
+          className="waitlist-leave flex w-full flex-col items-center gap-3"
+        >
+          <input type="hidden" name="intent" value="join" />
+          {/* Honeypot: hidden from people and assistive tech, filled by bots. */}
+          <input
+            type="text"
+            name="company"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden
+            className="absolute -left-[9999px] h-px w-px opacity-0"
+          />
+          <input type="hidden" name="utm_source" value={utm.utmSource} />
+          {utm.utmMedium && <input type="hidden" name="utm_medium" value={utm.utmMedium} />}
+          {utm.utmCampaign && <input type="hidden" name="utm_campaign" value={utm.utmCampaign} />}
+          {utm.utmContent && <input type="hidden" name="utm_content" value={utm.utmContent} />}
+          {utm.utmTerm && <input type="hidden" name="utm_term" value={utm.utmTerm} />}
+
+          {/* Grouped field: one pill holding the input and the button. Signed-in users get
+              their account email prefilled; they can change it, e.g. to add a friend. */}
+            <div className="waitlist-field flex w-full max-w-md items-center rounded-full border border-foreground/10 bg-[#F2F2F2] p-1.5 shadow-[0px_8px_24px_rgba(0,0,0,0.06),0px_1px_2px_rgba(0,0,0,0.04)] focus-within:border-primary/40 focus-within:ring-[3px] focus-within:ring-primary/20 has-[[aria-invalid=true]]:border-destructive/50">
+              <input
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                aria-label="Email"
+                aria-invalid={error ? true : undefined}
+                aria-describedby="waitlist-message"
+                placeholder="Your email address"
+                required
+                maxLength={320}
+                defaultValue={lastEmail ?? (addingAnother ? undefined : (user?.email ?? undefined))}
+                autoFocus={addingAnother}
+                readOnly={isJoining}
+                onChange={() => clientError && setClientError(null)}
+                onFocus={() => {
+                  if (focusTracked.current) return;
+                  focusTracked.current = true;
+                  MobileAppAnalytics.trackEmailFocused();
+                }}
+                className="h-11 min-w-0 flex-1 truncate bg-transparent pl-4 pr-2 text-base text-foreground outline-none placeholder:text-muted-foreground"
+              />
+              <button
+                type="submit"
+                disabled={isJoining}
+                data-state={isJoining ? "submitting" : "idle"}
+                className="waitlist-press waitlist-button inline-flex h-11 shrink-0 items-center rounded-full bg-[#FF6D23] px-5 text-sm font-medium text-white shadow-[0px_2px_8px_rgba(255,109,35,0.4),0px_1px_2px_rgba(0,0,0,0.06)] disabled:cursor-default md:text-base"
+              >
+                <span className="waitlist-swap grid place-items-center">
+                  <span data-part="label" className="inline-flex items-center gap-2">
+                    <Bell aria-hidden className="size-4" />
+                    Notify me
+                  </span>
+                  <span data-part="busy" aria-hidden>
+                    <Spinner className="size-4" />
+                  </span>
+                </span>
+              </button>
+            </div>
+
+          <p
+            id="waitlist-message"
+            aria-live="polite"
+            className="min-h-5 max-w-sm text-center text-xs text-muted-foreground"
+          >
+            {error ? (
+              <span
+                key={error}
+                data-variant="error"
+                className="waitlist-enter block text-sm text-destructive"
+              >
+                {error}
+              </span>
+            ) : (
+              "Weekly build updates from founder. Unsubscribe anytime."
+            )}
+          </p>
+        </Form>
+        </div>
+      ) : shownJoined ? (
+        <SuccessState
+          joined={shownJoined}
+          answer={answer}
+          onAnswer={setAnswer}
+          onAddAnother={addAnother}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function SuccessState({
+  joined,
+  answer,
+  onAnswer,
+  onAddAnother,
+}: {
+  joined: Joined;
+  answer: string | null;
+  onAnswer: (feature: string) => void;
+  onAddAnother: () => void;
+}) {
+  const navigation = useNavigation();
+  const isAnswering =
+    navigation.state !== "idle" && navigation.formData?.get("intent") === "answer";
+  const answeredWith = typeof joined.answered === "string" ? joined.answered : null;
+  // Answered on an earlier visit: nothing left to ask.
+  const showQuestion = !(joined.answered === true);
+  // M6 only plays for a signup made in this visit; a returning visitor sees it static.
+  // The sequence: the tick circle pops, the tick draws itself, then the heading, the
+  // question and the link rise in one after another (delays in ms).
+  const seqClass = joined.fresh ? "success-seq" : "";
+  const seqStyle = (delayMs: number) =>
+    joined.fresh ? ({ "--seq-delay": `${delayMs}ms` } as CSSProperties) : undefined;
+
+  return (
+    <div className="flex w-full flex-col items-center gap-2 text-center" role="status">
+      <span
+        className={`${joined.fresh ? "success-tick" : ""} flex size-12 items-center justify-center rounded-full bg-primary text-white shadow-[0px_2px_8px_rgba(255,109,35,0.4),0px_1px_2px_rgba(0,0,0,0.06)]`}
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-6">
+          <path
+            d="M5 12.5l4.5 4.5L19 7.5"
+            pathLength={1}
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="success-tick-path"
+          />
+        </svg>
+      </span>
+      <p className={`${seqClass} mt-1 text-lg font-semibold text-foreground`} style={seqStyle(420)}>
+        You're on the list
+      </p>
+      {showQuestion && (
+        <div className={`${seqClass} mt-5`} style={seqStyle(580)}>
+          <Form
+            method="post"
+            preventScrollReset
+            className="flex flex-col items-center gap-3"
+            onChange={(event) => {
+              if (!(event.target instanceof HTMLInputElement)) return;
+              onAnswer(event.target.value);
+              event.currentTarget.requestSubmit();
+            }}
+          >
+            <input type="hidden" name="intent" value="answer" />
+            <input type="hidden" name="signupId" value={joined.signupId} />
+            <fieldset
+              className="flex flex-col items-center gap-3"
+              disabled={isAnswering || !joined.signupId}
+            >
+              {/* All chips stay; the chosen one is filled and can still be changed. */}
+              <legend className="mb-3 text-sm font-medium text-foreground/70">
+                What should the first version have?
+              </legend>
+              <div className="flex flex-wrap justify-center gap-2">
+                {FEATURE_OPTIONS.map((option) => (
+                  <label key={option.value} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      name="feature"
+                      value={option.value}
+                      defaultChecked={option.value === (answeredWith ?? answer)}
+                      className="peer sr-only"
+                    />
+                    <span className="waitlist-press waitlist-chip inline-flex items-center rounded-full border border-primary/15 bg-primary/[0.06] px-4 py-2 text-sm font-medium text-foreground/70 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-primary/30">
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <noscript>
+              <button type="submit" className="text-sm text-primary underline">
+                Send
+              </button>
+            </noscript>
+          </Form>
+          {answeredWith && (
+            <p data-variant="note" className="waitlist-enter mt-3 text-sm text-muted-foreground">
+              Thanks, noted.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* A real link so it still works without JS (reloads to an empty form). */}
+      <a
+        href={Routes.mobileApp}
+        onClick={(event) => {
+          event.preventDefault();
+          onAddAnother();
+        }}
+        className={`${seqClass} waitlist-press mt-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/[0.06]`}
+        style={seqStyle(720)}
+      >
+        <Plus aria-hidden className="size-4" />
+        Add another email
+      </a>
+    </div>
+  );
+}

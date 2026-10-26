@@ -13,7 +13,7 @@ function readStoredPreference(): boolean {
 }
 
 /**
- * Sound on/off for the /app interaction sounds. The sound module does not persist
+ * Sound on/off for the /app success sound. The sound module does not persist
  * the setting, so the page owns it: stored per browser, on by default.
  */
 export function SoundToggle() {
@@ -37,7 +37,6 @@ export function SoundToggle() {
       // Called inside the click, so the browser lets audio start. Trust its result.
       const unlocked = await Sound.unlock();
       setOn(unlocked);
-      if (unlocked) Sound.play("toggle");
     } else {
       setOn(false);
     }

@@ -413,31 +413,20 @@ browsers show the success state instantly, which is acceptable.
 
 ---
 
-## 8b. Interaction sounds (cuelume)
+## 8b. Sound (cuelume)
 
-Added 26 Oct 2026, following https://cuelume.dev/agents.md. `cuelume@0.2.8` (MIT, no
-runtime deps, Web Audio, SSR-safe) is bound to the `/app` page root only, with
-`useEffect(() => Sound.bind(root), [])`.
+Added 26 Oct 2026 following https://cuelume.dev/agents.md, then cut back on request to a
+single cue: **`success` (strong) when a valid "Notify me" is pressed**, played inside the
+click alongside the optimistic success state. No other sounds on the page.
 
-The engine is wrapped by `shared/lib/sound/sound.ts`, used as a namespace
-(`import * as Sound from "~/shared/lib/sound/sound"`): `Sound.cue(name, { emphasis })`
-returns the element props, and `Sound.bind`, `Sound.play`, `Sound.setEnabled` and
-`Sound.unlock` cover the rest, with our own cue and emphasis types. Only that file
-imports cuelume, so swapping the engine is a one-file change.
+`cuelume@0.2.8` (MIT, no runtime deps, Web Audio, SSR-safe) sits behind
+`shared/lib/sound/sound.ts`, used as a namespace (`import * as Sound from
+"~/shared/lib/sound/sound"`): `Sound.play`, `Sound.setEnabled`, `Sound.unlock`, with our
+own cue types. Only that file imports cuelume.
 
-| Moment | Cue | How |
-|---|---|---|
-| Typing the email | `type`, subtle | `Sound.cue("type", { emphasis: "subtle" })` |
-| Picking a feature chip | `select` | `Sound.cue("select")` on the radio |
-| "Add another email" | `open` | `Sound.cue("open")` |
-| Valid "Notify me" (optimistic success) | `success`, strong | `play()` inside the click |
-| Invalid email caught on the client | `warning` | `play()` |
-| Server rejects the signup | `error` | `play()` when the action returns |
-| Turning sound on | `toggle` | `play()` after `unlock()` resolves true |
-
-No cue on hover, page load, the counter roll, or the stickers. A round **sound toggle**
-(bottom right) wires `setEnabled()`. It is on by default, stored per browser in
-`localStorage` (`luhive_sound`), and calls `unlock()` inside the click that turns it on.
+A round **sound toggle** (bottom right) wires `Sound.setEnabled()`. It is on by default,
+stored per browser in `localStorage` (`luhive_sound`), and calls `Sound.unlock()` inside
+the click that turns it on.
 
 ## 9. Change list
 

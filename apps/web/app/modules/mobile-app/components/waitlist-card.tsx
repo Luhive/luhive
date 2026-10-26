@@ -88,8 +88,6 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
         setJoined({ signupId: actionData.signupId, answered: false, fresh: true });
       } else {
         MobileAppAnalytics.trackSignupFailed(actionData.reason);
-        // The optimistic success already played; the server said no after all.
-        Sound.play("error");
       }
     } else if (actionData.ok && answer) {
       MobileAppAnalytics.trackFeatureAnswered(answer);
@@ -120,13 +118,11 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
               event.preventDefault();
               setClientError(INVALID_EMAIL_MESSAGE);
               MobileAppAnalytics.trackSignupFailed("invalid_email");
-              Sound.play("warning");
               return;
             }
             setClientError(null);
             setLastEmail(email);
-            // Played inside the click, with the optimistic success state: the one rare,
-            // important moment on the page, so it gets the strong cue.
+            // The page's only sound: played inside the click, with the optimistic success.
             Sound.play("success", { emphasis: "strong" });
             MobileAppAnalytics.trackSignupSubmitted(Boolean(user));
           }}
@@ -167,7 +163,6 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
                 autoFocus={addingAnother}
                 readOnly={isJoining}
                 onChange={() => clientError && setClientError(null)}
-                {...Sound.cue("type", { emphasis: "subtle" })}
                 onFocus={() => {
                   if (focusTracked.current) return;
                   focusTracked.current = true;
@@ -296,7 +291,6 @@ function SuccessState({
                     <input
                       type="radio"
                       name="feature"
-                      {...Sound.cue("select")}
                       value={option.value}
                       defaultChecked={option.value === (answeredWith ?? answer)}
                       className="peer sr-only"
@@ -325,7 +319,6 @@ function SuccessState({
       {/* A real link so it still works without JS (reloads to an empty form). */}
       <a
         href={Routes.mobileApp}
-        {...Sound.cue("open")}
         onClick={(event) => {
           event.preventDefault();
           onAddAnother();

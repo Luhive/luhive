@@ -27,7 +27,8 @@ export default function MobileAppPage() {
     <div className="min-h-screen bg-background">
       <LandingNavbar sectionBase="/?home" trackActiveSection={false} />
 
-      <section className="bg-[#F6F4F1] pt-32 pb-12 md:pt-28 lg:pt-36 lg:pb-20">
+      {/* At least one screen tall (svh, so mobile browser bars don't push it), so the footer starts below the fold. */}
+      <section className="flex min-h-svh flex-col justify-center bg-[#F6F4F1] pt-32 pb-12 md:pt-28 lg:pt-36 lg:pb-20">
         <div className="mx-auto w-[95vw] 3xl:w-[60rem] text-center">
           <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-snug md:leading-tight text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
             <span className="block">

@@ -6,8 +6,8 @@
 export const FEATURES = [
   {
     key: "notifications",
-    title: "Event notifications",
-    body: "Hear when a community you follow announces an event, and get a reminder before it starts, so you never find out the day after.",
+    title: "Personalized event notifications",
+    body: "Get told about the events that fit you, based on the events you have been to before and the interests you have, with a reminder before they start.",
   },
   {
     key: "tickets",

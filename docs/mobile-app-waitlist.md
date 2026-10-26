@@ -27,7 +27,7 @@ still to do (section 11). The earlier attempt (PR #180) was closed and removed.
 | Template | The landing page's own `LandingNavbar` and `LandingFooter`, reused, not copied. The hero matches `LandingAbout` one to one. |
 | Title | "**Mobile apps** / on the way", with "Mobile apps" in `--primary` (the word "Luhive" was dropped from the heading on 26 Oct 2026; the app icon above carries the brand). The `<title>` and OG image keep "Luhive mobile apps on the way". |
 | Launch date | Never shown. |
-| Form | Logged out: one email field and **Notify me**. Logged in: the button alone, tied to the account. |
+| Form | One grouped email field and **Notify me**. Logged in: the account email is prefilled and read-only. |
 | Feature question | Not on the form. It's asked once on the success state, optional, one tap. |
 | Platform question, beta opt-in, share, referral | Out. |
 | Counter | "**{50 + n} people subscribed**", where `n` is real signups minus unsubscribes. The 50 is a fixed display offset, accepted knowingly on 26 Oct 2026. |
@@ -256,7 +256,7 @@ height.
 | State | Content |
 |---|---|
 | **Form, logged out** | One grouped light-grey (`#F2F2F2`) pill (`max-w-md`, soft shadow, focus ring on the whole group): the email input on the left ("Your email address") and an orange **Notify me** button with a bell icon inside it on the right. Under it, the trust line: "Weekly build updates from founder. Unsubscribe anytime." (Grouped layout added 26 Oct 2026.) |
-| **Form, logged in** | The button alone. Under it: "We'll send updates to {email}." Long emails truncate in the middle (`ali.aliyev…@gmail.com`), never wrap the button. |
+| **Form, logged in** | The same grouped pill, with the account email prefilled and read-only (the signup is tied to the account; changed on request 26 Oct 2026). Same trust line. |
 | **Submitting** | The button keeps its width. The label crossfades to a spinner (M5). The input is `readOnly`, not `disabled`, so the keyboard doesn't drop on iOS. |
 | **Error** | The message sits in a reserved line under the field. `aria-invalid` and `aria-describedby` are set on the input. |
 | **Success** | Check mark and "You're on the list" (the line under it was removed on request, 26 Oct 2026). Then the question, "What should the first version have?", with three chips: Event notifications / QR tickets / Discover new events. |

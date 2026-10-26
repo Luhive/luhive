@@ -724,15 +724,9 @@ select:-webkit-autofill:active {
     transform 160ms var(--ease-out-strong),
     background-color 200ms ease;
 }
-.waitlist-arrow {
-  transition: transform 200ms var(--ease-out-strong);
-}
 @media (hover: hover) and (pointer: fine) {
   .waitlist-button:not(:disabled):hover {
     background-color: #e55a1a;
-  }
-  .waitlist-button:not(:disabled):hover .waitlist-arrow {
-    transform: translateX(2px);
   }
 }
 
@@ -835,9 +829,6 @@ select:-webkit-autofill:active {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .waitlist-button:not(:disabled):hover .waitlist-arrow {
-    transform: none;
-  }
   .waitlist-swap > *,
   .waitlist-leave {
     filter: none !important;

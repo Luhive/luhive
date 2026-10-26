@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
-import { ArrowRight, Bell, Check } from "lucide-react";
+import { Bell, Check } from "lucide-react";
 import { Spinner } from "~/shared/components/ui/spinner";
 import type { UTMAttribution } from "~/modules/events/utils/utm-source";
 import { FEATURE_OPTIONS } from "~/modules/mobile-app/model/mobile-app-waitlist";
@@ -31,15 +31,6 @@ function useLeaveThenSwap<T>(next: T): { shown: T; leaving: boolean } {
   }, [next, shown]);
 
   return { shown, leaving };
-}
-
-/** Long emails keep their domain: "ali.aliyev.work…@gmail.com". */
-function shortenEmail(email: string): string {
-  if (email.length <= 32) return email;
-  const domain = email.slice(email.lastIndexOf("@"));
-  // A domain too long to keep whole falls back to a plain cut.
-  if (domain.length > 20 || domain.length === email.length) return `${email.slice(0, 31)}…`;
-  return `${email.slice(0, 31 - domain.length)}…${domain}`;
 }
 
 const enter = (i: number): CSSProperties => ({ "--i": i }) as CSSProperties;
@@ -113,26 +104,8 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
           {utm.utmContent && <input type="hidden" name="utm_content" value={utm.utmContent} />}
           {utm.utmTerm && <input type="hidden" name="utm_term" value={utm.utmTerm} />}
 
-          {user ? (
-            // Same pill as BookACallButton: #FF6D23, its shadow, label then an arrow circle.
-            <button
-              type="submit"
-              disabled={isJoining}
-              data-state={isJoining ? "submitting" : "idle"}
-              className="waitlist-press waitlist-button group inline-flex items-center gap-3 rounded-full bg-[#FF6D23] py-2 pl-7 pr-2 text-base text-white shadow-[0px_2px_8px_rgba(255,109,35,0.4),0px_1px_2px_rgba(0,0,0,0.06)] disabled:cursor-default"
-            >
-              <span className="waitlist-swap grid place-items-center">
-                <span data-part="label">Notify me</span>
-                <span data-part="busy" aria-hidden>
-                  <Spinner className="size-4" />
-                </span>
-              </span>
-              <span className="flex size-8 items-center justify-center rounded-full bg-white/20">
-                <ArrowRight aria-hidden className="waitlist-arrow size-4" />
-              </span>
-            </button>
-          ) : (
-            // Grouped field: one white pill holding the input and the button.
+          {/* Grouped field: one pill holding the input and the button. Signed-in users see
+              their account email prefilled and read-only: the signup is tied to the account. */}
             <div className="waitlist-field flex w-full max-w-md items-center rounded-full border border-foreground/10 bg-[#F2F2F2] p-1.5 shadow-[0px_8px_24px_rgba(0,0,0,0.06),0px_1px_2px_rgba(0,0,0,0.04)] focus-within:border-primary/40 focus-within:ring-[3px] focus-within:ring-primary/20 has-[[aria-invalid=true]]:border-destructive/50">
               <input
                 name="email"
@@ -145,13 +118,14 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
                 placeholder="Your email address"
                 required
                 maxLength={320}
-                readOnly={isJoining}
+                defaultValue={user?.email ?? undefined}
+                readOnly={Boolean(user) || isJoining}
                 onFocus={() => {
                   if (focusTracked.current) return;
                   focusTracked.current = true;
                   MobileAppAnalytics.trackEmailFocused();
                 }}
-                className="h-11 min-w-0 flex-1 bg-transparent pl-4 pr-2 text-base text-foreground outline-none placeholder:text-muted-foreground"
+                className="h-11 min-w-0 flex-1 truncate bg-transparent pl-4 pr-2 text-base text-foreground outline-none placeholder:text-muted-foreground read-only:text-foreground/80"
               />
               <button
                 type="submit"
@@ -170,7 +144,6 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
                 </span>
               </button>
             </div>
-          )}
 
           <p
             id="waitlist-message"
@@ -185,8 +158,6 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
               >
                 {error}
               </span>
-            ) : user?.email ? (
-              <>We'll send updates to {shortenEmail(user.email)}.</>
             ) : (
               "Weekly build updates from founder. Unsubscribe anytime."
             )}

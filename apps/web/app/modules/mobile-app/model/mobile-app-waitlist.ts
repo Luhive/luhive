@@ -18,3 +18,11 @@ export function parseFeature(value: unknown): Feature | null {
 export const COUNTER_BASE = 50;
 
 export type WaitlistIntent = "join" | "answer";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const INVALID_EMAIL_MESSAGE = "Please enter a valid email address.";
+
+/** The one email rule, shared by the action and the optimistic client check. */
+export function isValidWaitlistEmail(email: string): boolean {
+  return EMAIL_PATTERN.test(email) && email.length <= 320;
+}

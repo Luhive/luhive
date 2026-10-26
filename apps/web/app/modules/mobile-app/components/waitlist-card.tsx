@@ -4,7 +4,11 @@ import { Bell, Check, Plus } from "lucide-react";
 import { Routes } from "~/shared/lib/routing/routes";
 import { Spinner } from "~/shared/components/ui/spinner";
 import type { UTMAttribution } from "~/modules/events/utils/utm-source";
-import { FEATURE_OPTIONS } from "~/modules/mobile-app/model/mobile-app-waitlist";
+import {
+  FEATURE_OPTIONS,
+  INVALID_EMAIL_MESSAGE,
+  isValidWaitlistEmail,
+} from "~/modules/mobile-app/model/mobile-app-waitlist";
 import type { MobileAppActionData } from "~/modules/mobile-app/server/mobile-app-action.server";
 import type { MobileAppLoaderData } from "~/modules/mobile-app/server/mobile-app-loader.server";
 import * as MobileAppAnalytics from "~/modules/mobile-app/utils/mobile-app-analytics";
@@ -36,6 +40,10 @@ function useLeaveThenSwap<T>(next: T): { shown: T; leaving: boolean } {
 
 const enter = (i: number): CSSProperties => ({ "--i": i }) as CSSProperties;
 
+// Shown the moment "Notify me" is pressed, before the server answers. The real signup id
+// replaces it when the action returns; until then the feature chips stay disabled.
+const OPTIMISTIC_JOINED: Joined = { signupId: "", answered: false, fresh: true };
+
 export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardProps) {
   const actionData = useActionData<MobileAppActionData>();
   const navigation = useNavigation();
@@ -58,11 +66,16 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
   const [answer, setAnswer] = useState<string | null>(null);
   // Set from "Add another email": the form comes back empty, for a friend's address.
   const [addingAnother, setAddingAnother] = useState(false);
+  // The last submitted email, so a failed optimistic signup comes back with it filled in.
+  const [lastEmail, setLastEmail] = useState<string | null>(null);
+  // Caught before submitting, so an invalid email never flashes the optimistic success.
+  const [clientError, setClientError] = useState<string | null>(null);
   const focusTracked = useRef(false);
 
   const addAnother = () => {
     setAddingAnother(true);
     setAnswer(null);
+    setLastEmail(null);
     setJoined(null);
   };
 
@@ -83,9 +96,12 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionData]);
 
-  const phase = joined ? "success" : "form";
+  // Optimistic: success shows while the join is in flight; an error brings the form back.
+  const shownJoined = joined ?? (isJoining ? OPTIMISTIC_JOINED : null);
+  const phase = shownJoined ? "success" : "form";
   const { shown, leaving } = useLeaveThenSwap(phase);
-  const error = actionData?.intent === "join" && !actionData.ok ? actionData.error : null;
+  const error =
+    clientError ?? (actionData?.intent === "join" && !actionData.ok ? actionData.error : null);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center">
@@ -94,7 +110,19 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
         <Form
           method="post"
           preventScrollReset
-          onSubmit={() => MobileAppAnalytics.trackSignupSubmitted(Boolean(user))}
+          onSubmit={(event) => {
+            const raw = new FormData(event.currentTarget).get("email");
+            const email = typeof raw === "string" ? raw.trim() : "";
+            if (!isValidWaitlistEmail(email)) {
+              event.preventDefault();
+              setClientError(INVALID_EMAIL_MESSAGE);
+              MobileAppAnalytics.trackSignupFailed("invalid_email");
+              return;
+            }
+            setClientError(null);
+            setLastEmail(email);
+            MobileAppAnalytics.trackSignupSubmitted(Boolean(user));
+          }}
           data-leaving={leaving ? "" : undefined}
           className="waitlist-leave flex w-full flex-col items-center gap-3"
         >
@@ -128,9 +156,10 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
                 placeholder="Your email address"
                 required
                 maxLength={320}
-                defaultValue={addingAnother ? undefined : (user?.email ?? undefined)}
+                defaultValue={lastEmail ?? (addingAnother ? undefined : (user?.email ?? undefined))}
                 autoFocus={addingAnother}
                 readOnly={isJoining}
+                onChange={() => clientError && setClientError(null)}
                 onFocus={() => {
                   if (focusTracked.current) return;
                   focusTracked.current = true;
@@ -175,9 +204,9 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
           </p>
         </Form>
         </div>
-      ) : joined ? (
+      ) : shownJoined ? (
         <SuccessState
-          joined={joined}
+          joined={shownJoined}
           answer={answer}
           onAnswer={setAnswer}
           onAddAnother={addAnother}
@@ -235,7 +264,7 @@ function SuccessState({
             <input type="hidden" name="signupId" value={joined.signupId} />
             <fieldset
               className="flex flex-col items-center gap-3"
-              disabled={isAnswering}
+              disabled={isAnswering || !joined.signupId}
             >
               {/* All chips stay; the chosen one is filled and can still be changed. */}
               <legend className="mb-3 text-sm font-medium text-foreground/70">

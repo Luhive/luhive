@@ -1,7 +1,11 @@
 import type { ActionFunctionArgs } from "react-router";
 import { requestSupabaseContext } from "~/shared/lib/supabase/request-supabase-context.server";
 import { parseUTMFromSearchParams } from "~/modules/events/utils/utm-source";
-import { parseFeature } from "~/modules/mobile-app/model/mobile-app-waitlist";
+import {
+  INVALID_EMAIL_MESSAGE,
+  isValidWaitlistEmail,
+  parseFeature,
+} from "~/modules/mobile-app/model/mobile-app-waitlist";
 import * as Waitlist from "~/modules/mobile-app/data/mobile-app-waitlist-repo.server";
 import * as Welcome from "~/modules/mobile-app/server/mobile-app-welcome.server";
 
@@ -10,7 +14,6 @@ export type MobileAppActionData =
   | { intent: "join"; ok: false; reason: "invalid_email" | "server"; error: string }
   | { intent: "answer"; ok: boolean };
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
 
 function readString(formData: FormData, key: string): string {
@@ -43,12 +46,12 @@ export async function action({
   const email = readString(formData, "email");
   const isOwnEmail = Boolean(user?.email && email.toLowerCase() === user.email.toLowerCase());
 
-  if (!EMAIL_PATTERN.test(email) || email.length > 320) {
+  if (!isValidWaitlistEmail(email)) {
     return {
       intent: "join",
       ok: false,
       reason: "invalid_email",
-      error: "Please enter a valid email address.",
+      error: INVALID_EMAIL_MESSAGE,
     };
   }
 

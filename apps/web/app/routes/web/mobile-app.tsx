@@ -1,4 +1,4 @@
-import { useLoaderData, type ShouldRevalidateFunction } from "react-router";
+import { useLoaderData, useNavigation, type ShouldRevalidateFunction } from "react-router";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AndroidIcon, AppleIcon } from "@hugeicons/core-free-icons";
@@ -25,6 +25,9 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({ formData, defaultSh
 // Spec: docs/mobile-app-waitlist.md. Nav, hero and footer match the landing page one to one.
 export default function MobileAppPage() {
   const { user, joined, subscribedCount, utm } = useLoaderData<MobileAppLoaderData>();
+  // Optimistic counter: +1 while a join is in flight; the reload after it brings the real count.
+  const navigation = useNavigation();
+  const joinPending = navigation.formData?.get("intent") === "join";
   useTranslation();
 
   return (
@@ -70,7 +73,7 @@ export default function MobileAppPage() {
           <WaitlistCard user={user} joined={joined} utm={utm} />
 
           <div className="mt-4">
-            <SubscribedCounter count={subscribedCount} />
+            <SubscribedCounter count={subscribedCount + (joinPending ? 1 : 0)} />
           </div>
 
           {/* Design slot: Ali's designs go here, where the dashboard sits on the landing page. */}

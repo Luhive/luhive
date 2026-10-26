@@ -328,7 +328,7 @@ The last section before the footer gives visitors something to do on Luhive toda
   event page, without the hub's preview drawer.
 - **No upcoming events:** the three most active communities (most events, then most
   members), shown with the hub's own `ExploreCommunityCard`.
-- **"Explore more on the Hub"** button (the Notify me pill) to `/hub`.
+- **"Explore more on the Hub"** text button (orange text and arrow, like "Add another email") to `/hub`.
 - Fewer than three items stay centred. The loader fetches this in parallel with the rest.
 - Umami: `mobile_app_waiting_clicked` with `item` = `event`, `community` or `explore`.
 

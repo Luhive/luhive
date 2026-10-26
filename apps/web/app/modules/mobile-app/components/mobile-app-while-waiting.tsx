@@ -57,18 +57,19 @@ export function MobileAppWhileWaiting({ waiting }: { waiting: WhileWaiting }) {
               ))}
         </ul>
 
-        <div className="mt-12 flex justify-center">
-          {/* Same pill as BookACallButton and Notify me. */}
+        <div className="mt-10 flex justify-center">
+          {/* A text button, like "Add another email": secondary to the cards above. */}
           <Link
             to={Routes.hub}
             prefetch="intent"
             onClick={() => MobileAppAnalytics.trackWaitingClicked("explore")}
-            className="waitlist-press waitlist-button group inline-flex items-center gap-3 rounded-full bg-[#FF6D23] py-2 pl-6 pr-2 text-base font-medium text-white shadow-[0px_2px_8px_rgba(255,109,35,0.4),0px_1px_2px_rgba(0,0,0,0.06)]"
+            className="waitlist-press group inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-base font-medium text-primary hover:bg-primary/[0.06]"
           >
             Explore more on the Hub
-            <span className="flex size-8 items-center justify-center rounded-full bg-white/20">
-              <ArrowRight aria-hidden className="size-4" />
-            </span>
+            <ArrowRight
+              aria-hidden
+              className="size-4 transition-transform duration-200 ease-out-strong group-hover:translate-x-0.5"
+            />
           </Link>
         </div>
       </div>

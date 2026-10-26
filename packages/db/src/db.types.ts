@@ -351,9 +351,8 @@ export interface MobileAppWaitlist {
   email: string;
   first_feature: string | null;
   id: Generated<string>;
-  resend_contact_id: string | null;
   /**
-   * Set from the Resend contact.updated webhook when the person unsubscribes from the weekly email.
+   * Set by hand when the person unsubscribes from the weekly email; excluded from the counter and from sends.
    */
   unsubscribed_at: Timestamp | null;
   updated_at: Generated<Timestamp>;

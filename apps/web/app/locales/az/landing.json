@@ -27,7 +27,9 @@
     "ctaDiscoverCount": "{{count}} icmanı kəşf et",
     "ctaSeparator": "və ya",
     "ctaCreate": "İcmanızı Yaradın",
-    "tagline": "Əhəmiyyətli icmalar qurun"
+    "tagline": "Əhəmiyyətli icmalar qurun",
+    "newBadge": "Yeni",
+    "newProfile": "Profilinizi əldə edin"
   },
   "about": {
     "badge": "Luhive Haqqında",

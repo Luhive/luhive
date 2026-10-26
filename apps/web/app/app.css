@@ -573,6 +573,41 @@ html:has(.hub-touch-surface) body {
   animation: shimmer 2s ease-in-out infinite;
 }
 
+/* A light sweep across "Claim your profile" so the landing badge keeps catching the eye. */
+.claim-profile-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    #141414 0%,
+    #141414 36%,
+    #ff8a3d 50%,
+    #141414 64%,
+    #141414 100%
+  );
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: claim-profile-shimmer 2.8s ease-in-out infinite;
+}
+
+@keyframes claim-profile-shimmer {
+  0%,
+  45% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .claim-profile-shimmer {
+    animation: none;
+    background: none;
+    color: inherit;
+  }
+}
+
 /* Override browser autofill styles */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

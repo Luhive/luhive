@@ -27,7 +27,9 @@
     "ctaDiscoverCount": "Explore {{count}} communities",
     "ctaSeparator": "or",
     "ctaCreate": "Create community",
-    "tagline": "Build communities that matter"
+    "tagline": "Build communities that matter",
+    "newBadge": "New",
+    "newProfile": "Claim your profile"
   },
   "about": {
     "badge": "About",

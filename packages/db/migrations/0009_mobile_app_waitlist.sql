@@ -13,7 +13,6 @@ CREATE TABLE public.mobile_app_waitlist (
     utm_content text,
     utm_term text,
     welcome_sent_at timestamp with time zone,
-    resend_contact_id text,
     unsubscribed_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -28,9 +27,9 @@ CREATE TABLE public.mobile_app_waitlist (
 );
 
 COMMENT ON TABLE public.mobile_app_waitlist IS
-  'Signups for the upcoming mobile apps. utm_* is the first touch and is not overwritten when a person signs up again.';
+  'Signups for the upcoming mobile app. utm_* is the first touch and is not overwritten when a person signs up again.';
 COMMENT ON COLUMN public.mobile_app_waitlist.unsubscribed_at IS
-  'Set from the Resend contact.updated webhook when the person unsubscribes from the weekly email.';
+  'Set by hand when the person unsubscribes from the weekly email; excluded from the counter and from sends.';
 
 CREATE UNIQUE INDEX mobile_app_waitlist_user_id_key
   ON public.mobile_app_waitlist (user_id)

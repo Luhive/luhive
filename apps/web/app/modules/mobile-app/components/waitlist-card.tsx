@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
-import { Bell, Check, Plus } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import { Routes } from "~/shared/lib/routing/routes";
 import { Spinner } from "~/shared/components/ui/spinner";
 import type { UTMAttribution } from "~/modules/events/utils/utm-source";
@@ -234,22 +234,34 @@ function SuccessState({
   // Answered on an earlier visit: nothing left to ask.
   const showQuestion = !(joined.answered === true);
   // M6 only plays for a signup made in this visit; a returning visitor sees it static.
-  const enterClass = joined.fresh ? "waitlist-enter" : "";
-  const enterStyle = (i: number) => (joined.fresh ? enter(i) : undefined);
+  // The sequence: the tick circle pops, the tick draws itself, then the heading, the
+  // question and the link rise in one after another (delays in ms).
+  const seqClass = joined.fresh ? "success-seq" : "";
+  const seqStyle = (delayMs: number) =>
+    joined.fresh ? ({ "--seq-delay": `${delayMs}ms` } as CSSProperties) : undefined;
 
   return (
     <div className="flex w-full flex-col items-center gap-2 text-center" role="status">
       <span
-        className={`${enterClass} waitlist-check flex size-12 items-center justify-center rounded-full bg-primary text-white shadow-[0px_2px_8px_rgba(255,109,35,0.4),0px_1px_2px_rgba(0,0,0,0.06)]`}
-        style={enterStyle(0)}
+        className={`${joined.fresh ? "success-tick" : ""} flex size-12 items-center justify-center rounded-full bg-primary text-white shadow-[0px_2px_8px_rgba(255,109,35,0.4),0px_1px_2px_rgba(0,0,0,0.06)]`}
       >
-        <Check className="size-6" aria-hidden />
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-6">
+          <path
+            d="M5 12.5l4.5 4.5L19 7.5"
+            pathLength={1}
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="success-tick-path"
+          />
+        </svg>
       </span>
-      <p className={`${enterClass} mt-1 text-lg font-semibold text-foreground`} style={enterStyle(1)}>
+      <p className={`${seqClass} mt-1 text-lg font-semibold text-foreground`} style={seqStyle(420)}>
         You're on the list
       </p>
       {showQuestion && (
-        <div className={`${enterClass} mt-5`} style={enterStyle(2)}>
+        <div className={`${seqClass} mt-5`} style={seqStyle(580)}>
           <Form
             method="post"
             preventScrollReset
@@ -308,8 +320,8 @@ function SuccessState({
           event.preventDefault();
           onAddAnother();
         }}
-        className={`${enterClass} waitlist-press mt-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/[0.06]`}
-        style={enterStyle(3)}
+        className={`${seqClass} waitlist-press mt-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/[0.06]`}
+        style={seqStyle(720)}
       >
         <Plus aria-hidden className="size-4" />
         Add another email

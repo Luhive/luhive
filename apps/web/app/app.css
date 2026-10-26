@@ -839,6 +839,46 @@ select:-webkit-autofill:active {
   pointer-events: none;
 }
 
+/* M6 success sequence (rare tier, the delight budget). The circle pops with a small
+   overshoot, the tick draws itself along its path, then the rest rises in, slower than UI
+   motion (380 ms) and further apart (140-160 ms) so each step reads on its own. */
+.success-tick {
+  animation: success-tick-pop 440ms var(--ease-out-strong) both;
+}
+@keyframes success-tick-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.success-tick .success-tick-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: success-tick-draw 360ms var(--ease-out-strong) 200ms forwards;
+}
+@keyframes success-tick-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.success-seq {
+  animation: success-seq-rise 380ms var(--ease-out-strong) both;
+  animation-delay: var(--seq-delay, 0ms);
+}
+@keyframes success-seq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 /* M6, M8, M9: entering content, staggered 50 ms through --i */
 .waitlist-enter {
   transition:
@@ -910,6 +950,15 @@ select:-webkit-autofill:active {
   }
   .waitlist-count > span {
     transition: none;
+  }
+  .success-tick,
+  .success-seq {
+    animation-name: hub-fade;
+    animation-duration: 200ms;
+  }
+  .success-tick .success-tick-path {
+    animation: none;
+    stroke-dashoffset: 0;
   }
   .app-icon-sweep {
     animation: none;

@@ -2,6 +2,7 @@ import { useLoaderData, type ShouldRevalidateFunction } from "react-router";
 import { useTranslation } from "react-i18next";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AndroidIcon, AppleIcon } from "@hugeicons/core-free-icons";
+import luhiveMark from "~/assets/images/hub/luhive-mark.svg";
 
 import "~/shared/lib/i18n";
 
@@ -32,6 +33,11 @@ export default function MobileAppPage() {
       {/* At least one screen tall (svh, so mobile browser bars don't push it), so the footer starts below the fold. */}
       <section className="flex min-h-svh flex-col justify-center bg-[#F6F4F1] pt-32 pb-12 md:pt-28 lg:pt-36 lg:pb-20">
         <div className="mx-auto w-[95vw] 3xl:w-[60rem] text-center">
+          {/* The Luhive mark as an app icon tile: rounded square, white-to-grey face, soft drop shadow. */}
+          <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-[1.125rem] border border-black/[0.04] bg-gradient-to-b from-white to-[#ECECEC] shadow-[0px_8px_20px_rgba(0,0,0,0.08),0px_1px_2px_rgba(0,0,0,0.06),inset_0px_1px_0px_rgba(255,255,255,0.9)] md:mb-8 md:size-[4.5rem] md:rounded-[1.25rem]">
+            <img src={luhiveMark} alt="Luhive" width={36} height={36} className="size-8 md:size-9" />
+          </div>
+
           <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-snug md:leading-tight text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
             <span className="block">
               Luhive{" "}

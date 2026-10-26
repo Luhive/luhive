@@ -211,6 +211,7 @@ Footer, one line: "You're getting this because you joined at luhive.com/app."
 ```
 LandingNavbar          (reused, section 6.2)
 Hero section           (LandingAbout classes, 1:1)
+  App icon tile        Luhive mark in a rounded-square, white-to-grey tile (added 26 Oct 2026)
   h1                   Luhive [mobile apps] / on the way
   p                    subtitle
   WaitlistCard         form → success state (6.4)

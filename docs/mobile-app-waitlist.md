@@ -413,6 +413,26 @@ browsers show the success state instantly, which is acceptable.
 
 ---
 
+## 8b. Interaction sounds (cuelume)
+
+Added 26 Oct 2026, following https://cuelume.dev/agents.md. `cuelume@0.2.8` (MIT, no
+runtime deps, Web Audio, SSR-safe) is bound to the `/app` page root only, with
+`useEffect(() => bind(root), [])`.
+
+| Moment | Cue | How |
+|---|---|---|
+| Typing the email | `type`, subtle | `data-cuelume-type` |
+| Picking a feature chip | `select` | `data-cuelume-select` on the radio |
+| "Add another email" | `open` | `data-cuelume-open` |
+| Valid "Notify me" (optimistic success) | `success`, strong | `play()` inside the click |
+| Invalid email caught on the client | `warning` | `play()` |
+| Server rejects the signup | `error` | `play()` when the action returns |
+| Turning sound on | `toggle` | `play()` after `unlock()` resolves true |
+
+No cue on hover, page load, the counter roll, or the stickers. A round **sound toggle**
+(bottom right) wires `setEnabled()`. It is on by default, stored per browser in
+`localStorage` (`luhive_sound`), and calls `unlock()` inside the click that turns it on.
+
 ## 9. Change list
 
 | File | Change |

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Form, useActionData, useNavigation } from "react-router";
 import { Bell, Plus } from "lucide-react";
+import { play } from "cuelume";
 import { Routes } from "~/shared/lib/routing/routes";
 import { Spinner } from "~/shared/components/ui/spinner";
 import type { UTMAttribution } from "~/modules/events/utils/utm-source";
@@ -87,6 +88,8 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
         setJoined({ signupId: actionData.signupId, answered: false, fresh: true });
       } else {
         MobileAppAnalytics.trackSignupFailed(actionData.reason);
+        // The optimistic success already played; the server said no after all.
+        play("error");
       }
     } else if (actionData.ok && answer) {
       MobileAppAnalytics.trackFeatureAnswered(answer);
@@ -117,10 +120,14 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
               event.preventDefault();
               setClientError(INVALID_EMAIL_MESSAGE);
               MobileAppAnalytics.trackSignupFailed("invalid_email");
+              play("warning");
               return;
             }
             setClientError(null);
             setLastEmail(email);
+            // Played inside the click, with the optimistic success state: the one rare,
+            // important moment on the page, so it gets the strong cue.
+            play("success", { emphasis: "strong" });
             MobileAppAnalytics.trackSignupSubmitted(Boolean(user));
           }}
           data-leaving={leaving ? "" : undefined}
@@ -160,6 +167,8 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
                 autoFocus={addingAnother}
                 readOnly={isJoining}
                 onChange={() => clientError && setClientError(null)}
+                data-cuelume-type=""
+                data-cuelume-emphasis="subtle"
                 onFocus={() => {
                   if (focusTracked.current) return;
                   focusTracked.current = true;
@@ -288,6 +297,7 @@ function SuccessState({
                     <input
                       type="radio"
                       name="feature"
+                      data-cuelume-select=""
                       value={option.value}
                       defaultChecked={option.value === (answeredWith ?? answer)}
                       className="peer sr-only"
@@ -316,6 +326,7 @@ function SuccessState({
       {/* A real link so it still works without JS (reloads to an empty form). */}
       <a
         href={Routes.mobileApp}
+        data-cuelume-open=""
         onClick={(event) => {
           event.preventDefault();
           onAddAnother();

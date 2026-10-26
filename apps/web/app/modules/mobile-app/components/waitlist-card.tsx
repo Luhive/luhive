@@ -229,13 +229,8 @@ function SuccessState({
       <p className={`${enterClass} mt-1 text-lg font-semibold text-foreground`} style={enterStyle(1)}>
         You're on the list
       </p>
-      <p className={`${enterClass} text-sm text-muted-foreground lg:text-base`} style={enterStyle(2)}>
-        We'll let you know first when the app is ready.
-        {joined.fresh && " Check your inbox for a note from Ali."}
-      </p>
-
       {showQuestion && (
-        <div className={`${enterClass} mt-5`} style={enterStyle(3)}>
+        <div className={`${enterClass} mt-5`} style={enterStyle(2)}>
           <Form
             method="post"
             preventScrollReset

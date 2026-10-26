@@ -63,6 +63,9 @@ export default [
   route("terms-of-service", "routes/web/terms-conditions.tsx"),
   route("unsubscribe", "routes/web/unsubscribe.tsx"),
 
+  // Mobile app waitlist (docs/mobile-app-waitlist.md)
+  route("app", "routes/web/mobile-app.tsx"),
+
   // Dashboard: parent route owns :slug, children are relative
   route("dashboard/:slug", "routes/dashboard/layout.tsx", [
     index("routes/dashboard/overview.tsx"),
@@ -109,6 +112,7 @@ export default [
   // OG image generation
   route("api/og/event/:slug/:eventSlug", "routes/api/og/event.tsx"),
   route("api/og/hub/:week", "routes/api/og/hub.tsx"),
+  route("api/og/app", "routes/api/og/app.tsx"),
 
   // Events API routes
   route("api/events/create", "routes/api/events/create.tsx"),

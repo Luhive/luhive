@@ -2,6 +2,7 @@
 
 User-agent: *
 Allow: /
+Allow: /app
 Allow: /login
 Allow: /signup
 Allow: /create-community
@@ -15,6 +16,9 @@ Disallow: /auth/verify/reset-password
 Disallow: /auth/email-sent/
 Disallow: /c/*/events/*/verify
 Disallow: /c/*/events/*/verification-sent
+# Share images must stay crawlable: link previews (LinkedIn, X, Slack) fetch them,
+# and their crawlers obey robots.txt. The longer Allow wins over Disallow: /api/.
+Allow: /api/og/
 Disallow: /api/
 
 # Sitemap location

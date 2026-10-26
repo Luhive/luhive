@@ -1044,6 +1044,57 @@ export type Database = {
         }
         Relationships: []
       }
+      mobile_app_waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          first_feature: string | null
+          id: string
+          resend_contact_id: string | null
+          unsubscribed_at: string | null
+          updated_at: string
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string
+          utm_term: string | null
+          welcome_sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_feature?: string | null
+          id?: string
+          resend_contact_id?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string
+          utm_term?: string | null
+          welcome_sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_feature?: string | null
+          id?: string
+          resend_contact_id?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string
+          utm_term?: string | null
+          welcome_sent_at?: string | null
+        }
+        Relationships: []
+      }
       payment_callbacks: {
         Row: {
           id: string

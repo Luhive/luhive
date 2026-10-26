@@ -700,3 +700,300 @@ select:-webkit-autofill:active {
     border-color: color-mix(in srgb, var(--primary) 60%, transparent);
   }
 }
+/* Mobile app waitlist (/app). Motion contract: docs/mobile-app-waitlist.md §8 */
+
+/* M1: press feedback on the button and the chips */
+.waitlist-press {
+  transition: transform 160ms var(--ease-out-strong);
+}
+
+/* M3: chip select */
+.waitlist-chip {
+  transition:
+    transform 160ms var(--ease-out-strong),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.waitlist-press:active {
+  transform: scale(0.97);
+}
+
+/* M2: hover, pointer devices only */
+.waitlist-button {
+  transition:
+    transform 160ms var(--ease-out-strong),
+    background-color 200ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .waitlist-button:not(:disabled):hover {
+    background-color: #e55a1a;
+  }
+}
+
+/* M4: field focus. The same ring and border as before, eased in instead of snapping. */
+.waitlist-field {
+  transition:
+    box-shadow 200ms var(--ease-out-strong),
+    border-color 200ms var(--ease-out-strong);
+}
+
+/* M11: app icon is "live". Decorative, constant motion: a silver light sweeps the border.
+   Transform only; stops under reduced motion. */
+.app-icon-sweep {
+  animation: app-icon-sweep 4s linear infinite;
+}
+@keyframes app-icon-sweep {
+  to { transform: rotate(1turn); }
+}
+
+/* M13: first-load stagger of the /app hero, from the skills' "Stagger a group entrance"
+   recipe: 300 ms, translateY(8px) + fade, strong ease-out, 60 ms between pieces.
+   Opacity never blocks clicks, so nothing waits on the stagger. */
+.hero-enter {
+  animation: hero-enter 300ms var(--ease-out-strong) both;
+  animation-delay: calc(var(--hero-i, 0) * 60ms);
+}
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* M12: hero stickers. Die-cut look: a white outline built from four hard drop-shadows,
+   then one soft shadow. The tilt lives on the same element; hover straightens it a little. */
+.hero-sticker {
+  transform: rotate(var(--tilt, 0deg));
+  filter: drop-shadow(2.5px 0 0 #fff) drop-shadow(-2.5px 0 0 #fff) drop-shadow(0 2.5px 0 #fff)
+    drop-shadow(0 -2.5px 0 #fff) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.12));
+  transition: transform 200ms var(--ease-out-strong);
+}
+.hero-sticker > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+@media (hover: hover) and (pointer: fine) {
+  .hero-sticker:hover {
+    transform: rotate(calc(var(--tilt, 0deg) * 0.4)) translateY(-3px) scale(1.04);
+  }
+}
+
+/* Launch: hidden until JS has measured each sticker's offset to the hero centre, then each
+   flies out from the centre to its place (scale from 0.5, never 0), 40 ms apart. Entering
+   motion, so strong ease-out; marketing motion, so it may run longer than UI (700 ms). */
+.hero-sticker-pop {
+  opacity: 0;
+}
+.hero-sticker-frame[data-launch] .hero-sticker-pop {
+  opacity: 1;
+  animation: hero-sticker-launch 700ms var(--ease-out-strong) both;
+  animation-delay: calc(var(--launch-wait, 0ms) + var(--i, 0) * 40ms);
+}
+@keyframes hero-sticker-launch {
+  from {
+    opacity: 0;
+    transform: translate(var(--from-x, 0), var(--from-y, 0)) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Idle float: 4 px, slow, each sticker on its own phase. */
+.hero-sticker-float {
+  animation: hero-sticker-float var(--float-dur, 5s) ease-in-out var(--float-delay, 0s) infinite alternate;
+}
+@keyframes hero-sticker-float {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
+/* /app FAQ: same open/close as LandingFAQ (height + opacity, 250 ms) on native <details>.
+   Browsers without ::details-content (Safari < 18.4, Firefox < 143) open instantly. */
+.app-faq-item {
+  interpolate-size: allow-keywords;
+}
+.app-faq-item::details-content {
+  height: 0;
+  opacity: 0;
+  overflow: clip;
+  transition:
+    height 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    content-visibility 250ms allow-discrete;
+}
+.app-faq-item[open]::details-content {
+  height: auto;
+  opacity: 1;
+}
+
+/* M5: label and spinner share one grid cell, so the button keeps its width */
+.waitlist-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 150ms var(--ease-out-strong),
+    filter 150ms var(--ease-out-strong);
+}
+.waitlist-swap > [data-part="busy"],
+.waitlist-button[data-state="submitting"] [data-part="label"] {
+  opacity: 0;
+  filter: blur(2px);
+}
+.waitlist-button[data-state="submitting"] [data-part="busy"] {
+  opacity: 1;
+  filter: none;
+}
+
+/* M6: the form exits faster than the success state enters */
+.waitlist-leave {
+  transition:
+    opacity 120ms var(--ease-out-strong),
+    filter 120ms var(--ease-out-strong);
+}
+.waitlist-leave[data-leaving] {
+  opacity: 0;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+/* M6 success sequence (rare tier, the delight budget). The circle pops with a small
+   overshoot, the tick draws itself along its path, then the rest rises in, slower than UI
+   motion (380 ms) and further apart (140-160 ms) so each step reads on its own. */
+.success-tick {
+  animation: success-tick-pop 440ms var(--ease-out-strong) both;
+}
+@keyframes success-tick-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.success-tick .success-tick-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: success-tick-draw 360ms var(--ease-out-strong) 200ms forwards;
+}
+@keyframes success-tick-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.success-seq {
+  animation: success-seq-rise 380ms var(--ease-out-strong) both;
+  animation-delay: var(--seq-delay, 0ms);
+}
+@keyframes success-seq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* M6, M8, M9: entering content, staggered 50 ms through --i */
+.waitlist-enter {
+  transition:
+    opacity 220ms var(--ease-out-strong),
+    transform 220ms var(--ease-out-strong);
+  transition-delay: calc(var(--i, 0) * 50ms);
+}
+/* M8 thanks line and M9 error line use their own values from the contract */
+.waitlist-enter[data-variant="note"] {
+  transition-duration: 200ms;
+}
+.waitlist-enter[data-variant="error"] {
+  transition-duration: 150ms;
+}
+@starting-style {
+  .waitlist-enter {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .waitlist-enter.waitlist-check {
+    transform: translateY(6px) scale(0.9);
+  }
+  .waitlist-enter[data-variant="note"] {
+    transform: translateY(4px);
+  }
+  .waitlist-enter[data-variant="error"] {
+    transform: translateY(-4px);
+  }
+}
+
+/* M7: the counter rolls once, on the visitor's own signup */
+.waitlist-count {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.waitlist-count > span {
+  grid-area: 1 / 1;
+  transition:
+    transform 250ms var(--ease-out-strong) 150ms,
+    opacity 250ms var(--ease-out-strong) 150ms;
+}
+.waitlist-count > span[data-out] {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+@starting-style {
+  .waitlist-count > span[data-in] {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waitlist-swap > *,
+  .waitlist-leave {
+    filter: none !important;
+  }
+  .waitlist-enter {
+    transition: opacity 150ms ease;
+    transition-delay: 0ms;
+  }
+  @starting-style {
+    .waitlist-enter,
+    .waitlist-enter.waitlist-check,
+    .waitlist-enter[data-variant] {
+      transform: none;
+    }
+  }
+  .waitlist-count > span {
+    transition: none;
+  }
+  .success-tick,
+  .success-seq {
+    animation-name: hub-fade;
+    animation-duration: 200ms;
+  }
+  .success-tick .success-tick-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .app-icon-sweep {
+    animation: none;
+  }
+  .app-faq-item::details-content {
+    transition-duration: 0ms;
+  }
+  .hero-enter,
+  .hero-sticker-frame[data-launch] .hero-sticker-pop {
+    animation-name: hub-fade;
+    animation-duration: 200ms;
+  }
+  .hero-sticker-float {
+    animation: none;
+  }
+  .hero-sticker:hover {
+    transform: rotate(var(--tilt, 0deg));
+  }
+}

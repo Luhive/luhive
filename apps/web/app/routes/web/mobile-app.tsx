@@ -45,11 +45,11 @@ export default function MobileAppPage() {
           <p className="mx-auto mb-8 md:mb-10 max-w-3xl text-sm lg:text-lg leading-relaxed text-muted-foreground">
             <span className="block">
               Your events, tickets and communities on your{" "}
-              {/* Logos in brand colours (Apple black, Android dark green #15803D); sized optically (Android reads larger at equal size); they and "phone." never split across lines. */}
+              {/* Logos in brand colours (Apple black, Android dark green #15803D); sized optically (the Android outline needs a little more size to match the apple); they and "phone." never split across lines. */}
               <span className="whitespace-nowrap">
                 <span className="inline-flex translate-y-[0.125em] items-center gap-1 text-foreground">
-                  <HugeiconsIcon icon={AppleIcon} size="1.08em" color="#000000" strokeWidth={1.5} aria-label="iPhone" />
-                  <HugeiconsIcon icon={AndroidIcon} size="1em" color="#15803D" strokeWidth={1.5} aria-label="Android" />
+                  <HugeiconsIcon icon={AppleIcon} size="1.05em" color="#000000" strokeWidth={1.5} aria-label="iPhone" />
+                  <HugeiconsIcon icon={AndroidIcon} size="1.12em" color="#15803D" strokeWidth={1.5} aria-label="Android" />
                 </span>{" "}
                 phone.
               </span>

@@ -736,6 +736,34 @@ select:-webkit-autofill:active {
   }
 }
 
+/* M4: field focus. The ring eases out from just inside the pill, and the
+   pill lifts a touch. Transform/opacity only; the ring is a pseudo-element. */
+.waitlist-field {
+  transition:
+    transform 200ms var(--ease-out-strong),
+    border-color 200ms ease;
+}
+.waitlist-field::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent);
+  opacity: 0;
+  transform: scale(0.98);
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--ease-out-strong),
+    transform 200ms var(--ease-out-strong);
+}
+.waitlist-field:focus-within {
+  transform: translateY(-1px);
+}
+.waitlist-field:focus-within::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
 /* M5: label and spinner share one grid cell, so the button keeps its width */
 .waitlist-swap > * {
   grid-area: 1 / 1;
@@ -833,7 +861,10 @@ select:-webkit-autofill:active {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .waitlist-button:not(:disabled):hover .waitlist-arrow {
+  .waitlist-button:not(:disabled):hover .waitlist-arrow,
+  .waitlist-field:focus-within,
+  .waitlist-field::after,
+  .waitlist-field:focus-within::after {
     transform: none;
   }
   .waitlist-swap > *,

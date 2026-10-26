@@ -743,20 +743,13 @@ select:-webkit-autofill:active {
     border-color 200ms var(--ease-out-strong);
 }
 
-/* M11: app icon is "live". Decorative, constant motion: linear sweep, slow breathing glow.
-   Transform and opacity only; both stop under reduced motion. */
+/* M11: app icon is "live". Decorative, constant motion: a silver light sweeps the border.
+   Transform only; stops under reduced motion. */
 .app-icon-sweep {
   animation: app-icon-sweep 4s linear infinite;
 }
 @keyframes app-icon-sweep {
   to { transform: rotate(1turn); }
-}
-.app-icon-glow {
-  opacity: 0.18;
-  animation: app-icon-glow 3s ease-in-out infinite alternate;
-}
-@keyframes app-icon-glow {
-  to { opacity: 0.38; }
 }
 
 /* M5: label and spinner share one grid cell, so the button keeps its width */
@@ -863,8 +856,7 @@ select:-webkit-autofill:active {
   .waitlist-count > span {
     transition: none;
   }
-  .app-icon-sweep,
-  .app-icon-glow {
+  .app-icon-sweep {
     animation: none;
   }
 }

@@ -1,7 +1,4 @@
-import {
-  addMobileAppWaitlistContact,
-  sendMobileAppWelcomeEmail,
-} from "~/shared/lib/email.server";
+import { sendMobileAppWelcomeEmail } from "~/shared/lib/email.server";
 import * as Waitlist from "~/modules/mobile-app/data/mobile-app-waitlist-repo.server";
 
 const WELCOME_TIMEOUT_MS = 4_000;
@@ -16,26 +13,15 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 /**
- * Welcome email plus the Resend contact the weekly email goes to. Never fails
- * the signup: on error the row keeps welcome_sent_at NULL and the error is logged.
+ * Welcome email for a new signup. Never fails the signup: on error the row keeps
+ * welcome_sent_at NULL and the error is logged. The weekly email is sent by hand from
+ * the table, so there is no mailing-list sync here.
  */
 export async function sendToNewSignup(id: string, email: string): Promise<void> {
   try {
-    const [, contactId] = await withTimeout(
-      Promise.all([sendMobileAppWelcomeEmail(email), addMobileAppWaitlistContact(email)]),
-      WELCOME_TIMEOUT_MS,
-    );
-    await Waitlist.markWelcomeSent(id, contactId);
+    await withTimeout(sendMobileAppWelcomeEmail(email), WELCOME_TIMEOUT_MS);
+    await Waitlist.markWelcomeSent(id);
   } catch (error) {
     console.error("Mobile app welcome failed:", error);
-  }
-}
-
-/** A returning signup who had unsubscribed: back into the segment, no second welcome. */
-export async function resubscribe(email: string): Promise<void> {
-  try {
-    await withTimeout(addMobileAppWaitlistContact(email), WELCOME_TIMEOUT_MS);
-  } catch (error) {
-    console.error("Mobile app resubscribe failed:", error);
   }
 }

@@ -14,7 +14,7 @@ Signing up means two things:
 ## Status
 
 Spec, 26 Oct 2026. Built the same day on `feat/mobile-app-waitlist` and tested
-against the validation DB. Production migration and the Resend segment are
+against the validation DB. The production migration is
 still to do (section 11). The earlier attempt (PR #180) was closed and removed.
 
 ---
@@ -33,7 +33,7 @@ still to do (section 11). The earlier attempt (PR #180) was closed and removed.
 | Counter | "**{50 + n} people subscribed**", where `n` is real signups minus unsubscribes. The 50 is a fixed display offset, accepted knowingly on 26 Oct 2026. |
 | Mockup / visuals | None for now. Ali will supply designs later and they go below the form, where the dashboard image sits on the landing page. |
 | Welcome email | Sent on first signup only, in Ali's voice, 2–3 sentences. |
-| Weekly email | Sent by hand from Resend Broadcasts to a Resend segment, from Ali. Resend owns the unsubscribe link. |
+| Weekly email | Sent by hand by Ali from the list in the database (26 Oct 2026: no Resend segment or contact sync in code). |
 | Analytics | **Umami only.** No GA4 events from this page. |
 | Motion | **Mandatory contract**, section 8, built from the repo's Emil Kowalski skills. Anything not listed there does not animate. |
 | Storage | New table `mobile_app_waitlist`, hand-written migration, types generated from the DB. |
@@ -75,7 +75,6 @@ CREATE TABLE public.mobile_app_waitlist (
     utm_content text,
     utm_term text,
     welcome_sent_at timestamp with time zone,
-    resend_contact_id text,
     unsubscribed_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -104,7 +103,7 @@ REVOKE ALL ON TABLE public.mobile_app_waitlist FROM PUBLIC, anon, authenticated;
 |---|---|
 | Dedupe | `email` is unique, stored lowercased and trimmed. A logged-in user's row carries both their account email and `user_id`. |
 | Repeat signup | Nothing changes. First-touch `utm_*` is kept. If the row has no `user_id` and the person is now signed in, it gets linked. |
-| Re-signup after unsubscribing | Clears `unsubscribed_at` and re-adds the contact to the Resend segment. No second welcome email. |
+| Re-signup after unsubscribing | Clears `unsubscribed_at`. No second welcome email. |
 | `first_feature` | Set once from the success state. A later answer from the same row overwrites it (people change their mind; we want the latest). |
 
 **Workflow** (per `packages/db/README.md`):
@@ -128,7 +127,7 @@ modules/mobile-app/
 ├── data/mobile-app-waitlist-repo.server.ts
 ├── server/mobile-app-loader.server.ts
 ├── server/mobile-app-action.server.ts
-├── server/mobile-app-welcome.server.ts   welcome send + Resend contact
+├── server/mobile-app-welcome.server.ts   welcome send
 ├── components/…                          section 6
 └── utils/mobile-app-analytics.ts         Umami-only tracker, section 7
 ```
@@ -153,7 +152,7 @@ Returns `{ user, alreadyJoined, subscribedCount, utm }`.
 1. Honeypot: a visually hidden `company` field. If it's filled, return success and write nothing.
 2. Email always comes from the form, validated, at most 320 characters. It is linked to the signed-in account only when it matches the account email; otherwise it joins as a visitor (e.g. a friend added by a signed-in user).
 3. Insert the row. On a unique violation, apply the repeat-signup rules from section 3.
-4. **New rows only:** send the welcome email and create the Resend contact in the segment (section 5). This is awaited with a 4 s timeout. A failure is logged, the row is left with `welcome_sent_at IS NULL`, and the signup still succeeds.
+4. **New rows only:** send the welcome email (section 5). This is awaited with a 4 s timeout. A failure is logged, the row is left with `welcome_sent_at IS NULL`, and the signup still succeeds.
 5. Return `{ ok: true, signupId, subscribedCount }`. `signupId` is the row id, which the feature question uses. `subscribedCount` lets the counter tick (motion M7).
 
 Already-subscribed and new signups get **the same** success state, so the page
@@ -196,11 +195,13 @@ Footer, one line: "You're getting this because you joined at luhive.com/app."
 
 ### 5.2 Weekly progress (bulk, by hand)
 
-- The audience is a **Resend segment** "Mobile app waitlist" (`RESEND_MOBILE_APP_SEGMENT_ID`). The repo's `resend@6.12` has `contacts`, `segments`, `broadcasts` and `webhooks`.
-- The contact is created at signup (step 4 of `join`). `resend_contact_id` is stored.
-- Ali writes and sends each week from Resend Broadcasts: from `Ali from Luhive <ali@news.luhive.com>`, with the same Google Workspace Reply-To, in English, in his voice. Resend adds the unsubscribe link and the `List-Unsubscribe` headers.
-- **Unsubscribes are handled by hand** (decided 26 Oct 2026; no webhook code). Resend owns the unsubscribe link. To take someone out of the counter, set `unsubscribed_at` on their row.
-- No scheduler and no mail queue. The mail queue spec (`docs/spec/10 Mail Queue.md`) is Stage 2 and is not a dependency.
+- Sent by hand by Ali, from the list in `mobile_app_waitlist`: every row with
+  `unsubscribed_at IS NULL`. No Resend segment, contact sync or webhook in code (decided
+  26 Oct 2026). From Ali, in English, in his voice, with the Google Workspace Reply-To.
+- Every send needs an unsubscribe link. When someone unsubscribes, set `unsubscribed_at`
+  on their row: they leave the counter and the next send's list.
+- No scheduler and no mail queue. The mail queue spec (`docs/spec/10 Mail Queue.md`) is
+  Stage 2 and is not a dependency.
 
 ---
 
@@ -486,7 +487,7 @@ No sound toggle: with a single cue on a click the visitor makes, it was removed 
 | `apps/web/app/templates/mobile-app-welcome-email.tsx` | New |
 | `apps/web/app/routes/api/og/app.tsx` | New OG image |
 | `apps/web/app/app.css` | Section 8.3 |
-| env | `RESEND_MOBILE_APP_SEGMENT_ID` |
+| env | none new (the welcome email uses the existing Resend key) |
 
 ---
 
@@ -494,7 +495,7 @@ No sound toggle: with a single cue on a click the visitor makes, it was removed 
 
 **Flows** (validation DB, local):
 
-- Logged out, new email: a row is written with lowercased email and `utm_*`. The welcome email arrives. The Resend contact is in the segment. The counter ticks by 1.
+- Logged out, new email: a row is written with lowercased email and `utm_*`. The welcome email arrives. The counter ticks by 1.
 - Same email in a different case: same row, UTM unchanged, no second email, the same success state. The counter does not tick.
 - Logged in, new: no field, the row has `user_id`. On reload, the "already joined" state shows.
 - Logged in with an email that already has an anonymous row: the row gets linked, nothing else changes.
@@ -526,14 +527,13 @@ No sound toggle: with a single cue on a click the visitor makes, it was removed 
 ## 11. Rollout
 
 1. Build on a branch, open a PR to `development`, test locally against validation.
-2. Create the Resend segment and add the env vars on Netlify (production).
-3. **Apply `0009` to production by hand**, then regenerate types against production.
-4. Merge to `main` and deploy by **Tue 27 Oct**, a day before the post.
-5. Before posting, sign up once on production with Ali's own email. Check the
+2. **Apply `0009` to production by hand**, then regenerate types against production.
+3. Merge to `main` and deploy by **Tue 27 Oct**, a day before the post.
+4. Before posting, sign up once on production with Ali's own email. Check the
    welcome email arrives in the inbox, not spam, in Gmail and Outlook.
-6. Wed 28 Oct: post, then add the first-comment link.
-7. Before the first weekly email: a test broadcast to Ali alone checks the
-   unsubscribe link end to end.
+5. Wed 28 Oct: post, then add the first-comment link.
+6. Before the first weekly email: a test send to Ali alone checks the unsubscribe
+   link end to end.
 
 ---
 

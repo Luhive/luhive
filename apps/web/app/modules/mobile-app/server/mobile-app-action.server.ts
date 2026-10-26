@@ -79,8 +79,6 @@ export async function action({
 
   if (result.status === "created") {
     await Welcome.sendToNewSignup(result.id, email);
-  } else if (result.resubscribed) {
-    await Welcome.resubscribe(email);
   }
 
   return {

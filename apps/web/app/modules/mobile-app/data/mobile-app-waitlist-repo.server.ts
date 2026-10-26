@@ -119,13 +119,12 @@ export async function join(input: JoinInput): Promise<JoinResult> {
   return { status: "existing", id: existing.id, resubscribed };
 }
 
-export async function markWelcomeSent(id: string, resendContactId: string | null) {
+export async function markWelcomeSent(id: string) {
   const supabase = createServiceRoleClient();
   const { error } = await supabase
     .from("mobile_app_waitlist")
     .update({
       welcome_sent_at: new Date().toISOString(),
-      ...(resendContactId && { resend_contact_id: resendContactId }),
     })
     .eq("id", id);
   if (error) console.error("Error marking mobile app welcome sent:", error);

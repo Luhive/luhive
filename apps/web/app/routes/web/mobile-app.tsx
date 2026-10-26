@@ -14,6 +14,7 @@ import { LandingNavbar } from "~/modules/landing/components/landing-navbar";
 import { LandingFooter } from "~/modules/landing/components/landing-footer";
 import { WaitlistCard } from "~/modules/mobile-app/components/waitlist-card";
 import { SubscribedCounter } from "~/modules/mobile-app/components/subscribed-counter";
+import { HeroStickers } from "~/modules/mobile-app/components/hero-stickers";
 import type { MobileAppLoaderData } from "~/modules/mobile-app/server/mobile-app-loader.server";
 
 // The chip answer changes nothing the loader returns. Skipping the reload also
@@ -32,7 +33,9 @@ export default function MobileAppPage() {
 
       {/* At least one screen tall (svh, so mobile browser bars don't push it), so the footer starts below the fold. */}
       <section className="flex min-h-svh flex-col justify-center bg-[#F6F4F1] pt-32 pb-12 md:pt-28 lg:pt-36 lg:pb-20">
-        <div className="mx-auto w-[95vw] 3xl:w-[60rem] text-center">
+        <div className="relative mx-auto w-[95vw] 3xl:w-[60rem] text-center">
+          <HeroStickers />
+
           {/* The Luhive mark as an app icon tile. A silver light sweeps around its border
               (motion M11), so it reads as live. */}
           <div className="relative mx-auto mb-6 size-20 md:mb-8 md:size-24">

@@ -746,6 +746,46 @@ select:-webkit-autofill:active {
   to { transform: rotate(1turn); }
 }
 
+/* M12: hero stickers. Die-cut look: a white outline built from four hard drop-shadows,
+   then one soft shadow. The tilt lives on the same element; hover straightens it a little. */
+.hero-sticker {
+  transform: rotate(var(--tilt, 0deg));
+  filter: drop-shadow(2.5px 0 0 #fff) drop-shadow(-2.5px 0 0 #fff) drop-shadow(0 2.5px 0 #fff)
+    drop-shadow(0 -2.5px 0 #fff) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.12));
+  transition: transform 200ms var(--ease-out-strong);
+}
+.hero-sticker > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+@media (hover: hover) and (pointer: fine) {
+  .hero-sticker:hover {
+    transform: rotate(calc(var(--tilt, 0deg) * 0.4)) translateY(-3px) scale(1.04);
+  }
+}
+
+/* Entrance: once, staggered 60 ms, from 90% (never from 0). */
+.hero-sticker-pop {
+  animation: hero-sticker-pop 360ms var(--ease-out-strong) both;
+  animation-delay: calc(120ms + var(--i, 0) * 60ms);
+}
+@keyframes hero-sticker-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Idle float: 4 px, slow, each sticker on its own phase. */
+.hero-sticker-float {
+  animation: hero-sticker-float var(--float-dur, 5s) ease-in-out var(--float-delay, 0s) infinite alternate;
+}
+@keyframes hero-sticker-float {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
 /* M5: label and spinner share one grid cell, so the button keeps its width */
 .waitlist-swap > * {
   grid-area: 1 / 1;
@@ -849,5 +889,15 @@ select:-webkit-autofill:active {
   }
   .app-icon-sweep {
     animation: none;
+  }
+  .hero-sticker-pop {
+    animation-name: hub-fade;
+    animation-duration: 200ms;
+  }
+  .hero-sticker-float {
+    animation: none;
+  }
+  .hero-sticker:hover {
+    transform: rotate(var(--tilt, 0deg));
   }
 }

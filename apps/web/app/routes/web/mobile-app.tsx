@@ -39,12 +39,7 @@ export default function MobileAppPage() {
           </div>
 
           <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-snug md:leading-tight text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
-            <span className="block">
-              Luhive{" "}
-              <span className="inline-block font-semibold align-baseline tracking-tight text-primary md:leading-tight">
-                mobile apps
-              </span>
-            </span>
+            <span className="block text-primary">Mobile apps</span>
             <span className="block text-foreground">on the way</span>
           </h1>
 

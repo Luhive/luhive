@@ -56,7 +56,7 @@ export default function MobileAppPage() {
           </div>
 
           <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-snug md:leading-tight text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
-            <span className="hero-enter block text-primary" style={heroStep(1)}>Mobile apps</span>
+            <span className="hero-enter block text-primary" style={heroStep(1)}>Mobile app</span>
             <span className="hero-enter block text-foreground" style={heroStep(2)}>on the way</span>
           </h1>
 

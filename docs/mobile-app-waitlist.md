@@ -25,7 +25,7 @@ still to do (section 11). The earlier attempt (PR #180) was closed and removed.
 |---|---|
 | Language | English across the whole page and both emails. |
 | Template | The landing page's own `LandingNavbar` and `LandingFooter`, reused, not copied. The hero matches `LandingAbout` one to one. |
-| Title | "**Mobile apps** / on the way", with "Mobile apps" in `--primary` (the word "Luhive" was dropped from the heading on 26 Oct 2026; the app icon above carries the brand). The `<title>` and OG image keep "Luhive mobile apps on the way". |
+| Title | "**Mobile app** / on the way", with "Mobile app" in `--primary` (the word "Luhive" was dropped from the heading on 26 Oct 2026; the app icon above carries the brand). The `<title>` and OG image keep "Luhive mobile apps on the way". |
 | Launch date | Never shown. |
 | Form | One grouped email field and **Notify me**. Logged in: the account email is prefilled, editable (to add a friend). |
 | Feature question | Not on the form. It's asked once on the success state, optional, one tap. |

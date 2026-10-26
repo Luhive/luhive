@@ -212,7 +212,10 @@ Footer, one line: "You're getting this because you joined at luhive.com/app."
 LandingNavbar          (reused, section 6.2)
 Hero section           (LandingAbout classes, 1:1)
   Stickers             4 die-cut icons around the content (bell, QR ticket, pin, phone), anchored
-                       to a 960 px frame so they stay centred; phones show only bell and ticket
+                       to a 780 px frame so they stay centred. Phones (26 Oct 2026): all four,
+                       smaller; bell and ticket flank the app icon, pin and phone flank "on the way".
+                       Also on phones: the hero starts under the navbar (not centred) and the
+                       title is text-5xl.
   App icon tile        Luhive mark in a rounded-square, white-to-grey tile (added 26 Oct 2026)
   h1                   [Mobile app] / on the way
   p                    subtitle

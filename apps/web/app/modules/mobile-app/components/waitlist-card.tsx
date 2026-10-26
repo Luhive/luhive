@@ -133,7 +133,7 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
             </button>
           ) : (
             // Grouped field: one white pill holding the input and the button.
-            <div className="waitlist-field flex w-full max-w-md items-center rounded-full border border-foreground/10 bg-white p-1.5 shadow-[0px_8px_24px_rgba(0,0,0,0.06),0px_1px_2px_rgba(0,0,0,0.04)] focus-within:border-primary/40 focus-within:ring-[3px] focus-within:ring-primary/20 has-[[aria-invalid=true]]:border-destructive/50">
+            <div className="waitlist-field flex w-full max-w-md items-center rounded-full border border-foreground/10 bg-[#F2F2F2] p-1.5 shadow-[0px_8px_24px_rgba(0,0,0,0.06),0px_1px_2px_rgba(0,0,0,0.04)] focus-within:border-primary/40 focus-within:ring-[3px] focus-within:ring-primary/20 has-[[aria-invalid=true]]:border-destructive/50">
               <input
                 name="email"
                 type="email"

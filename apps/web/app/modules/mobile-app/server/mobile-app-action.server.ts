@@ -36,10 +36,12 @@ export async function action({
     return { intent: "join", ok: true, signupId: "", subscribedCount: await Waitlist.countSubscribed(), isNew: false };
   }
 
-  // Signed-in users are tied to their account; a submitted email is ignored.
+  // The field is editable for everyone: a signed-in user may add a friend. Only their
+  // own account email is linked to their account; any other email joins as a visitor.
   const { findAuthUser } = context.get(requestSupabaseContext);
   const user = await findAuthUser();
-  const email = user ? (user.email ?? "") : readString(formData, "email");
+  const email = readString(formData, "email");
+  const isOwnEmail = Boolean(user?.email && email.toLowerCase() === user.email.toLowerCase());
 
   if (!EMAIL_PATTERN.test(email) || email.length > 320) {
     return {
@@ -59,7 +61,7 @@ export async function action({
 
   const result = await Waitlist.join({
     email,
-    userId: user?.id ?? null,
+    userId: isOwnEmail ? user!.id : null,
     utm: parseUTMFromSearchParams(utmParams),
   });
 

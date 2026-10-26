@@ -104,8 +104,8 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
           {utm.utmContent && <input type="hidden" name="utm_content" value={utm.utmContent} />}
           {utm.utmTerm && <input type="hidden" name="utm_term" value={utm.utmTerm} />}
 
-          {/* Grouped field: one pill holding the input and the button. Signed-in users see
-              their account email prefilled and read-only: the signup is tied to the account. */}
+          {/* Grouped field: one pill holding the input and the button. Signed-in users get
+              their account email prefilled; they can change it, e.g. to add a friend. */}
             <div className="waitlist-field flex w-full max-w-md items-center rounded-full border border-foreground/10 bg-[#F2F2F2] p-1.5 shadow-[0px_8px_24px_rgba(0,0,0,0.06),0px_1px_2px_rgba(0,0,0,0.04)] focus-within:border-primary/40 focus-within:ring-[3px] focus-within:ring-primary/20 has-[[aria-invalid=true]]:border-destructive/50">
               <input
                 name="email"
@@ -119,13 +119,13 @@ export function WaitlistCard({ user, joined: joinedOnLoad, utm }: WaitlistCardPr
                 required
                 maxLength={320}
                 defaultValue={user?.email ?? undefined}
-                readOnly={Boolean(user) || isJoining}
+                readOnly={isJoining}
                 onFocus={() => {
                   if (focusTracked.current) return;
                   focusTracked.current = true;
                   MobileAppAnalytics.trackEmailFocused();
                 }}
-                className="h-11 min-w-0 flex-1 truncate bg-transparent pl-4 pr-2 text-base text-foreground outline-none placeholder:text-muted-foreground read-only:text-foreground/80"
+                className="h-11 min-w-0 flex-1 truncate bg-transparent pl-4 pr-2 text-base text-foreground outline-none placeholder:text-muted-foreground"
               />
               <button
                 type="submit"

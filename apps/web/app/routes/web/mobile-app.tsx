@@ -34,8 +34,8 @@ export default function MobileAppPage() {
       <section className="flex min-h-svh flex-col justify-center bg-[#F6F4F1] pt-32 pb-12 md:pt-28 lg:pt-36 lg:pb-20">
         <div className="mx-auto w-[95vw] 3xl:w-[60rem] text-center">
           {/* The Luhive mark as an app icon tile: rounded square, white-to-grey face, soft drop shadow. */}
-          <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-[1.125rem] border border-black/[0.04] bg-gradient-to-b from-white to-[#ECECEC] shadow-[0px_8px_20px_rgba(0,0,0,0.08),0px_1px_2px_rgba(0,0,0,0.06),inset_0px_1px_0px_rgba(255,255,255,0.9)] md:mb-8 md:size-[4.5rem] md:rounded-[1.25rem]">
-            <img src={luhiveMark} alt="Luhive" width={36} height={36} className="size-8 md:size-9" />
+          <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-[1.375rem] border border-black/[0.04] bg-gradient-to-b from-white to-[#ECECEC] shadow-[0px_8px_20px_rgba(0,0,0,0.08),0px_1px_2px_rgba(0,0,0,0.06),inset_0px_1px_0px_rgba(255,255,255,0.9)] md:mb-8 md:size-24 md:rounded-[1.625rem]">
+            <img src={luhiveMark} alt="Luhive" width={48} height={48} className="size-10 md:size-12" />
           </div>
 
           <h1 className="mb-6 md:mb-8 tracking-tight font-semibold text-foreground max-md:leading-snug md:leading-tight text-3xl md:text-4xl lg:text-5xl xl:text-6xl">

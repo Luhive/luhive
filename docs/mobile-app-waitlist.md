@@ -253,7 +253,7 @@ height.
 
 | State | Content |
 |---|---|
-| **Form, logged out** | Email input (pill, `h-12`, `max-w-sm`, centred placeholder "Your email address"), the **Notify me** pill button, and under it the trust line: "Weekly build updates from Ali. Unsubscribe anytime." |
+| **Form, logged out** | One grouped white pill (`max-w-md`, soft shadow, focus ring on the whole group): the email input on the left ("Your email address") and an orange **Notify me** button with a bell icon inside it on the right. Under it, the trust line: "Weekly build updates from Ali. Unsubscribe anytime." (Grouped layout added 26 Oct 2026.) |
 | **Form, logged in** | The button alone. Under it: "We'll send updates to {email}." Long emails truncate in the middle (`ali.aliyev…@gmail.com`), never wrap the button. |
 | **Submitting** | The button keeps its width. The label crossfades to a spinner (M5). The input is `readOnly`, not `disabled`, so the keyboard doesn't drop on iOS. |
 | **Error** | The message sits in a reserved line under the field. `aria-invalid` and `aria-describedby` are set on the input. |

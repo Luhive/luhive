@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowRight, Video } from "lucide-react";
+import { Video } from "lucide-react";
 import type { HubEventSummary } from "~/modules/hub/model/hub-types";
 import { ExploreCommunityCard } from "~/modules/hub/components/explore-community-card";
 import {
@@ -58,18 +58,14 @@ export function MobileAppWhileWaiting({ waiting }: { waiting: WhileWaiting }) {
         </ul>
 
         <div className="mt-10 flex justify-center">
-          {/* A text button, like "Add another email": secondary to the cards above. */}
+          {/* A plain text link, underlined on hover: secondary to the cards above. */}
           <Link
             to={Routes.hub}
             prefetch="intent"
             onClick={() => MobileAppAnalytics.trackWaitingClicked("explore")}
-            className="waitlist-press group inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-base font-medium text-primary hover:bg-primary/[0.06]"
+            className="text-base font-medium text-primary underline-offset-4 hover:underline"
           >
-            Explore more on the Hub
-            <ArrowRight
-              aria-hidden
-              className="size-4 transition-transform duration-200 ease-out-strong group-hover:translate-x-0.5"
-            />
+            Explore more
           </Link>
         </div>
       </div>

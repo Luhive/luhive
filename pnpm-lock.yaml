@@ -402,6 +402,9 @@ importers:
       tsc-baseline:
         specifier: ^1.9.0
         version: 1.9.0
+      tsx:
+        specifier: ^4.23.12
+        version: 4.23.12
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0

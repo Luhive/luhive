@@ -1,5 +1,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router";
+import { Users } from "lucide-react";
+import { HackathonTeamDrawer } from "~/modules/events/components/event-detail/hackathon-team-drawer";
 import type { EventWindow } from "~/modules/profile/components/profile-tabs";
 import { ProfileStatusPill } from "~/modules/profile/components/profile-status-pill";
 import { profileCardClassName } from "~/modules/profile/components/profile-tokens";
@@ -17,6 +19,7 @@ function formatEventDate(startTime: string, timezone: string) {
 
 export function ProfileEventsTable({ events, period }: { events: ProfileEvent[]; period: EventWindow }) {
   const [showPast, setShowPast] = useState(false);
+  const [teamEventId, setTeamEventId] = useState<string | null>(null);
   const now = useMemo(() => Date.now(), []);
   const { upcoming, past, visible } = useMemo(() => {
     const upcomingEvents = events
@@ -43,7 +46,7 @@ export function ProfileEventsTable({ events, period }: { events: ProfileEvent[];
               {upcoming.length > 0 ? (
                 <ul>
                   {upcoming.map((event) => (
-                    <EventRow key={event.id} event={event} />
+                    <EventRow key={event.id} event={event} onOpenTeam={setTeamEventId} />
                   ))}
                 </ul>
               ) : (
@@ -52,7 +55,7 @@ export function ProfileEventsTable({ events, period }: { events: ProfileEvent[];
               {showPast ? (
                 <ul>
                   {past.map((event, index) => (
-                    <EventRow key={event.id} event={event} muted stackIndex={index} />
+                    <EventRow key={event.id} event={event} muted stackIndex={index} onOpenTeam={setTeamEventId} />
                   ))}
                 </ul>
               ) : null}
@@ -67,7 +70,7 @@ export function ProfileEventsTable({ events, period }: { events: ProfileEvent[];
         ) : (
           <ul>
             {visible.map((event) => (
-              <EventRow key={event.id} event={event} />
+              <EventRow key={event.id} event={event} onOpenTeam={setTeamEventId} />
             ))}
           </ul>
         )}
@@ -82,6 +85,14 @@ export function ProfileEventsTable({ events, period }: { events: ProfileEvent[];
           Show past events
         </button>
       ) : null}
+      <HackathonTeamDrawer
+        eventId={teamEventId ?? ""}
+        teamName=""
+        open={teamEventId !== null}
+        onOpenChange={(open) => {
+          if (!open) setTeamEventId(null);
+        }}
+      />
     </div>
   );
 }
@@ -105,10 +116,12 @@ function EventRow({
   event,
   muted = false,
   stackIndex,
+  onOpenTeam,
 }: {
   event: ProfileEvent;
   muted?: boolean;
   stackIndex?: number;
+  onOpenTeam: (eventId: string) => void;
 }) {
   const date = formatEventDate(event.startTime, event.timezone);
 
@@ -121,24 +134,37 @@ function EventRow({
           : ({ "--stack-delay": `${Math.min(stackIndex, 6) * 40}ms` } as CSSProperties)
       }
     >
-      <Link
-        to={Routes.community.event(event.communitySlug, event.eventSlug)}
-        prefetch="intent"
-        className="group flex items-center gap-3 px-4 py-3 outline-none transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#fafafa] focus-visible:bg-[#fafafa]"
-      >
-        <EventCover event={event} muted={muted} />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[15px] font-medium text-[#111]">{event.title}</span>
-          <span className="mt-0.5 flex min-w-0 items-center gap-2 text-[13px] text-[#6e6e73]">
-            <span className="truncate">
-              {event.communityName} · {date}
-            </span>
-            <span className="shrink-0">
-              <ProfileStatusPill status={event.status} />
+      <div className="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#fafafa]">
+        <Link
+          to={Routes.community.event(event.communitySlug, event.eventSlug)}
+          prefetch="intent"
+          className="flex min-w-0 flex-1 items-center gap-3 outline-none focus-visible:bg-[#fafafa]"
+        >
+          <EventCover event={event} muted={muted} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-medium text-[#111]">{event.title}</span>
+            <span className="mt-0.5 flex min-w-0 items-center gap-2 text-[13px] text-[#6e6e73]">
+              <span className="truncate">
+                {event.communityName} · {date}
+              </span>
+              <span className="shrink-0">
+                <ProfileStatusPill status={event.status} />
+              </span>
             </span>
           </span>
-        </span>
-      </Link>
+        </Link>
+        {event.isCaptain ? (
+          <button
+            type="button"
+            aria-label="Show Team"
+            onClick={() => onOpenTeam(event.id)}
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-3 text-[13px] font-medium text-[#111] outline-none transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:ring-2 focus-visible:ring-[#111]/15 active:scale-[0.97]"
+          >
+            <Users className="size-3.5" aria-hidden />
+            Show Team
+          </button>
+        ) : null}
+      </div>
     </li>
   );
 }

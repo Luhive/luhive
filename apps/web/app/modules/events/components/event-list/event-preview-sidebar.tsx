@@ -5,6 +5,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Routes } from "~/shared/lib/routing/routes";
 import { publicEventSlug } from "~/modules/events/utils/event-slug";
+import { hasHackathonQuestions } from "~/modules/events/model/hackathon-team";
 import { buildEventUrl, copyEventLink } from "~/modules/events/utils/copy-event-link";
 import {
   Calendar,
@@ -546,6 +547,12 @@ export function EventPreviewSidebar({
       } else {
         handleNavigateToEvent();
       }
+      return;
+    }
+
+    // Hackathons ask "start or join a team" first, which only the register page does.
+    if (hasHackathonQuestions(event.custom_questions as CustomQuestionJson | null)) {
+      navigate(Routes.community.eventRegister(community.slug, publicEventSlug(event)));
       return;
     }
 

@@ -1,3 +1,5 @@
+import type { ProfileLinks } from "~/modules/profile/model/profile-social-links";
+
 export type RegistrationType = "native" | "external" | "both";
 
 export type ExternalPlatform =
@@ -7,7 +9,7 @@ export type ExternalPlatform =
   | "eventbrite"
   | "other";
 
-export type CustomQuestionType = 'text' | 'dropdown';
+export type CustomQuestionType = 'text' | 'dropdown' | 'social';
 
 export interface DropdownOption {
   id: string;
@@ -25,6 +27,7 @@ export interface CustomQuestion {
   required: boolean;
   order: number;
   type?: CustomQuestionType;  // undefined treated as 'text' for backward compat
+  network?: ProfileLinks.Id; // social only
   options?: DropdownOption[]; // dropdown only
   allowMultiple?: boolean;    // dropdown only: false = Single, true = Multiple
 }

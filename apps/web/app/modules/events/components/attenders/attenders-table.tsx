@@ -251,12 +251,18 @@ export type AttendersTableHandle = {
 interface AttendersTableProps {
   eventId: string;
   isExternalEvent?: boolean;
+  hidePersonApproval?: boolean;
+  /** Hackathon only: registration id → team. Adds a Team column and filter. */
+  teamByRegistration?: Map<string, { name: string; isCaptain: boolean }>;
 }
 
 export const AttendersTable = React.forwardRef<
   AttendersTableHandle,
   AttendersTableProps
->(function AttendersTable({ eventId, isExternalEvent = false }, ref) {
+>(function AttendersTable(
+  { eventId, isExternalEvent = false, hidePersonApproval = false, teamByRegistration },
+  ref,
+) {
   const [data, setData] = useState<Attender[]>([]);
   const [loading, setLoading] = useState(true);
   const [customQuestions, setCustomQuestions] =
@@ -393,7 +399,7 @@ export const AttendersTable = React.forwardRef<
       if (authenticatedUserIds.length > 0) {
         try {
           const response = await fetch(
-            `/api/events/attenders-emails?userIds=${encodeURIComponent(JSON.stringify(authenticatedUserIds))}`,
+            `/api/events/attenders-emails?eventId=${encodeURIComponent(eventId)}&userIds=${encodeURIComponent(JSON.stringify(authenticatedUserIds))}`,
           );
           if (response.ok) {
             const { emails } = await response.json();
@@ -731,6 +737,30 @@ export const AttendersTable = React.forwardRef<
           </button>
         ),
       },
+      ...(teamByRegistration
+        ? [
+            {
+              id: "team",
+              header: "Team",
+              accessorFn: (attender: Attender) =>
+                teamByRegistration.get(attender.id)?.name ?? "",
+              cell: ({ row }: { row: { original: Attender } }) => {
+                const team = teamByRegistration.get(row.original.id);
+                if (!team) {
+                  return <span className="text-sm text-muted-foreground">No team</span>;
+                }
+                return (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="max-w-40 truncate">{team.name}</span>
+                    {team.isCaptain ? <Badge variant="secondary">Captain</Badge> : null}
+                  </div>
+                );
+              },
+              filterFn: (row: { getValue: (id: string) => unknown }, id: string, value: string) =>
+                row.getValue(id) === value,
+            } satisfies ColumnDef<Attender>,
+          ]
+        : []),
       {
         accessorKey: "email",
         header: "Contact",
@@ -864,7 +894,7 @@ export const AttendersTable = React.forwardRef<
                   Mark as paid
                 </Button>
               )}
-              {isPending && (
+              {isPending && !hidePersonApproval && (
                 <>
                   <Button
                     size="sm"
@@ -934,7 +964,8 @@ export const AttendersTable = React.forwardRef<
                       </DropdownMenuCheckboxItem>
                     </>
                   )}
-                  {!isPendingInvite &&
+                  {!hidePersonApproval &&
+                    !isPendingInvite &&
                     !isUnpaid &&
                     !isPending &&
                     attender.ticket_order_status !== "refunded" &&
@@ -948,7 +979,8 @@ export const AttendersTable = React.forwardRef<
                         Approve Registration
                       </DropdownMenuCheckboxItem>
                     )}
-                  {!isPendingInvite &&
+                  {!hidePersonApproval &&
+                    !isPendingInvite &&
                     !isPending &&
                     attender.approval_status !== "rejected" && (
                       <DropdownMenuCheckboxItem
@@ -976,7 +1008,7 @@ export const AttendersTable = React.forwardRef<
         },
       },
     ],
-    [handleDeleteClick, handleTicketAction, ticketFetcher.state],
+    [handleDeleteClick, handleTicketAction, ticketFetcher.state, hidePersonApproval, isExternalEvent, teamByRegistration],
   );
 
   const table = useReactTable({
@@ -1009,9 +1041,9 @@ export const AttendersTable = React.forwardRef<
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {/* Left Side: Search & Filters */}
-        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <InputGroup className="w-full sm:w-[300px]">
             <InputGroupAddon>
               <Search className="h-4 w-4 text-muted-foreground" />
@@ -1059,6 +1091,29 @@ export const AttendersTable = React.forwardRef<
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
+
+          {teamByRegistration ? (
+            <Select
+              value={(table.getColumn("team")?.getFilterValue() as string | undefined) ?? "all"}
+              onValueChange={(value) =>
+                table.getColumn("team")?.setFilterValue(value === "all" ? undefined : value)
+              }
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filter by team" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All teams</SelectItem>
+                {[...new Set([...teamByRegistration.values()].map((team) => team.name))]
+                  .sort((left, right) => left.localeCompare(right))
+                  .map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          ) : null}
 
           {/* View Toggle */}
           <DropdownMenu>

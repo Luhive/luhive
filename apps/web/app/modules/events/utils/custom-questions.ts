@@ -4,6 +4,7 @@ import type {
   CustomAnswerJson,
   DropdownOption,
 } from '~/modules/events/model/event.types';
+import { ProfileLinks } from '~/modules/profile/model/profile-social-links';
 import type { Database } from '~/shared/models/database.types';
 import { MAX_ANSWER_LENGTH } from './custom-questions-constants';
 
@@ -62,6 +63,17 @@ export function createNewDropdownQuestion(order: number): CustomQuestion {
     type: 'dropdown',
     options: [],
     allowMultiple: false,
+  };
+}
+
+export function createNewSocialQuestion(order: number, network: ProfileLinks.Id = "linkedin"): CustomQuestion {
+  return {
+    id: crypto.randomUUID(),
+    label: '',
+    required: false,
+    order,
+    type: 'social',
+    network,
   };
 }
 
@@ -143,6 +155,10 @@ export function buildCustomAnswersFromFormState(
         ) {
           answers[question.id] = answer;
         }
+      } else if (questionType === "social") {
+        const handle = typeof answer === "string" ? answer.trim() : "";
+        const url = handle ? ProfileLinks.url(question.network ?? "linkedin", handle) : null;
+        if (url) answers[question.id] = url;
       } else if (typeof answer === "string" && answer.trim()) {
         answers[question.id] = answer.trim();
       }
@@ -190,6 +206,14 @@ export function validateCustomAnswers(
           errors[question.id] = 'This field is required';
         } else if (selected.some((v) => !validIds.includes(v.id))) {
           errors[question.id] = 'Invalid option selected';
+        }
+      } else if (questionType === 'social') {
+        const handle = typeof answer === 'string' ? answer.trim() : '';
+        const url = handle ? ProfileLinks.url(question.network ?? 'linkedin', handle) : null;
+        if (question.required && !url) {
+          errors[question.id] = 'Paste a profile link';
+        } else if (handle && !url) {
+          errors[question.id] = 'Paste a profile link';
         }
       } else {
         const textAnswer =

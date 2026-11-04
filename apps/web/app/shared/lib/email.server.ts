@@ -14,6 +14,9 @@ import { MobileAppWelcomeEmail } from "~/templates/mobile-app-welcome-email";
 import { CommunityAnnouncementEmail } from "~/templates/community-announcement-email";
 import { CollaborationInviteEmail } from "~/templates/collaboration-invite-email";
 import { EventInviteEmail } from "~/templates/event-invite-email";
+import { HackathonTeamInviteEmail } from "~/templates/hackathon-team-invite-email";
+import { HackathonTeammateJoinedEmail } from "~/templates/hackathon-teammate-joined-email";
+import { HackathonRemovedFromTeamEmail } from "~/templates/hackathon-removed-from-team-email";
 import { CollaborationAcceptedEmail } from "~/templates/collaboration-accepted-email";
 import { NewEventNotificationEmail } from "~/templates/new-event-notification-email";
 import { NewCollaborationEventEmail } from "~/templates/new-collaboration-event-email";
@@ -1572,6 +1575,96 @@ export async function sendEventInviteEmail(data: EventInviteEmailData) {
     id: result.id,
     to: recipientEmail,
   });
+
+  return { success: true, data: { id: result.id } };
+}
+
+export async function sendHackathonTeamInviteEmail(data: {
+  eventTitle: string;
+  communityName: string;
+  teamName: string;
+  recipientEmail: string;
+  joinLink: string;
+  captainName: string;
+  eventDate: string;
+  eventTime: string;
+}) {
+  const result = await sendEmail({
+    to: data.recipientEmail,
+    subject: `${data.captainName} added you to ${data.teamName}`,
+    from: fromCommunity(data.communityName),
+    react: HackathonTeamInviteEmail(data),
+    metadata: {
+      template: "HackathonTeamInviteEmail",
+      eventTitle: data.eventTitle,
+      communityName: data.communityName,
+    },
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to send team invite email: ${result.error?.message || "Unknown error"}`,
+    );
+  }
+
+  return { success: true, data: { id: result.id } };
+}
+
+export async function sendHackathonTeammateJoinedEmail(data: {
+  eventTitle: string;
+  communityName: string;
+  teamName: string;
+  memberName: string;
+  teamCount: string;
+  teamLink: string;
+  recipientEmail: string;
+}) {
+  const result = await sendEmail({
+    to: data.recipientEmail,
+    subject: `${data.memberName} joined ${data.teamName}`,
+    from: fromCommunity(data.communityName),
+    react: HackathonTeammateJoinedEmail(data),
+    metadata: {
+      template: "HackathonTeammateJoinedEmail",
+      eventTitle: data.eventTitle,
+      communityName: data.communityName,
+    },
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to send teammate joined email: ${result.error?.message || "Unknown error"}`,
+    );
+  }
+
+  return { success: true, data: { id: result.id } };
+}
+
+export async function sendHackathonRemovedFromTeamEmail(data: {
+  eventTitle: string;
+  communityName: string;
+  teamName: string;
+  recipientName: string;
+  eventLink: string;
+  recipientEmail: string;
+}) {
+  const result = await sendEmail({
+    to: data.recipientEmail,
+    subject: `You're no longer on ${data.teamName}`,
+    from: fromCommunity(data.communityName),
+    react: HackathonRemovedFromTeamEmail(data),
+    metadata: {
+      template: "HackathonRemovedFromTeamEmail",
+      eventTitle: data.eventTitle,
+      communityName: data.communityName,
+    },
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to send removed from team email: ${result.error?.message || "Unknown error"}`,
+    );
+  }
 
   return { success: true, data: { id: result.id } };
 }

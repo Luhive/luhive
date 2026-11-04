@@ -17,7 +17,7 @@ import {
 } from '~/shared/components/ui/sheet';
 import { Routes } from '~/shared/lib/routing/routes';
 import { Spinner } from '~/shared/components/ui/spinner';
-import { Save, FileText, Calendar, MapPin, Users, Eye, MessageCircle, HelpCircle, Users2, Bell, Sparkles, Ticket } from 'lucide-react';
+import { Save, FileText, Calendar, MapPin, Users, Eye, MessageCircle, HelpCircle, Users2, Bell, Sparkles, Ticket, Trophy } from 'lucide-react';
 import {
   formatMoney,
   isValidTicketPriceMinor,
@@ -25,6 +25,7 @@ import {
   parsePriceInputToMinor,
 } from '@luhive/domain/v1/money';
 import * as CommunitySettings from '@luhive/domain/v1/community-settings';
+import * as HackathonTeam from '~/modules/events/model/hackathon-team';
 import { EventPrice } from '~/modules/events/components/event-form/fields/event-price';
 import { EventPaymentInstructions } from '~/modules/events/components/event-form/fields/event-payment-instructions';
 import { EventCoverUpload } from '~/modules/events/components/event-form/event-cover-upload';
@@ -32,6 +33,7 @@ import { EventBasicInfo } from '~/modules/events/components/event-form/fields/ev
 import { EventDateTime } from '~/modules/events/components/event-form/fields/event-datetime';
 import { EventLocation } from '~/modules/events/components/event-form/fields/event-location';
 import { EventCapacity } from '~/modules/events/components/event-form/fields/event-capacity';
+import { EventHackathon } from '~/modules/events/components/event-form/fields/event-hackathon';
 import { EventDiscussion } from '~/modules/events/components/event-form/fields/event-discussion';
 import { EventReminderTimes, EventReminderEmailCustomization, type ReminderTime } from '~/modules/events/components/event-form/fields/event-reminders';
 import { CustomQuestionsBuilder } from '~/modules/events/components/registration/custom-questions-builder';
@@ -74,6 +76,9 @@ interface EventFormData {
   coverUrl?: string;
   status: EventStatus;
   isApproveRequired: boolean;
+  isHackathon?: boolean;
+  maxTeamSize?: number | null;
+  hackathonLocked?: boolean;
   priceMinor?: number | null;
   paymentInstructions?: string | null;
   customQuestions?: CustomQuestionJson | null;
@@ -132,6 +137,11 @@ export function EventForm({
   const [coverUrl, setCoverUrl] = useState(initialData?.coverUrl || '');
   const [status, setStatus] = useState<EventStatus>(initialData?.status || 'draft');
   const [isApproveRequired, setIsApproveRequired] = useState(initialData?.isApproveRequired || false);
+  const [isHackathon, setIsHackathon] = useState(initialData?.isHackathon || false);
+  const [maxTeamSize, setMaxTeamSize] = useState<number | undefined>(
+    initialData?.maxTeamSize ?? undefined,
+  );
+  const hackathonLocked = initialData?.hackathonLocked || false;
   const [priceInput, setPriceInput] = useState(
     initialData?.priceMinor != null
       ? minorToMajorUnits(initialData.priceMinor).toFixed(2)
@@ -394,6 +404,8 @@ export function EventForm({
         registrationDeadline &&
         !sameDate(initial.registrationDeadline, registrationDeadline)) ||
       (initial.isApproveRequired || false) !== isApproveRequired ||
+      (initial.isHackathon || false) !== isHackathon ||
+      (initial.maxTeamSize ?? null) !== (maxTeamSize ?? null) ||
       (initial.priceMinor ?? null) !== priceMinor ||
       (initial.paymentInstructions ?? '') !== paymentInstructions ||
       JSON.stringify(initial.customQuestions ?? null) !==
@@ -465,7 +477,9 @@ export function EventForm({
           registrationDeadline: registrationDeadline ? registrationDeadline.toISOString() : null,
           coverUrl: coverUrl || null,
           status: submitStatus,
-          isApproveRequired,
+          isApproveRequired: isHackathon || isApproveRequired,
+          isHackathon,
+          maxTeamSize: isHackathon ? maxTeamSize ?? null : null,
           priceMinor,
           paymentInstructions: submittedPaymentInstructions,
           customQuestions: customQuestions ?? null,
@@ -518,7 +532,9 @@ export function EventForm({
           registrationDeadline: registrationDeadline ? registrationDeadline.toISOString() : null,
           coverUrl: coverUrl || null,
           status: submitStatus,
-          isApproveRequired,
+          isApproveRequired: isHackathon || isApproveRequired,
+          isHackathon,
+          maxTeamSize: isHackathon ? maxTeamSize ?? null : null,
           priceMinor,
           paymentInstructions: submittedPaymentInstructions,
           customQuestions: customQuestions ?? null,
@@ -778,9 +794,42 @@ export function EventForm({
                   onRegistrationDeadlineChange={setRegistrationDeadline}
                   onIsApproveRequiredChange={setIsApproveRequired}
                   eventStartDate={startDate}
+                  approvalLockedOn={isHackathon}
                 />
               </AccordionContent>
             </AccordionItem>
+
+            {priceMinor === null ? (
+              <AccordionItem value="hackathon">
+                <AccordionTrigger>
+                  <span className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-muted-foreground" />
+                    Hackathon
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <EventHackathon
+                    isHackathon={isHackathon}
+                    locked={hackathonLocked}
+                    maxTeamSize={maxTeamSize}
+                    onHackathonChange={(checked) => {
+                      if (hackathonLocked) return;
+                      setIsHackathon(checked);
+                      setCustomQuestions(
+                        checked
+                          ? HackathonTeam.withTemplate(customQuestions)
+                          : HackathonTeam.withoutTemplate(customQuestions),
+                      );
+                      if (checked) {
+                        setIsApproveRequired(true);
+                        setPriceInput("");
+                      }
+                    }}
+                    onMaxTeamSizeChange={setMaxTeamSize}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            ) : null}
 
             {/* Attendee Information */}
             <AccordionItem value="attendee-info">

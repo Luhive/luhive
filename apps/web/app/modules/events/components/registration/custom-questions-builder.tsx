@@ -6,7 +6,7 @@ import { Input } from '~/shared/components/ui/input';
 import { Checkbox } from '~/shared/components/ui/checkbox';
 import { Card } from '~/shared/components/ui/card';
 import { Separator } from '~/shared/components/ui/separator';
-import { Mail, Phone, Plus, Trash2, AlertCircle, CircleDot, AlignLeft } from 'lucide-react';
+import { Mail, Phone, Plus, Trash2, AlertCircle, CircleDot, AlignLeft, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '~/shared/lib/utils/cn';
 import type {
@@ -19,7 +19,10 @@ import {
   createNewCustomQuestion,
   createNewDropdownQuestion,
   createNewDropdownOption,
+  createNewSocialQuestion,
 } from '~/modules/events/utils/custom-questions';
+import { isTemplateQuestion } from '~/modules/events/model/hackathon-team';
+import { ProfileLinks } from '~/modules/profile/model/profile-social-links';
 import {
   MAX_CUSTOM_QUESTIONS,
   MIN_QUESTION_LABEL_LENGTH,
@@ -69,7 +72,9 @@ export function CustomQuestionsBuilder({
     const newQuestion =
       type === 'dropdown'
         ? createNewDropdownQuestion(customQuestions.length)
-        : createNewCustomQuestion(customQuestions.length);
+        : type === 'social'
+          ? createNewSocialQuestion(customQuestions.length)
+          : createNewCustomQuestion(customQuestions.length);
     const updatedQuestions = [...customQuestions, newQuestion];
     setCustomQuestions(updatedQuestions);
     updateValue(phoneConfig, updatedQuestions);
@@ -245,6 +250,16 @@ export function CustomQuestionsBuilder({
               <CircleDot className="h-4 w-4 mr-2" />
               Options
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleAddQuestion('social')}
+              disabled={customQuestions.length >= MAX_CUSTOM_QUESTIONS}
+            >
+              <Link2 className="h-4 w-4 mr-2" />
+              Social
+            </Button>
           </div>
         </div>
 
@@ -286,6 +301,11 @@ export function CustomQuestionsBuilder({
                                 <CircleDot className="h-3 w-3" />
                                 Options
                               </>
+                            ) : questionType === 'social' ? (
+                              <>
+                                <Link2 className="h-3 w-3" />
+                                Social
+                              </>
                             ) : (
                               <>
                                 <AlignLeft className="h-3 w-3" />
@@ -320,6 +340,7 @@ export function CustomQuestionsBuilder({
                             )}
                         </p>
                       </div>
+                      {!isTemplateQuestion(question.id) ? (
                       <Button
                         type="button"
                         variant="ghost"
@@ -330,9 +351,30 @@ export function CustomQuestionsBuilder({
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Delete question</span>
                       </Button>
+                      ) : null}
                     </div>
 
                     {/* Dropdown-specific controls */}
+                    {questionType === 'social' && (
+                      <div className="space-y-2">
+                        <Label className="text-sm">Network</Label>
+                        <div className="flex gap-2">
+                          {ProfileLinks.ids.map((network) => (
+                            <Button
+                              key={network}
+                              type="button"
+                              size="sm"
+                              variant={question.network === network ? 'default' : 'outline'}
+                              disabled={isTemplateQuestion(question.id)}
+                              onClick={() => updateQuestion(question.id, { network })}
+                            >
+                              {ProfileLinks.prefix(network)}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {questionType === 'dropdown' && (
                       <div className="space-y-3 pl-0">
                         {/* Options list */}

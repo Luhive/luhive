@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useNavigation, useSubmit } from "react-router";
 import { Routes } from "~/shared/lib/routing/routes";
 import { publicEventSlug } from "~/modules/events/utils/event-slug";
@@ -9,6 +9,8 @@ import {
   type RegistrationFlowStep,
 } from "~/modules/events/components/registration/registration-flow";
 import { CustomQuestionsForm } from "~/modules/events/components/registration/custom-questions-form";
+import { HackathonRegisterChoice } from "~/modules/events/components/event-register/hackathon-register-choice";
+import { hasHackathonQuestions } from "~/modules/events/model/hackathon-team";
 import { useEventDetailToasts } from "~/modules/events/hooks/use-event-detail-toasts";
 import { getEventTrackingContext } from "~/modules/events/utils/event-session-tracker";
 import type { Community, Event, Profile } from "~/shared/models/entity.types";
@@ -52,6 +54,35 @@ export function EventRegisterView({
   const [guestStep, setGuestStep] = useState<RegistrationFlowStep>("form");
 
   const isInviteMode = Boolean(inviteData?.inviteToken);
+  const isHackathon = hasHackathonQuestions(customQuestions);
+  // Remembered while this page is open, so a Google sign-in (which leaves the
+  // site and comes back here) doesn't ask again. Leaving the page forgets it.
+  const choiceKey = `luhive_hackathon_start_${event.id}`;
+  const [startingTeam, setStartingTeam] = useState(false);
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(choiceKey) === "1") setStartingTeam(true);
+    } catch {
+      // Storage can be blocked; the choice is simply asked again.
+    }
+    return () => {
+      try {
+        sessionStorage.removeItem(choiceKey);
+      } catch {
+        // Nothing to clean up when storage is blocked.
+      }
+    };
+  }, [choiceKey]);
+  const setTeamChoice = (start: boolean) => {
+    try {
+      if (start) sessionStorage.setItem(choiceKey, "1");
+      else sessionStorage.removeItem(choiceKey);
+    } catch {
+      // Storage can be blocked; nothing else depends on it.
+    }
+    setStartingTeam(start);
+  };
+  const choosingHackathonPath = isHackathon && !isInviteMode && !startingTeam;
 
   const eventSlug = publicEventSlug(event);
   const eventPageUrl = Routes.community.event(community.slug, eventSlug);
@@ -149,7 +180,9 @@ export function EventRegisterView({
     isInviteMode ||
     (Boolean(user) && hasCustomQuestions && guestStep !== "otp");
 
-  const overlayTitle = isInviteMode
+  const overlayTitle = choosingHackathonPath
+    ? "How are you joining?"
+    : isInviteMode
     ? "Complete your registration"
     : showCustomQuestionsForm
       ? "Tell us more"
@@ -159,40 +192,61 @@ export function EventRegisterView({
     inviteData?.inviteeName || userProfile?.full_name || undefined;
   const inviteDisplayEmail =
     inviteData?.inviteeEmail || user?.email || undefined;
+  const registrationForm = showCustomQuestionsForm ? (
+    <CustomQuestionsForm
+      open
+      onOpenChange={() => {}}
+      eventId={event.id}
+      customQuestions={customQuestions}
+      userName={inviteDisplayName}
+      userEmail={inviteDisplayEmail}
+      userAvatarUrl={userProfile?.avatar_url || undefined}
+      userPhone={userPhone ?? undefined}
+      onSubmit={handleCustomQuestionsSubmit}
+      isSubmitting={isSubmitting}
+      variant="overlay"
+    />
+  ) : (
+    <RegistrationFlow
+      eventId={event.id}
+      eventSlug={eventSlug}
+      communitySlug={community.slug}
+      communityId={community.id}
+      communityName={community.name}
+      hasCustomQuestions={hasCustomQuestions}
+      customQuestions={customQuestions}
+      userPhone={userPhone}
+      returnTo={registerPageUrl}
+      trackingContext={trackingContext}
+      registerActionUrl={registerPageUrl}
+      onSuccess={handleRegistrationSuccess}
+      onOtpVerified={handleOtpVerified}
+      onStepChange={setGuestStep}
+      variant="overlay"
+    />
+  );
+
   return (
     <RegistrationOverlayShell title={overlayTitle} onCloseHref={eventPageUrl}>
-      {showCustomQuestionsForm ? (
-        <CustomQuestionsForm
-          open
-          onOpenChange={() => {}}
-          eventId={event.id}
-          customQuestions={customQuestions}
-          userName={inviteDisplayName}
-          userEmail={inviteDisplayEmail}
-          userAvatarUrl={userProfile?.avatar_url || undefined}
-          userPhone={userPhone ?? undefined}
-          onSubmit={handleCustomQuestionsSubmit}
-          isSubmitting={isSubmitting}
-          variant="overlay"
-        />
+      {choosingHackathonPath ? (
+        <HackathonRegisterChoice onStartTeam={() => setTeamChoice(true)} />
       ) : (
-        <RegistrationFlow
-          eventId={event.id}
-          eventSlug={eventSlug}
-          communitySlug={community.slug}
-          communityId={community.id}
-          communityName={community.name}
-          hasCustomQuestions={hasCustomQuestions}
-          customQuestions={customQuestions}
-          userPhone={userPhone}
-          returnTo={registerPageUrl}
-          trackingContext={trackingContext}
-          registerActionUrl={registerPageUrl}
-          onSuccess={handleRegistrationSuccess}
-          onOtpVerified={handleOtpVerified}
-          onStepChange={setGuestStep}
-          variant="overlay"
-        />
+        <>
+          {isHackathon && !isInviteMode && guestStep !== "otp" ? (
+            <p className="mb-4 rounded-md bg-muted px-3 py-2.5 text-sm">
+              You're starting a team as its captain. Right after registering, you can invite
+              your teammates.{" "}
+              <button
+                type="button"
+                onClick={() => setTeamChoice(false)}
+                className="cursor-pointer font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Joining a team instead?
+              </button>
+            </p>
+          ) : null}
+          {registrationForm}
+        </>
       )}
     </RegistrationOverlayShell>
   );

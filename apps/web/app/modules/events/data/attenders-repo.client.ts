@@ -14,13 +14,14 @@ export async function getAttendersCustomQuestions(
 }
 
 export async function getAttenderEmails(
+  eventId: string,
   userIds: string[],
 ): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   if (userIds.length === 0) return map;
   try {
     const response = await fetch(
-      `/api/events/attenders-emails?userIds=${encodeURIComponent(JSON.stringify(userIds))}`,
+      `/api/events/attenders-emails?eventId=${encodeURIComponent(eventId)}&userIds=${encodeURIComponent(JSON.stringify(userIds))}`,
     );
     if (response.ok) {
       const { emails } = await response.json();

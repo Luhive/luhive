@@ -51,6 +51,7 @@ function toProfileEvent(
     startTime: event.start_time,
     timezone: event.timezone,
     status,
+    isCaptain: false,
   };
 }
 

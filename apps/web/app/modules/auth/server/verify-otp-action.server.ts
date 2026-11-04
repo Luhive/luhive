@@ -271,6 +271,8 @@ export async function action({ request }: ActionFunctionArgs) {
           },
           duplicateMode: "success",
           submittedFullName,
+          teamCode: (formData.get("teamCode") as string | null) || null,
+          teamInviteId: (formData.get("teamInviteId") as string | null) || null,
         });
 
         if (!registrationResult.success) {

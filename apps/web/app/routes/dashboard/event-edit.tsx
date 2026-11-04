@@ -33,6 +33,11 @@ export default function EditEventPage() {
 
   const [event, setEvent] = useState<Event | null>(null);
   const [paymentInstructions, setPaymentInstructions] = useState<string | null>(null);
+  const [hackathonSettings, setHackathonSettings] = useState<{
+    isHackathon: boolean;
+    maxTeamSize: number | null;
+    hackathonLocked: boolean;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const paymentProvider = CommunitySettings.getPaymentProvider(
     dashboardData?.community.settings,
@@ -81,6 +86,23 @@ export default function EditEventPage() {
           if (cancelled) return;
           setPaymentInstructions(body?.instructions ?? null);
         }
+
+        const hackathonResponse = await fetch(
+          `/api/events/hackathon?eventId=${encodeURIComponent(event.id)}`,
+        );
+        const hackathonBody = hackathonResponse.ok
+          ? ((await hackathonResponse.json()) as {
+              isHackathon?: boolean;
+              maxTeamSize?: number | null;
+              hackathonLocked?: boolean;
+            })
+          : null;
+        if (cancelled) return;
+        setHackathonSettings({
+          isHackathon: Boolean(hackathonBody?.isHackathon),
+          maxTeamSize: hackathonBody?.maxTeamSize ?? null,
+          hackathonLocked: Boolean(hackathonBody?.hackathonLocked),
+        });
 
         setEvent(event);
       } catch (error) {
@@ -143,6 +165,9 @@ export default function EditEventPage() {
     coverUrl: event.cover_url ?? '',
     status: event.status,
     isApproveRequired: event.is_approve_required ?? false,
+    isHackathon: hackathonSettings?.isHackathon ?? false,
+    maxTeamSize: hackathonSettings?.maxTeamSize ?? undefined,
+    hackathonLocked: hackathonSettings?.hackathonLocked ?? false,
     priceMinor: event.price_minor,
     paymentInstructions,
     customQuestions: (event.custom_questions ?? null) as CustomQuestionJson | null,

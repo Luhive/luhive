@@ -14,6 +14,7 @@ import type { TimeRemaining } from "~/modules/events/model/event-detail-view.typ
 import type { UserData } from "~/modules/events/server/event-detail-loader.server";
 import type { ExternalPlatform } from "~/modules/events/model/event.types";
 import type { EventTrackingContext } from "~/modules/events/utils/event-session-tracker";
+import type { HackathonViewer } from "~/modules/events/model/hackathon-team";
 
 interface EventRegistrationCardProps {
 	event: Event;
@@ -30,6 +31,7 @@ interface EventRegistrationCardProps {
 	isUnregistering: boolean;
 	eventTrackingContext: EventTrackingContext;
 	highlighted?: boolean;
+	hackathon?: HackathonViewer | null;
 }
 
 export function EventRegistrationCard({
@@ -47,6 +49,7 @@ export function EventRegistrationCard({
 	isUnregistering,
 	eventTrackingContext,
 	highlighted = false,
+	hackathon = null,
 }: EventRegistrationCardProps) {
 	const {
 		registrationCount,
@@ -127,6 +130,8 @@ export function EventRegistrationCard({
 							user={user}
 							userProfile={userProfile}
 							pendingTicketPayment={userData.pendingTicketPayment}
+							hackathon={hackathon}
+							justRegistered={highlighted}
 						/>
 					</Activity>
 

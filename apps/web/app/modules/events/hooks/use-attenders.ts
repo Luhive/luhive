@@ -55,7 +55,7 @@ export function useAttenders({ eventId, isExternalEvent = false }: UseAttendersO
         .filter((reg: any) => reg.user_id)
         .map((reg: any) => reg.user_id);
 
-      const userEmailsMap = await getAttenderEmails(authenticatedUserIds);
+      const userEmailsMap = await getAttenderEmails(eventId, authenticatedUserIds);
 
       const formattedData: Attender[] = registrations.map((reg: any) => {
         const isAnonymous = !reg.user_id;

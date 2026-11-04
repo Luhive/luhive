@@ -29,6 +29,7 @@ export default [
         "routes/web/event-collaboration-legacy-redirect.tsx",
       ),
       route(":eventSlug/collaboration", "routes/web/event-collaboration.tsx"),
+      route(":eventSlug/join/:code", "routes/web/event-team-join.tsx"),
       route(":eventSlug", "routes/web/event-detail.tsx", [
         route("register", "routes/web/event-register.tsx"),
       ]),
@@ -117,6 +118,7 @@ export default [
   // Events API routes
   route("api/events/create", "routes/api/events/create.tsx"),
   route("api/events/update", "routes/api/events/update.tsx"),
+  route("api/events/hackathon", "routes/api/events/hackathon.tsx"),
   route(
     "api/events/attenders-emails",
     "routes/api/events/attenders-emails.tsx",

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef } from "react";
+import { lazy, Suspense, useMemo, useRef } from "react";
 import { Link, useLoaderData, useParams } from "react-router";
 import { AttendersTableSkeleton } from "~/modules/events/components/attenders/attenders-table-skeleton";
 import type { AttendersTableHandle } from "~/modules/events/components/attenders/attenders-table";
@@ -6,8 +6,13 @@ import { getCommunityBySlugClient } from "~/modules/dashboard/data/dashboard-rep
 import { getEventByIdClient } from "~/modules/events/data/events-repo.client";
 import { createClient } from "~/shared/lib/supabase/client";
 import type { Database } from "~/shared/models/database.types";
-import { ScanQrCode } from "lucide-react";
+import { ScanQrCode, UserRound, UsersRound } from "lucide-react";
 import { InviteSomeoneButton } from "~/modules/events/components/registration/invite-modal";
+import {
+  HackathonTeamsSection,
+  useHackathonDashboard,
+} from "~/modules/events/components/attenders/hackathon-teams-section";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/shared/components/ui/tabs";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
 
@@ -15,6 +20,7 @@ type AttendersLoaderData = {
   event: Event | null;
   eventId: string | null;
   error: string | null;
+  isHackathon: boolean;
 };
 
 const AttendersTable = lazy(() =>
@@ -35,18 +41,18 @@ async function clientLoader({
   const eventId = url.searchParams.get("eventId");
 
   if (!slug) {
-    return { event: null, eventId: null, error: null };
+    return { event: null, eventId: null, error: null, isHackathon: false };
   }
 
   const { community, error: communityError } =
     await getCommunityBySlugClient(slug);
 
   if (communityError || !community) {
-    return { event: null, eventId: null, error: "Community not found" };
+    return { event: null, eventId: null, error: "Community not found", isHackathon: false };
   }
 
   if (!eventId) {
-    return { event: null, eventId: null, error: null };
+    return { event: null, eventId: null, error: null, isHackathon: false };
   }
 
   // First, try to get the event as host (community owns the event)
@@ -56,7 +62,7 @@ async function clientLoader({
   );
 
   if (event) {
-    return { event, eventId, error: null };
+    return { event, eventId, error: null, isHackathon: await readHackathon(eventId) };
   }
 
   // If not found as host, check if community is a co-host
@@ -80,7 +86,12 @@ async function clientLoader({
         .single();
 
       if (collaboration) {
-        return { event: coHostEvent as Event, eventId, error: null };
+        return {
+          event: coHostEvent as Event,
+          eventId,
+          error: null,
+          isHackathon: await readHackathon(eventId),
+        };
       }
     }
   } catch (err) {
@@ -93,6 +104,7 @@ async function clientLoader({
       event: null,
       eventId,
       error: eventError.message || "Event not found",
+      isHackathon: false,
     };
   }
 
@@ -100,10 +112,24 @@ async function clientLoader({
     event: null,
     eventId,
     error: "You do not have permission to view this event's attenders",
+    isHackathon: false,
   };
 }
 
 export { clientLoader };
+
+async function readHackathon(eventId: string) {
+  try {
+    const response = await fetch(
+      `/api/events/hackathon?eventId=${encodeURIComponent(eventId)}`,
+    );
+    if (!response.ok) return false;
+    const body = (await response.json()) as { isHackathon?: boolean };
+    return Boolean(body.isHackathon);
+  } catch {
+    return false;
+  }
+}
 
 export function meta() {
   return [
@@ -113,9 +139,19 @@ export function meta() {
 }
 
 export default function AttendersPage() {
-  const { event, eventId, error } = useLoaderData<AttendersLoaderData>();
+  const { event, eventId, error, isHackathon } = useLoaderData<AttendersLoaderData>();
   const { slug } = useParams();
   const attendersTableRef = useRef<AttendersTableHandle>(null);
+  const hackathon = useHackathonDashboard(eventId, isHackathon);
+  const teamByRegistration = useMemo(() => {
+    const teams = new Map<string, { name: string; isCaptain: boolean }>();
+    for (const team of hackathon.dashboard?.teams ?? []) {
+      for (const member of team.members) {
+        teams.set(member.registrationId, { name: team.name, isCaptain: member.role === "captain" });
+      }
+    }
+    return teams;
+  }, [hackathon.dashboard]);
 
   if (!eventId || !event) {
     return (
@@ -184,20 +220,63 @@ export default function AttendersPage() {
               <ScanQrCode className="h-4 w-4" />
               Open QR Scanner
             </Link>
-            <InviteSomeoneButton
-              eventId={eventId}
-              size="default"
-              className="inline-flex w-auto"
-              onInviteSuccess={(invite) => {
-                attendersTableRef.current?.applyInviteResult(invite);
-              }}
-            />
+            {isHackathon ? null : (
+              <InviteSomeoneButton
+                eventId={eventId}
+                size="default"
+                className="inline-flex w-auto"
+                onInviteSuccess={(invite) => {
+                  attendersTableRef.current?.applyInviteResult(invite);
+                }}
+              />
+            )}
           </div>
         ) : null}
 
-        <Suspense fallback={<AttendersTableSkeleton />}>
-          <AttendersTable ref={attendersTableRef} eventId={eventId} />
-        </Suspense>
+        {isHackathon ? (
+          <Tabs defaultValue="teams" className="gap-4">
+            <TabsList>
+              <TabsTrigger value="teams" className="px-3">
+                <UsersRound aria-hidden />
+                Teams
+                <span className="text-muted-foreground">
+                  {hackathon.dashboard?.teams.length ?? ""}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="people" className="px-3">
+                <UserRound aria-hidden />
+                People
+                <span className="text-muted-foreground">
+                  {hackathon.dashboard
+                    ? teamByRegistration.size + hackathon.dashboard.unteamed.length
+                    : ""}
+                </span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="teams">
+              <HackathonTeamsSection
+                eventId={eventId}
+                dashboard={hackathon.dashboard}
+                loading={hackathon.loading}
+                onChanged={() => void hackathon.reload()}
+              />
+            </TabsContent>
+            <TabsContent value="people">
+              <Suspense fallback={<AttendersTableSkeleton />}>
+                <AttendersTable
+                  ref={attendersTableRef}
+                  eventId={eventId}
+                  hidePersonApproval
+                  teamByRegistration={teamByRegistration}
+                />
+              </Suspense>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <Suspense fallback={<AttendersTableSkeleton />}>
+            <AttendersTable ref={attendersTableRef} eventId={eventId} />
+          </Suspense>
+        )}
       </div>
     </div>
   );

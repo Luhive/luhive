@@ -229,6 +229,10 @@ export interface Events {
   id: Generated<string>;
   is_approve_required: Generated<boolean>;
   /**
+   * When true, people register onto a team. Require-approval is forced on.
+   */
+  is_hackathon: Generated<boolean>;
+  /**
    * Formatted address from Google Places
    */
   location_address: string | null;
@@ -248,6 +252,10 @@ export interface Events {
    * Google Place ID for deep links and embed
    */
   location_place_id: string | null;
+  /**
+   * Optional cap on people per team. NULL means no cap.
+   */
+  max_team_size: number | null;
   online_meeting_link: string | null;
   /**
    * Ticket price in minor units (qəpik). NULL means the event is free.
@@ -267,6 +275,32 @@ export interface Events {
   timezone: string;
   title: string;
   updated_at: Generated<Timestamp | null>;
+}
+
+export interface EventTeamInvites {
+  created_at: Generated<Timestamp>;
+  email: string;
+  id: Generated<string>;
+  team_id: string;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface EventTeamMembers {
+  created_at: Generated<Timestamp>;
+  id: Generated<string>;
+  registration_id: string;
+  role: string;
+  team_id: string;
+}
+
+export interface EventTeams {
+  created_at: Generated<Timestamp>;
+  description: string;
+  event_id: string;
+  id: Generated<string>;
+  join_code: string;
+  name: string;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface EventVisits {
@@ -476,6 +510,9 @@ export interface DB {
   event_payment_instructions: EventPaymentInstructions;
   event_registrations: EventRegistrations;
   event_reminders: EventReminders;
+  event_team_invites: EventTeamInvites;
+  event_team_members: EventTeamMembers;
+  event_teams: EventTeams;
   event_visits: EventVisits;
   events: Events;
   google_forms_tokens: GoogleFormsTokens;

@@ -52,6 +52,8 @@ export class Routes {
     events: (slug: string) => `${COMMUNITY_BASE}/${slug}/events`,
     event: (communitySlug: string, eventSlug: string) =>
       `${COMMUNITY_BASE}/${communitySlug}/${eventSlug}`,
+    eventTeamJoin: (communitySlug: string, eventSlug: string, code: string) =>
+      `${COMMUNITY_BASE}/${communitySlug}/${eventSlug}/join/${code}`,
     eventRegister: (communitySlug: string, eventSlug: string) =>
       `${COMMUNITY_BASE}/${communitySlug}/${eventSlug}/register`,
     eventInviteAccept: (communitySlug: string, eventSlug: string) =>

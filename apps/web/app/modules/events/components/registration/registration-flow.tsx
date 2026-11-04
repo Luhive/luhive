@@ -107,6 +107,11 @@ export interface RegistrationFlowProps {
   showStepHeader?: boolean;
   onStepChange?: (step: RegistrationFlowStep) => void;
   variant?: "default" | "overlay";
+  teamCode?: string;
+  /** The team invite this person came from; joining clears it whatever email they use. */
+  teamInviteId?: string;
+  /** Prefills the email field, e.g. from a team invite. */
+  defaultEmail?: string;
 }
 
 export function getRegistrationStepLabels(step: RegistrationFlowStep) {
@@ -138,6 +143,9 @@ export function RegistrationFlow({
   showStepHeader = false,
   onStepChange,
   variant = "default",
+  teamCode,
+  teamInviteId,
+  defaultEmail = "",
 }: RegistrationFlowProps) {
   const isOverlay = variant === "overlay";
   const isInAppBrowser = useIsInAppBrowser();
@@ -155,7 +163,7 @@ export function RegistrationFlow({
   const [phone, setPhone] = React.useState("");
   const [questionFormAnswers, setQuestionFormAnswers] =
     React.useState<CustomQuestionFormAnswers>({});
-  const [showEmailSection, setShowEmailSection] = React.useState(false);
+  const [showEmailSection, setShowEmailSection] = React.useState(Boolean(defaultEmail));
   const emailInputRef = React.useRef<HTMLInputElement>(null);
   const pendingSignupRef = React.useRef<{ email: string; fullName: string } | null>(
     null,
@@ -163,7 +171,7 @@ export function RegistrationFlow({
   const signupTriggeredRef = React.useRef(false);
 
   const form = useForm<FormValues>({
-    defaultValues: { email: "", fullName: "" },
+    defaultValues: { email: defaultEmail, fullName: "" },
   });
   const { ref: emailRegisterRef, ...emailRegisterProps } = form.register("email");
 
@@ -655,6 +663,8 @@ export function RegistrationFlow({
           !userExists ? form.getValues("fullName")?.trim() || undefined : undefined
         }
         eventId={eventId}
+        teamCode={teamCode}
+        teamInviteId={teamInviteId}
         customAnswers={customAnswers ? JSON.stringify(customAnswers) : undefined}
         eventSessionId={resolvedTrackingContext.sessionId}
         eventUtmSource={resolvedTrackingContext.utmSource}

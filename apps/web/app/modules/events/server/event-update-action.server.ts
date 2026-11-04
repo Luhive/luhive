@@ -1,5 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { createClient } from "~/shared/lib/supabase/server";
+import * as HackathonTeams from "~/modules/events/server/hackathon-team.server";
 import { saveEventReminders } from "~/modules/events/server/event-reminders.server";
 import type { Database, Json } from "~/shared/models/database.types";
 import { resolveEventPrice } from "~/modules/events/server/resolve-event-price.server";
@@ -33,6 +34,8 @@ export interface EventUpdatePayload {
   coverUrl?: string | null;
   status: EventStatus;
   isApproveRequired: boolean;
+  isHackathon?: boolean;
+  maxTeamSize?: number | null;
   priceMinor?: number | null;
   paymentInstructions?: string | null;
   customQuestions?: Json | null;
@@ -94,6 +97,8 @@ export async function eventUpdateAction({
     coverUrl,
     status,
     isApproveRequired,
+    isHackathon,
+    maxTeamSize,
     priceMinor: requestedPriceMinor,
     paymentInstructions: requestedPaymentInstructions,
     customQuestions,
@@ -117,7 +122,7 @@ export async function eventUpdateAction({
 
   const { data: existingEvent } = await supabase
     .from("events")
-    .select("price_minor")
+    .select("price_minor, registration_type")
     .eq("id", eventId)
     .maybeSingle();
 
@@ -132,6 +137,9 @@ export async function eventUpdateAction({
   });
   if (!price.ok) {
     return { success: false, error: price.error };
+  }
+  if (isHackathon && price.priceMinor !== null) {
+    return { success: false, error: "Hackathon mode is only available on free events." };
   }
 
   const paymentInstructions = await resolveEventPaymentInstructions({
@@ -174,7 +182,8 @@ export async function eventUpdateAction({
       cover_url: coverUrl || null,
       status,
       // Payment is the gate for priced events, so manual approval is not used.
-      is_approve_required: price.priceMinor === null ? isApproveRequired : false,
+      is_approve_required:
+        price.priceMinor === null ? Boolean(isHackathon) || isApproveRequired : false,
       price_minor: price.priceMinor,
       custom_questions: (customQuestions ?? null) as Json | null,
     })
@@ -183,6 +192,26 @@ export async function eventUpdateAction({
   if (eventError) {
     console.error("Error updating event:", eventError);
     return { success: false, error: eventError.message || "Failed to update event" };
+  }
+
+  try {
+    const hackathon = await HackathonTeams.applyEventHackathon(eventId, {
+      requested: Boolean(isHackathon),
+      maxTeamSize: maxTeamSize ?? null,
+      priceMinor: price.priceMinor,
+      // From the stored event: this action never changes it, and hackathon mode
+      // must refuse external events even if a request asks for it.
+      registrationType: existingEvent?.registration_type ?? null,
+    });
+    if (!hackathon.ok) {
+      return { success: false, error: hackathon.error };
+    }
+  } catch (hackathonError) {
+    console.error("Failed to save hackathon settings:", hackathonError);
+    return {
+      success: false,
+      error: hackathonError instanceof Error ? hackathonError.message : "Could not save hackathon mode",
+    };
   }
 
   await saveEventReminders(eventId, reminderTimes ?? [], reminderMessage ?? null);

@@ -10,6 +10,7 @@ import type { TimeRemaining } from "~/modules/events/model/event-detail-view.typ
 import type { UserData } from "~/modules/events/server/event-detail-loader.server";
 import type { ExternalPlatform } from "~/modules/events/model/event.types";
 import type { EventTrackingContext } from "~/modules/events/utils/event-session-tracker";
+import type { HackathonViewer } from "~/modules/events/model/hackathon-team";
 import { EventRegistrationCard } from "./event-registration-card";
 import { EventAttendeesAvatars } from "./event-attendees-avatars";
 import { EventLocationMapSection } from "~/modules/events/components/shared/event-location-map-section";
@@ -42,6 +43,7 @@ interface EventInfoSectionProps {
   eventTrackingContext: EventTrackingContext;
   highlightRegistrationCard?: boolean;
   isRegisterOpen?: boolean;
+  hackathon?: HackathonViewer | null;
 }
 
 export function EventInfoSection({
@@ -60,6 +62,7 @@ export function EventInfoSection({
   eventTrackingContext,
   highlightRegistrationCard = false,
   isRegisterOpen = false,
+  hackathon = null,
 }: EventInfoSectionProps) {
   const { isUserRegistered, isOwnerOrAdmin } = userData;
   const registrationCardRef = useRef<HTMLDivElement>(null);
@@ -209,6 +212,7 @@ export function EventInfoSection({
             isUnregistering={isUnregistering}
             eventTrackingContext={eventTrackingContext}
             highlighted={highlightRegistrationCard}
+            hackathon={hackathon}
           />
         </div>
       </div>

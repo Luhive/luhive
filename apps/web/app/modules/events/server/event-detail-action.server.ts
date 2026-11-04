@@ -13,6 +13,7 @@ import { computeCanRegister } from "~/modules/events/server/fetch-event-page-use
 import { completeEventRegistration } from "~/modules/events/server/complete-event-registration.server";
 import type { EventRegistrationState } from "~/modules/events/model/event-detail-view.types";
 import { releaseTicketOrderForCancellation } from "~/modules/events/server/release-ticket-order-for-cancellation.server";
+import * as HackathonTeams from "~/modules/events/server/hackathon-team.server";
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const { supabase } = createClient(request);
@@ -178,6 +179,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
           (formData.get("eventFirstVisitStartedAt") as string | null) || null,
       },
       duplicateMode: "error",
+      teamCode: (formData.get("teamCode") as string | null) || null,
     });
 
     if (registrationResult.paymentUrl) {
@@ -200,6 +202,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
       .maybeSingle();
 
     if (ownRegistration) {
+      const hackathonCancel = await HackathonTeams.prepareHackathonCancel(
+        eventId,
+        ownRegistration.id,
+      );
+      if (!hackathonCancel.ok) {
+        return { success: false, error: hackathonCancel.error };
+      }
+
       const released = await releaseTicketOrderForCancellation({
         registrationId: ownRegistration.id,
         eventId,

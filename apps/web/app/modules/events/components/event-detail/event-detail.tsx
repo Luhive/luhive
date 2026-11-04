@@ -138,6 +138,7 @@ export function EventDetail({
 	hostingCommunities,
 	highlightRegistrationCard = false,
 	isRegisterOpen = false,
+	hackathon = null,
 }: EventDetailLoaderData & {
 	highlightRegistrationCard?: boolean;
 	isRegisterOpen?: boolean;
@@ -240,6 +241,7 @@ export function EventDetail({
 					eventTrackingContext={trackingContext}
 					highlightRegistrationCard={highlightRegistrationCard}
 					isRegisterOpen={isRegisterOpen}
+					hackathon={hackathon}
 				/>
 			</div>
 		</main>

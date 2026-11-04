@@ -733,6 +733,122 @@ export type Database = {
           },
         ]
       }
+      event_team_invites: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_team_invites_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "event_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_team_members: {
+        Row: {
+          created_at: string
+          id: string
+          registration_id: string
+          role: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          registration_id: string
+          role: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          registration_id?: string
+          role?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_team_members_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: true
+            referencedRelation: "event_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "event_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_teams: {
+        Row: {
+          created_at: string
+          description: string
+          event_id: string
+          id: string
+          join_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_id: string
+          id?: string
+          join_code: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_id?: string
+          id?: string
+          join_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_teams_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_teams_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "hub_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_visits: {
         Row: {
           browser: string | null
@@ -872,11 +988,13 @@ export type Database = {
           external_registration_url: string | null
           id: string
           is_approve_required: boolean
+          is_hackathon: boolean
           location_address: string | null
           location_lat: number | null
           location_lng: number | null
           location_name: string | null
           location_place_id: string | null
+          max_team_size: number | null
           online_meeting_link: string | null
           price_minor: number | null
           registration_deadline: string | null
@@ -905,11 +1023,13 @@ export type Database = {
           external_registration_url?: string | null
           id?: string
           is_approve_required?: boolean
+          is_hackathon?: boolean
           location_address?: string | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
           location_place_id?: string | null
+          max_team_size?: number | null
           online_meeting_link?: string | null
           price_minor?: number | null
           registration_deadline?: string | null
@@ -938,11 +1058,13 @@ export type Database = {
           external_registration_url?: string | null
           id?: string
           is_approve_required?: boolean
+          is_hackathon?: boolean
           location_address?: string | null
           location_lat?: number | null
           location_lng?: number | null
           location_name?: string | null
           location_place_id?: string | null
+          max_team_size?: number | null
           online_meeting_link?: string | null
           price_minor?: number | null
           registration_deadline?: string | null

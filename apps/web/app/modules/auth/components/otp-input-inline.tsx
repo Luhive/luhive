@@ -40,6 +40,8 @@ interface OtpInputInlineProps {
   /** Event RSVP flow: pass-through to verify-otp-action */
   fullName?: string;
   eventId?: string;
+  teamCode?: string;
+  teamInviteId?: string;
   customAnswers?: string;
   eventSessionId?: string;
   eventUtmSource?: string;
@@ -60,6 +62,8 @@ export function OtpInputInline({
   onSuccess,
   fullName,
   eventId,
+  teamCode,
+  teamInviteId,
   customAnswers,
   eventSessionId,
   eventUtmSource,
@@ -76,9 +80,12 @@ export function OtpInputInline({
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
   const autoSubmittedTokenRef = useRef("");
   const completedOnceRef = useRef(false);
+  const [completed, setCompleted] = useState(false);
   const otpContainerRef = useRef<HTMLDivElement>(null);
 
-  const isVerifying = verifyFetcher.state === "submitting";
+  // Busy through the whole round trip, including the reload after the action,
+  // and after success while the parent moves on to the next page.
+  const isVerifying = verifyFetcher.state !== "idle" || completed;
   const isResending = resendFetcher.state === "submitting";
 
   const focusOtpInput = () => {
@@ -148,6 +155,7 @@ export function OtpInputInline({
     }
 
     completedOnceRef.current = true;
+    setCompleted(true);
     setDisplayError(null);
     const data = verifyFetcher.data;
     onSuccess({
@@ -189,6 +197,8 @@ export function OtpInputInline({
     }
     if (fullName) formData.append("fullName", fullName);
     if (eventId) formData.append("eventId", eventId);
+    if (teamCode) formData.append("teamCode", teamCode);
+    if (teamInviteId) formData.append("teamInviteId", teamInviteId);
     if (customAnswers) formData.append("customAnswers", customAnswers);
     if (eventSessionId) formData.append("eventSessionId", eventSessionId);
     if (eventUtmSource) formData.append("eventUtmSource", eventUtmSource);
@@ -204,6 +214,8 @@ export function OtpInputInline({
     customAnswers,
     email,
     eventId,
+    teamCode,
+    teamInviteId,
     eventSessionId,
     eventUtmCampaign,
     eventUtmContent,
@@ -232,6 +244,8 @@ export function OtpInputInline({
     }
     if (fullName) formData.append("fullName", fullName);
     if (eventId) formData.append("eventId", eventId);
+    if (teamCode) formData.append("teamCode", teamCode);
+    if (teamInviteId) formData.append("teamInviteId", teamInviteId);
     if (customAnswers) formData.append("customAnswers", customAnswers);
     if (eventSessionId) formData.append("eventSessionId", eventSessionId);
     if (eventUtmSource) formData.append("eventUtmSource", eventUtmSource);

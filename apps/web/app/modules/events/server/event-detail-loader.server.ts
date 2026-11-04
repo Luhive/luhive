@@ -20,6 +20,8 @@ import {
   logLoaderTiming,
   timedLoader,
 } from "~/shared/lib/diagnostics/loader-timing.server";
+import * as HackathonTeams from "~/modules/events/server/hackathon-team.server";
+import type { HackathonViewer } from "~/modules/events/model/hackathon-team";
 
 dayjs.extend(timezone);
 
@@ -69,6 +71,7 @@ export interface EventDetailLoaderData {
     settings: Community["settings"];
     social_links: Community["social_links"];
   }>;
+  hackathon: HackathonViewer | null;
 }
 
 export async function loader({
@@ -345,6 +348,8 @@ export async function loader({
     }));
   }
 
+  const hackathon = await HackathonTeams.findHackathonViewer(event.id, u?.id ?? null);
+
   logLoaderTiming("eventDetail loader total", loaderStartedAt);
   return {
     event,
@@ -360,5 +365,6 @@ export async function loader({
     externalPlatformName,
     registrationDeadlineFormatted,
     hostingCommunities,
+    hackathon,
   };
 }

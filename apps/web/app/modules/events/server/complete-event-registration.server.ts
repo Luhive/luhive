@@ -24,6 +24,8 @@ import { isPaidTicketingEnabledForCommunity } from "~/modules/events/server/is-p
 import { requestRegistrationPayment } from "~/modules/events/server/payments/request-registration-payment.server";
 import { sendPaymentRequestEmails } from "~/modules/events/server/payments/send-payment-request-emails.server";
 import * as CommunitySettings from "@luhive/domain/v1/community-settings";
+import { placeHackathonRegistration } from "~/modules/events/server/hackathon-team.server";
+import { logHackathon } from "~/modules/events/server/hackathon-log.server";
 import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 dayjs.extend(utc);
@@ -34,7 +36,13 @@ type DbClient = SupabaseClient<Database>;
 type EventRegistrationUser = {
   id: string;
   email?: string | null;
+  user_metadata?: Record<string, unknown> | null;
 };
+
+function metadataName(user: EventRegistrationUser) {
+  const value = user.user_metadata?.full_name ?? user.user_metadata?.name;
+  return typeof value === "string" ? value.trim() : "";
+}
 
 export type EventRegistrationTrackingInput = {
   sessionId?: string | null;
@@ -59,6 +67,8 @@ type CompleteEventRegistrationOptions = {
   tracking?: EventRegistrationTrackingInput;
   duplicateMode?: "error" | "success";
   submittedFullName?: string | null;
+  teamCode?: string | null;
+  teamInviteId?: string | null;
 };
 
 export type CompleteEventRegistrationResult = {
@@ -142,6 +152,8 @@ export async function completeEventRegistration({
   tracking,
   duplicateMode = "error",
   submittedFullName,
+  teamCode = null,
+  teamInviteId = null,
 }: CompleteEventRegistrationOptions): Promise<CompleteEventRegistrationResult> {
   if (event.registration_type === "external") {
     return {
@@ -244,6 +256,12 @@ export async function completeEventRegistration({
   }
 
   if (event.custom_questions) {
+    const { validateCustomAnswers } = await import(
+      "~/modules/events/utils/custom-questions"
+    );
+    const { teammateQuestions } = await import("~/modules/events/model/hackathon-team");
+    const questions = event.custom_questions as unknown as import("~/modules/events/model/event.types").CustomQuestionJson;
+    const questionsToCheck = teamCode ? teammateQuestions(questions) : questions;
     if (!customAnswers) {
       return {
         success: false,
@@ -251,12 +269,9 @@ export async function completeEventRegistration({
       };
     }
 
-    const { validateCustomAnswers } = await import(
-      "~/modules/events/utils/custom-questions"
-    );
     const validation = validateCustomAnswers(
       customAnswers as import("~/modules/events/model/event.types").CustomAnswerJson,
-      event.custom_questions as unknown as import("~/modules/events/model/event.types").CustomQuestionJson,
+      questionsToCheck,
     );
     if (!validation.valid) {
       return {
@@ -333,6 +348,25 @@ export async function completeEventRegistration({
   const registrationSourceCommunityId =
     sourceCommunityId || resolvedCommunity?.id || event.community_id;
 
+  // A sign-in that stopped halfway (e.g. an OAuth return that never reached
+  // /auth/verify) leaves an auth user with no profile, and registrations
+  // reference profiles. Create it here so that account can still register.
+  const { data: ownProfile } = await serviceClient
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!ownProfile) {
+    await serviceClient.from("profiles").insert({
+      id: user.id,
+      full_name:
+        submittedFullName?.trim() ||
+        metadataName(user) ||
+        user.email?.split("@")[0] ||
+        "User",
+    });
+  }
+
   const { error: registerError } = await (supabase as any)
     .from("event_registrations")
     .insert({
@@ -370,6 +404,27 @@ export async function completeEventRegistration({
       success: false,
       error: "Failed to create registration. Please try again.",
     };
+  }
+
+  const hackathonPlacement = await placeHackathonRegistration({
+    eventId: event.id,
+    userId: user.id,
+    teamCode,
+    teamInviteId,
+    answers: customAnswers as Record<string, unknown> | null,
+  });
+  if (!hackathonPlacement.ok) {
+    logHackathon("warn", teamCode ? "register:join-team" : "register:start-team", {
+      eventId: event.id,
+      userId: user.id,
+      message: hackathonPlacement.error,
+    });
+    await serviceClient
+      .from("event_registrations")
+      .delete()
+      .eq("event_id", event.id)
+      .eq("user_id", user.id);
+    return { success: false, error: hackathonPlacement.error };
   }
 
   if (isPaid) {

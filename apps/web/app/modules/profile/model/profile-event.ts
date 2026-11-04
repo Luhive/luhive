@@ -11,4 +11,5 @@ export type ProfileEvent = {
   startTime: string;
   timezone: string;
   status: ProfileEventStatus;
+  isCaptain: boolean;
 };

@@ -6,6 +6,7 @@ node_modules/
 .env.production
 .env.local
 .env.development.local
+.env.test.local
 
 dbMigration.sh
 

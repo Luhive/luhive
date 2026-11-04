@@ -1,4 +1,4 @@
-import { Activity } from "react";
+import { Activity, type ReactNode } from "react";
 import { Form } from "react-router";
 import * as CommunitySettings from "@luhive/domain/v1/community-settings";
 import { Button } from "~/shared/components/ui/button";
@@ -13,6 +13,8 @@ import { InviteSomeoneButton } from "~/modules/events/components/registration/in
 import { RegistrationEmailSpamHint } from "~/modules/events/components/registration/registration-email-spam-hint";
 import { useEventStartTimer } from "~/modules/events/hooks/use-event-start-timer";
 import type { Event } from "~/shared/models/entity.types";
+import type { HackathonViewer } from "~/modules/events/model/hackathon-team";
+import { HackathonTeamPanel } from "../hackathon-team-panel";
 import { EventDiscussionLinkButton } from "../event-discussion-link-button";
 import { CancelRegistrationLink } from "./shared/cancel-registration-link";
 import { EventStartCountdownBadge } from "./shared/event-start-countdown-badge";
@@ -32,8 +34,10 @@ interface NativeRegisteredViewProps {
 	isPastEvent: boolean;
 	isUnregistering: boolean;
 	user: { id: string; email?: string | null } | null;
-	userProfile: { full_name: string | null; avatar_url: string | null } | null;
+	userProfile: { full_name: string | null; avatar_url: string | null; metadata?: unknown } | null;
 	pendingTicketPayment?: PendingTicketPayment | null;
+	hackathon?: HackathonViewer | null;
+	justRegistered?: boolean;
 }
 
 interface RegisteredStateViewProps {
@@ -43,6 +47,7 @@ interface RegisteredStateViewProps {
 	isUnregistering: boolean;
 	user: { id: string; email?: string | null } | null;
 	userProfile: { full_name: string | null; avatar_url: string | null } | null;
+	showInvite?: boolean;
 }
 
 function useRegistrationIdentity(
@@ -114,6 +119,7 @@ function ApprovedRegisteredView({
 	user,
 	userProfile,
 	payAtDoor,
+	showInvite = true,
 }: RegisteredStateViewProps & {
 	userCheckinToken: string | null;
 	discussionLink?: string | null;
@@ -175,13 +181,15 @@ function ApprovedRegisteredView({
 							/>
 						) : null}
 					</div>
-					<InviteSomeoneButton
-						eventId={event.id}
-						label="Invite a Friend"
-						size="sm"
-						variant="outline"
-						className="order-1 w-full sm:order-0 sm:w-auto h-8 sm:shrink-0"
-					/>
+					{showInvite ? (
+						<InviteSomeoneButton
+							eventId={event.id}
+							label="Invite a Friend"
+							size="sm"
+							variant="outline"
+							className="order-1 w-full sm:order-0 sm:w-auto h-8 sm:shrink-0"
+						/>
+					) : null}
 				</>
 			}
 		/>
@@ -194,6 +202,7 @@ function PendingRegisteredView({
 	isUnregistering,
 	user,
 	userProfile,
+	showInvite = true,
 }: RegisteredStateViewProps) {
 	const timeUntilStart = useEventStartTimer(
 		event.start_time,
@@ -218,13 +227,15 @@ function PendingRegisteredView({
 				</div>
 			}
 			actions={
-				<InviteSomeoneButton
-					eventId={event.id}
-					label="Invite a Friend"
-					size="sm"
-					variant="outline"
-					className="w-full sm:w-auto h-8"
-				/>
+				showInvite ? (
+					<InviteSomeoneButton
+						eventId={event.id}
+						label="Invite a Friend"
+						size="sm"
+						variant="outline"
+						className="w-full sm:w-auto h-8"
+					/>
+				) : null
 			}
 		/>
 	);
@@ -377,6 +388,8 @@ export function NativeRegisteredView({
 	user,
 	userProfile,
 	pendingTicketPayment,
+	hackathon = null,
+	justRegistered = false,
 }: NativeRegisteredViewProps) {
 	const stateProps: RegisteredStateViewProps = {
 		event,
@@ -385,14 +398,16 @@ export function NativeRegisteredView({
 		isUnregistering,
 		user,
 		userProfile,
+		showInvite: !hackathon,
 	};
 
 	const paysCashAtDoor =
 		pendingTicketPayment?.provider === CommunitySettings.PaymentProvider.Manual &&
 		pendingTicketPayment.paymentMethod === "cash";
 
+	let registrationView: ReactNode;
 	if (userRegistrationStatus === "approved") {
-		return (
+		registrationView = (
 			<ApprovedRegisteredView
 				{...stateProps}
 				userCheckinToken={userCheckinToken}
@@ -400,31 +415,33 @@ export function NativeRegisteredView({
 				payAtDoor={paysCashAtDoor}
 			/>
 		);
-	}
-
-	if (userRegistrationStatus === "pending" && pendingTicketPayment) {
-		if (pendingTicketPayment.provider === CommunitySettings.PaymentProvider.Manual) {
-			return (
+	} else if (userRegistrationStatus === "pending" && pendingTicketPayment) {
+		registrationView =
+			pendingTicketPayment.provider === CommunitySettings.PaymentProvider.Manual ? (
 				<PendingManualPaymentView
 					{...stateProps}
 					paymentInstructions={pendingTicketPayment.paymentInstructions}
 					registrationId={pendingTicketPayment.registrationId}
 					hasReceipt={pendingTicketPayment.hasReceipt}
 				/>
+			) : (
+				<PendingPaymentView
+					{...stateProps}
+					paymentUrl={pendingTicketPayment.paymentUrl}
+				/>
 			);
-		}
-
-		return (
-			<PendingPaymentView
-				{...stateProps}
-				paymentUrl={pendingTicketPayment.paymentUrl}
-			/>
-		);
+	} else if (userRegistrationStatus === "pending") {
+		registrationView = <PendingRegisteredView {...stateProps} />;
+	} else {
+		registrationView = <RejectedRegisteredView {...stateProps} />;
 	}
 
-	if (userRegistrationStatus === "pending") {
-		return <PendingRegisteredView {...stateProps} />;
-	}
+	if (!hackathon) return registrationView;
 
-	return <RejectedRegisteredView {...stateProps} />;
+	return (
+		<div className="space-y-3">
+			{registrationView}
+			<HackathonTeamPanel eventId={event.id} hackathon={hackathon} autoOpen={justRegistered} />
+		</div>
+	);
 }

@@ -15,6 +15,10 @@ export function shouldRevalidate({
 }) {
 	if (formMethod && formMethod !== "GET") return defaultShouldRevalidate;
 
+	// Coming back from a registration: the loader holds who's registered and
+	// on which hackathon team, so it must run again.
+	if (nextUrl.searchParams.get("registered") === "1") return true;
+
 	const togglingOverlay =
 		currentUrl.pathname.endsWith("/register") ||
 		nextUrl.pathname.endsWith("/register");

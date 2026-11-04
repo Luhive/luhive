@@ -1,4 +1,6 @@
 import { Phone } from "lucide-react";
+import { SocialHandleField } from "~/modules/profile/components/social-handle-field";
+import { ProfileLinks } from "~/modules/profile/model/profile-social-links";
 import { Input } from "~/shared/components/ui/input";
 import { Label } from "~/shared/components/ui/label";
 import { Textarea } from "~/shared/components/ui/textarea";
@@ -208,6 +210,34 @@ export function CustomQuestionFields({
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors[question.id] && (
+                    <p className="text-xs text-destructive">{errors[question.id]}</p>
+                  )}
+                </div>
+              );
+            }
+
+            if (questionType === "social") {
+              const handle =
+                typeof customAnswers[question.id] === "string"
+                  ? (customAnswers[question.id] as string)
+                  : "";
+              const network = question.network ?? "linkedin";
+              return (
+                <div key={question.id} className="space-y-2">
+                  <Label htmlFor={`question-${question.id}`}>
+                    {question.label}
+                    {question.required && (
+                      <span className="text-destructive ml-1">*</span>
+                    )}
+                  </Label>
+                  <SocialHandleField
+                    id={network}
+                    value={ProfileLinks.handle(network, handle || null)}
+                    onValueChange={(next) => onAnswerChange(question.id, next)}
+                    required={question.required}
+                    disabled={isSubmitting}
+                  />
                   {errors[question.id] && (
                     <p className="text-xs text-destructive">{errors[question.id]}</p>
                   )}

@@ -2,6 +2,7 @@ import type { LoaderFunctionArgs } from "react-router";
 import { getProfileActivity } from "~/modules/profile/data/profile-activity-repo.server";
 import { listProfileCommunities } from "~/modules/profile/data/profile-communities-repo.server";
 import { listProfileEvents } from "~/modules/profile/data/profile-events-repo.server";
+import * as HackathonTeams from "~/modules/events/server/hackathon-team.server";
 import { getProfileStats } from "~/modules/profile/data/profile-stats-repo.server";
 import { activityWindow } from "~/modules/profile/model/profile-activity";
 import type { ProfileLoaderData } from "~/modules/profile/model/profile-loader";
@@ -62,7 +63,17 @@ export async function loader({ request, context }: LoaderFunctionArgs): Promise<
 
   const communities = listProfileCommunities(supabase, authUser.id);
   const stats = communities.then((list) => getProfileStats(supabase, authUser.id, list));
-  const events = listProfileEvents(supabase, authUser.id);
+  const events = listProfileEvents(supabase, authUser.id).then(async (listed) => {
+    try {
+      const captainIds = new Set(
+        await HackathonTeams.listCaptainEventIds(authUser.id),
+      );
+      return listed.map((event) => ({ ...event, isCaptain: captainIds.has(event.id) }));
+    } catch (error) {
+      console.error("Failed to load hackathon teams for profile:", error);
+      return listed;
+    }
+  });
   // Deferred and bounded: never awaited here, so it can't hold back the page shell.
   const activity = withTimeout(
     getProfileActivity(supabase, timezone),

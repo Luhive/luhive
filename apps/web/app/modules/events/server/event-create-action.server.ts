@@ -1,5 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { createClient } from "~/shared/lib/supabase/server";
+import * as HackathonTeams from "~/modules/events/server/hackathon-team.server";
 import { notifyNewEvent } from "~/modules/events/server/notify-new-event.server";
 import { saveEventReminders } from "~/modules/events/server/event-reminders.server";
 import { GoogleMaps } from "~/modules/events/utils/google-maps";
@@ -36,6 +37,8 @@ export interface EventCreatePayload {
   coverUrl?: string | null;
   status: EventStatus;
   isApproveRequired: boolean;
+  isHackathon?: boolean;
+  maxTeamSize?: number | null;
   priceMinor?: number | null;
   paymentInstructions?: string | null;
   customQuestions?: Json | null;
@@ -99,6 +102,8 @@ export async function eventCreateAction({
     coverUrl,
     status,
     isApproveRequired,
+    isHackathon,
+    maxTeamSize,
     priceMinor: requestedPriceMinor,
     paymentInstructions: requestedPaymentInstructions,
     customQuestions,
@@ -127,6 +132,10 @@ export async function eventCreateAction({
     return { success: false, error: paymentInstructions.error };
   }
 
+  if (isHackathon && price.priceMinor !== null) {
+    return { success: false, error: "Hackathon mode is only available on free events." };
+  }
+
   const eventSlug = await ensureUniqueEventSlug(supabase, communityId, title);
 
   const { data: newEvent, error: eventError } = await supabase
@@ -153,7 +162,8 @@ export async function eventCreateAction({
       cover_url: coverUrl || null,
       status,
       // Payment is the gate for priced events, so manual approval is not used.
-      is_approve_required: price.priceMinor === null ? isApproveRequired : false,
+      is_approve_required:
+        price.priceMinor === null ? Boolean(isHackathon) || isApproveRequired : false,
       price_minor: price.priceMinor,
       custom_questions: (customQuestions ?? null) as Json | null,
     })
@@ -163,6 +173,24 @@ export async function eventCreateAction({
   if (eventError || !newEvent) {
     console.error("Error creating event:", eventError);
     return { success: false, error: eventError?.message || "Failed to create event" };
+  }
+
+  try {
+    const hackathon = await HackathonTeams.applyEventHackathon(newEvent.id, {
+      requested: Boolean(isHackathon),
+      maxTeamSize: maxTeamSize ?? null,
+      priceMinor: price.priceMinor,
+      registrationType: "native",
+    });
+    if (!hackathon.ok) {
+      return { success: false, error: hackathon.error };
+    }
+  } catch (hackathonError) {
+    console.error("Failed to save hackathon settings:", hackathonError);
+    return {
+      success: false,
+      error: hackathonError instanceof Error ? hackathonError.message : "Could not save hackathon mode",
+    };
   }
 
   const { error: collabError } = await supabase.from("event_collaborations").insert({

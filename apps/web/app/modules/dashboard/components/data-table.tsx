@@ -58,6 +58,8 @@ type DataTableProps = {
   updatingMemberId?: string | null
   onPromote?: (memberId: string) => void
   onDemote?: (memberId: string) => void
+  /** Rendered next to the search, e.g. the owner's invite button. */
+  toolbarAction?: React.ReactNode
 }
 
 function normalizeRole(role?: CommunityMemberRole): CommunityMemberRole {
@@ -71,6 +73,7 @@ export function DataTable({
   updatingMemberId = null,
   onPromote = () => {},
   onDemote = () => {},
+  toolbarAction = null,
 }: DataTableProps) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -240,6 +243,7 @@ export function DataTable({
                 className="pl-10 w-80"
               />
             </div>
+            {toolbarAction}
           </div>
         </div>
 

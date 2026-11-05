@@ -114,6 +114,16 @@ export interface CommunityAnnouncements {
   updated_at: Generated<Timestamp>;
 }
 
+export interface CommunityInvites {
+  community_id: string;
+  created_at: Generated<Timestamp>;
+  email: string;
+  id: Generated<string>;
+  invited_by: string;
+  role: Generated<string>;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface CommunityMembers {
   community_id: string | null;
   custom_title: string | null;
@@ -504,6 +514,7 @@ export interface DB {
   communities: Communities;
   community_announcement_images: CommunityAnnouncementImages;
   community_announcements: CommunityAnnouncements;
+  community_invites: CommunityInvites;
   community_members: CommunityMembers;
   community_visits: CommunityVisits;
   event_collaborations: EventCollaborations;

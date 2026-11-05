@@ -15,6 +15,7 @@ import { CommunityAnnouncementEmail } from "~/templates/community-announcement-e
 import { CollaborationInviteEmail } from "~/templates/collaboration-invite-email";
 import { EventInviteEmail } from "~/templates/event-invite-email";
 import { HackathonTeamInviteEmail } from "~/templates/hackathon-team-invite-email";
+import { CommunityAdminInviteEmail } from "~/templates/community-admin-invite-email";
 import { HackathonTeammateJoinedEmail } from "~/templates/hackathon-teammate-joined-email";
 import { HackathonRemovedFromTeamEmail } from "~/templates/hackathon-removed-from-team-email";
 import { CollaborationAcceptedEmail } from "~/templates/collaboration-accepted-email";
@@ -1604,6 +1605,32 @@ export async function sendHackathonTeamInviteEmail(data: {
   if (!result.success) {
     throw new Error(
       `Failed to send team invite email: ${result.error?.message || "Unknown error"}`,
+    );
+  }
+
+  return { success: true, data: { id: result.id } };
+}
+
+export async function sendCommunityAdminInviteEmail(data: {
+  communityName: string;
+  inviterName: string;
+  recipientEmail: string;
+  acceptLink: string;
+}) {
+  const result = await sendEmail({
+    to: data.recipientEmail,
+    subject: `${data.inviterName} invited you to be an admin of ${data.communityName}`,
+    from: fromCommunity(data.communityName),
+    react: CommunityAdminInviteEmail(data),
+    metadata: {
+      template: "CommunityAdminInviteEmail",
+      communityName: data.communityName,
+    },
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to send admin invite email: ${result.error?.message || "Unknown error"}`,
     );
   }
 

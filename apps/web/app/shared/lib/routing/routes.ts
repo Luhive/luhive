@@ -62,6 +62,8 @@ export class Routes {
       `${COMMUNITY_BASE}/${communitySlug}/${eventSlug}/collaboration`,
     collaborationInvite: (slug: string, collaborationId: string) =>
       `${COMMUNITY_BASE}/${slug}/collaboration-invite/${collaborationId}`,
+    adminInvite: (slug: string, inviteId: string) =>
+      `${COMMUNITY_BASE}/${slug}/admin-invite/${inviteId}`,
     /** True when pathname is a nested route under /c/:slug (not the community index). */
     isCommunityChildPath: (communitySlug: string, pathname: string) => {
       const base = `${COMMUNITY_BASE}/${communitySlug}`;
@@ -126,6 +128,7 @@ export class Routes {
     community: {
       join: `${API_BASE}/join-community`,
       updateMemberRole: `${API_BASE}/community/update-member-role`,
+      invites: `${API_BASE}/community/invites`,
     },
     announcements: {
       newNotification: `${API_BASE}/announcements/new-announcement-notification`,

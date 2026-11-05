@@ -13,6 +13,11 @@ export const profileTextButtonClassName =
 export const profileSecondaryButtonClassName =
   "inline-flex h-9 items-center justify-center rounded-full border border-black/[0.08] bg-white px-4 text-[13px] font-medium text-[#111] outline-none transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:ring-2 focus-visible:ring-[#111]/15 active:scale-[0.97] [@media(hover:hover)]:hover:bg-black/[0.04]";
 
+export const profileFieldClassName =
+  "h-11 w-full rounded-xl border border-black/[0.08] bg-white px-3 text-[14px] text-[#111] outline-none transition-[border-color,box-shadow] duration-150 focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-60";
+
+export const profileLabelClassName = "text-[13px] font-medium text-[#6e6e73]";
+
 /** Indexed by `ActivityLevel`: empty, one action, several actions, an event day. */
 export const activityLevelClassName = ["bg-[#ececee]", "bg-[#FFD3BC]", "bg-[#FF9A66]", "bg-primary"] as const;
 

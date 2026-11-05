@@ -17,6 +17,7 @@ import type { EventListRevenue } from "~/modules/events/model/event-revenue.type
 import type { Member, DashboardStatsData } from "~/modules/dashboard/model/dashboard-types";
 import { useDashboardContext } from "~/modules/dashboard/hooks/use-dashboard-context";
 import { useMemberRoleActions } from "~/modules/dashboard/hooks/use-member-role-actions";
+import { CommunityInviteSheet } from "~/modules/dashboard/components/community-invite-sheet";
 
 type OverviewLoaderData = {
   members: Member[];
@@ -134,6 +135,9 @@ export default function DashboardOverviewPage() {
           updatingMemberId={updatingMemberId}
           onPromote={promoteMember}
           onDemote={demoteMember}
+          toolbarAction={
+            role === "owner" ? <CommunityInviteSheet communityId={community.id} /> : null
+          }
         />
       </div>
     </div>

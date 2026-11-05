@@ -42,6 +42,7 @@ export default [
       "c/:slug/collaboration-invite/:collaborationId",
       "routes/web/collaboration-invite.tsx",
     ),
+    route("c/:slug/admin-invite/:inviteId", "routes/web/admin-invite.tsx"),
     route("create-community", "routes/web/create-community.tsx"),
     route(
       "create-community/success",
@@ -152,6 +153,7 @@ export default [
     "api/community/update-member-role",
     "routes/api/community/update-member-role.tsx",
   ),
+  route("api/community/invites", "routes/api/community/invites.tsx"),
   route(
     "api/events/new-event-notification",
     "routes/api/events/new-event-notification.tsx",

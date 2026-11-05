@@ -29,6 +29,37 @@ export async function getMemberById(
   return { member: data as CommunityMemberRow, error: null };
 }
 
+/** Makes the person an admin: joins them as one, or promotes a member. An owner stays owner. */
+export async function grantAdminRole(
+  supabase: ServiceClient,
+  { communityId, userId }: { communityId: string; userId: string },
+) {
+  const { data: membership, error: findError } = await supabase
+    .from("community_members")
+    .select("id, role")
+    .eq("community_id", communityId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (findError) return { error: findError };
+
+  if (!membership) {
+    const { error } = await supabase
+      .from("community_members")
+      .insert({ community_id: communityId, user_id: userId, role: "admin" });
+    return { error };
+  }
+
+  if (membership.role === "owner" || membership.role === "admin") {
+    return { error: null };
+  }
+
+  return updateMemberRole(supabase, {
+    memberId: membership.id,
+    communityId,
+    role: "admin",
+  });
+}
+
 export async function updateMemberRole(
   supabase: ServiceClient,
   {

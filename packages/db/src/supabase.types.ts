@@ -307,6 +307,65 @@ export type Database = {
           },
         ]
       }
+      community_invites: {
+        Row: {
+          community_id: string
+          created_at: string
+          email: string
+          id: string
+          invited_by: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          email: string
+          id?: string
+          invited_by: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_invites_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_invites_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "hub_communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_invites_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "hub_events"
+            referencedColumns: ["community_id"]
+          },
+          {
+            foreignKeyName: "community_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_members: {
         Row: {
           community_id: string | null

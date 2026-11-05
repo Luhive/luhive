@@ -13,6 +13,7 @@ import { Spinner } from "~/shared/components/ui/spinner";
 import { ProfilePhoto } from "~/modules/profile/components/profile-photo";
 import { SocialHandleField } from "~/modules/profile/components/social-handle-field";
 import { ProfileLinks } from "~/modules/profile/model/profile-social-links";
+import { profileFieldClassName, profileLabelClassName } from "~/modules/profile/components/profile-tokens";
 
 type ProfileEditSheetProps = {
   open: boolean;
@@ -26,11 +27,6 @@ type ProfileEditSheetProps = {
   onFullNameChange: (value: string) => void;
   onBioChange: (value: string) => void;
 };
-
-const fieldClassName =
-  "h-11 w-full rounded-xl border border-black/[0.08] bg-white px-3 text-[14px] text-[#111] outline-none transition-[border-color,box-shadow] duration-150 focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-60";
-
-const labelClassName = "text-[13px] font-medium text-[#6e6e73]";
 
 export function ProfileEditSheet({
   open,
@@ -60,7 +56,7 @@ export function ProfileEditSheet({
         <Form key={String(open)} method="post" className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 pb-6">
           <div className="flex items-start gap-5">
             <div className="min-w-0 flex-1 space-y-2">
-              <label htmlFor="full_name" className={labelClassName}>
+              <label htmlFor="full_name" className={profileLabelClassName}>
                 Full name
               </label>
               <input
@@ -70,11 +66,11 @@ export function ProfileEditSheet({
                 onChange={(event) => onFullNameChange(event.target.value)}
                 disabled={isSubmitting}
                 placeholder="Your name"
-                className={fieldClassName}
+                className={profileFieldClassName}
               />
             </div>
             <div className="flex shrink-0 flex-col items-center gap-2">
-              <span className={labelClassName}>Profile picture</span>
+              <span className={profileLabelClassName}>Profile picture</span>
               <ProfilePhoto
                 userId={userId}
                 fullName={fullName}
@@ -86,7 +82,7 @@ export function ProfileEditSheet({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="bio" className={labelClassName}>
+            <label htmlFor="bio" className={profileLabelClassName}>
               Bio
             </label>
             <textarea
@@ -98,12 +94,12 @@ export function ProfileEditSheet({
               placeholder="What do you do? e.g. Product designer, runs a design meetup in Baku"
               rows={2}
               maxLength={240}
-              className={`${fieldClassName} h-auto resize-none py-2.5 leading-relaxed`}
+              className={`${profileFieldClassName} h-auto resize-none py-2.5 leading-relaxed`}
             />
           </div>
 
           <div className="space-y-3">
-            <p className={labelClassName}>Social links</p>
+            <p className={profileLabelClassName}>Social links</p>
             <div className="flex flex-col gap-3">
               <SocialHandleField id="instagram" links={socialLinks} disabled={isSubmitting} />
               <SocialHandleField id="x" links={socialLinks} disabled={isSubmitting} />

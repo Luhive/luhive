@@ -17,6 +17,11 @@ function joinedLabel(createdAt: string | null) {
 }
 
 function socialHandle(id: ProfileLinks.Id, href: string) {
+  if (id === "omicron") {
+    const identifier = ProfileLinks.usernameFromPaste(id, href);
+    return identifier.startsWith("@") ? identifier : `@${identifier}`;
+  }
+
   try {
     const url = new URL(href);
     const parts = url.pathname.split("/").filter(Boolean);

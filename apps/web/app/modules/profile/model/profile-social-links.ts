@@ -1,12 +1,14 @@
 import type { Json } from "~/shared/models/database.types";
 
 export namespace ProfileLinks {
-  export type Id = "x" | "linkedin" | "instagram";
+  export type Id = "x" | "linkedin" | "instagram" | "omicron";
   export type Map = Record<Id, string | null>;
 
-  export const ids: Id[] = ["x", "linkedin", "instagram"];
+  export const ids: Id[] = ["x", "linkedin", "instagram", "omicron"];
 
-  const prefixById: Record<Id, string> = {
+  export const omicronDefaultInstance = "omicron.blog";
+
+  const prefixById: Record<Exclude<Id, "omicron">, string> = {
     x: "x.com/",
     linkedin: "linkedin.com/in/",
     instagram: "instagram.com/",
@@ -17,21 +19,31 @@ export namespace ProfileLinks {
     x: "https://x.com/settings/screen_name",
     linkedin: "https://www.linkedin.com/in/me/",
     instagram: "https://www.instagram.com/accounts/edit/",
+    omicron: `https://${omicronDefaultInstance}/settings?tab=profile`,
   };
 
   const placeholderById: Record<Id, string> = {
     x: "handle or paste link",
     linkedin: "paste your profile link",
     instagram: "handle or paste link",
+    omicron: "handle or paste link",
   };
 
-  const empty: Map = { x: null, linkedin: null, instagram: null };
+  const empty: Map = { x: null, linkedin: null, instagram: null, omicron: null };
 
-  export function prefix(id: Id) {
+  /** A bare Omicron handle defaults to omicron.blog; a full `user@instance` keeps its instance. */
+  export function prefix(id: Id, value = "") {
+    if (id === "omicron") {
+      return omicronHasInstance(value) ? "" : `${omicronDefaultInstance}/`;
+    }
     return prefixById[id];
   }
 
-  export function findUrl(id: Id) {
+  export function findUrl(id: Id, value = "") {
+    if (id === "omicron" && omicronHasInstance(value)) {
+      const instance = omicronIdentifier(value).split("@")[1];
+      if (instance) return `https://${instance}/settings?tab=profile`;
+    }
     return findUrlById[id];
   }
 
@@ -41,6 +53,13 @@ export namespace ProfileLinks {
 
   export function handle(id: Id, url: string | null) {
     if (!url) return "";
+    if (id === "omicron") {
+      const identifier = usernameFromPaste(id, url);
+      const suffix = `@${omicronDefaultInstance}`;
+      return identifier.toLowerCase().endsWith(suffix)
+        ? identifier.slice(0, -suffix.length)
+        : identifier;
+    }
     return usernameFromPaste(id, url);
   }
 
@@ -48,6 +67,8 @@ export namespace ProfileLinks {
   export function usernameFromPaste(id: Id, pasted: string) {
     const trimmed = pasted.trim();
     if (!trimmed) return "";
+
+    if (id === "omicron") return omicronIdentifier(trimmed);
 
     const withoutAt = trimmed.replace(/^@/, "");
     const looksLikeAddress = /^(https?:\/\/|www\.)/i.test(trimmed) || withoutAt.includes("/");
@@ -75,6 +96,13 @@ export namespace ProfileLinks {
   }
 
   export function url(id: Id, handleValue: string) {
+    if (id === "omicron") {
+      const identifier = omicronIdentifier(handleValue);
+      const match = identifier.match(/^([^@\s/]+)@([^@\s/]+\.[^@\s/]+)$/);
+      if (!match) return null;
+      return normalizeUrl(`https://${match[2]}/@${match[1]}`);
+    }
+
     const trimmed = handleValue.trim().replace(/^@/, "").replace(/^\//, "");
     if (!trimmed) return null;
     const username = usernameFromPaste(id, trimmed);
@@ -93,6 +121,55 @@ export namespace ProfileLinks {
       links[id] = typeof value === "string" && value.length > 0 ? value : null;
     }
     return links;
+  }
+
+  /** Reads an Omicron handle or profile URL as `username@instance`, defaulting the instance. */
+  function omicronIdentifier(input: string) {
+    const trimmed = input.trim();
+    if (!trimmed) return "";
+
+    const withoutAt = trimmed.replace(/^[@/]+/, "");
+    const looksLikeAddress = /^(https?:\/\/|www\.)/i.test(trimmed) || withoutAt.includes("/");
+
+    if (looksLikeAddress) {
+      const href = /^https?:\/\//i.test(withoutAt) ? withoutAt : `https://${withoutAt}`;
+      try {
+        const url = new URL(href);
+        const firstPart = url.pathname.split("/").filter(Boolean)[0] ?? "";
+        const candidate = decodeURIComponent(firstPart).replace(/^@/, "");
+        if (!candidate) return "";
+        const [username, instance] = candidate.split("@");
+        if (username && instance && isOmicronInstance(instance)) {
+          return `${username}@${instance.toLowerCase()}`;
+        }
+        return `${candidate}@${normalizeHost(url.hostname)}`;
+      } catch {
+        return withoutAt;
+      }
+    }
+
+    const match = withoutAt.match(/^([^@\s/]+)@([^@\s/]+\.[^@\s/]+)$/);
+    if (match) return `${match[1]}@${match[2].toLowerCase()}`;
+
+    if (/^[^@\s/]+$/.test(withoutAt)) {
+      return `${withoutAt}@${omicronDefaultInstance}`;
+    }
+    return withoutAt;
+  }
+
+  function omicronHasInstance(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    const withoutAt = trimmed.replace(/^[@/]+/, "");
+    return /^(https?:\/\/|www\.)/i.test(trimmed) || withoutAt.includes("/") || withoutAt.includes("@");
+  }
+
+  function isOmicronInstance(value: string) {
+    return /^[^@\s/]+\.[^@\s/]+$/.test(value);
+  }
+
+  function normalizeHost(value: string) {
+    return value.toLowerCase().replace(/^www\./, "");
   }
 
   function normalizeUrl(value: string) {

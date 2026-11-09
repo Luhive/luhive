@@ -52,12 +52,15 @@ export const HackathonCertificateEmail = ({
 				Your certificate is ready, with your name on it.
 			</Paragraph>
 			<Paragraph>
-				Add it to your LinkedIn profile in one step, or share the link anywhere. It also shows as a
-				badge on your Luhive profile.
+				Add it to your LinkedIn profile in one step, or share it to your Instagram story and tag{" "}
+				<strong style={{ color: emailColors.heading }}>@luhivecom</strong>. We repost every one. It
+				also shows as a badge on your Luhive profile.
 			</Paragraph>
 			<CtaButton href={certificateLink}>View your certificate →</CtaButton>
 			<FinePrint>
-				Anyone with the link can see your name, team and award. Sent to {recipientEmail}.
+				Name spelled wrong? Fix it on your Luhive profile and reply to this email, and we'll update
+				your certificate. Anyone with the link can see your name, team and award. Sent to{" "}
+				{recipientEmail}.
 			</FinePrint>
 		</EmailLayout>
 	);

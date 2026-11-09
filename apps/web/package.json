@@ -14,6 +14,8 @@
     "test-mail": "tsx scripts/test-mail.ts",
     "test-db": "bash scripts/test-db.sh",
     "prod-db": "bash scripts/test-db.sh --prod",
+    "team-stats": "bash scripts/team-stats.sh",
+    "prod-team-stats": "bash scripts/team-stats.sh --prod",
     "prod-logs": "tsx scripts/prod-logs.ts"
   },
   "dependencies": {

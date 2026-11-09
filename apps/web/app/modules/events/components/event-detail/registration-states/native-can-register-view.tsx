@@ -169,6 +169,10 @@ export function NativeCanRegisterView({
                 displayName={displayName}
                 avatarUrl={userProfile?.avatar_url}
                 avatarInitials={avatarInitials}
+                editable={{
+                  fullName: userProfile?.full_name ?? null,
+                  askToConfirm: userData.needsNameConfirmation,
+                }}
                 trailing={
                   <Activity mode={timeUntilStart ? "visible" : "hidden"}>
                     <EventStartCountdownBadge

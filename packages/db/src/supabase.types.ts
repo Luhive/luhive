@@ -480,6 +480,127 @@ export type Database = {
           },
         ]
       }
+      event_certificate_events: {
+        Row: {
+          certificate_code: string
+          channel: string
+          created_at: string
+          id: number
+          kind: string
+        }
+        Insert: {
+          certificate_code: string
+          channel: string
+          created_at?: string
+          id?: never
+          kind: string
+        }
+        Update: {
+          certificate_code?: string
+          channel?: string
+          created_at?: string
+          id?: never
+          kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_certificate_events_code_fkey"
+            columns: ["certificate_code"]
+            isOneToOne: false
+            referencedRelation: "event_certificates"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      event_certificates: {
+        Row: {
+          award: string
+          code: string
+          community_name: string
+          community_slug: string
+          emailed_at: string | null
+          event_date: string
+          event_id: string
+          event_title: string
+          id: string
+          issued_at: string
+          recipient_email: string
+          recipient_name: string
+          registration_id: string | null
+          revoked_at: string | null
+          team_name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          award: string
+          code: string
+          community_name: string
+          community_slug: string
+          emailed_at?: string | null
+          event_date: string
+          event_id: string
+          event_title: string
+          id?: string
+          issued_at?: string
+          recipient_email: string
+          recipient_name: string
+          registration_id?: string | null
+          revoked_at?: string | null
+          team_name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          award?: string
+          code?: string
+          community_name?: string
+          community_slug?: string
+          emailed_at?: string | null
+          event_date?: string
+          event_id?: string
+          event_title?: string
+          id?: string
+          issued_at?: string
+          recipient_email?: string
+          recipient_name?: string
+          registration_id?: string | null
+          revoked_at?: string | null
+          team_name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_certificates_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_certificates_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "hub_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_certificates_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "event_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_certificates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_collaborations: {
         Row: {
           accepted_at: string | null

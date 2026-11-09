@@ -1,4 +1,4 @@
-import { useState, useEffect, useId, useRef } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { useIsMobile } from '~/shared/hooks/use-mobile';
 import {
   Dialog,
@@ -12,12 +12,8 @@ import { Button } from '~/shared/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '~/shared/components/ui/avatar';
 import { Separator } from '~/shared/components/ui/separator';
 import { Spinner } from '~/shared/components/ui/spinner';
-import { User, Mail, Pencil } from 'lucide-react';
-import {
-  PROFILE_NAME_MAX,
-  PROFILE_NAME_MIN,
-  normalizeProfileName,
-} from '~/modules/profile/model/profile-name';
+import { User, Mail } from 'lucide-react';
+import { EditableName, checkEditedName } from '~/modules/events/components/registration/editable-name';
 import type {
   CustomQuestionJson,
   CustomAnswerJson,
@@ -90,13 +86,6 @@ export function CustomQuestionsForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   // null = showing the name as text; a string = the name is being edited.
   const [editedName, setEditedName] = useState<string | null>(null);
-  const nameInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (editedName !== null) nameInputRef.current?.select();
-    // Only when editing starts, not on every keystroke.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editedName !== null]);
 
   useEffect(() => {
     if (isAuthenticated && userPhone && !phone) {
@@ -167,18 +156,12 @@ export function CustomQuestionsForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    let fullName: string | undefined;
-    if (nameEditable && editedName !== null) {
-      fullName = normalizeProfileName(editedName);
-      if (fullName.length < PROFILE_NAME_MIN) {
-        setErrors((prev) => ({
-          ...prev,
-          fullName: `Name must be at least ${PROFILE_NAME_MIN} characters`,
-        }));
-        nameInputRef.current?.focus();
-        return;
-      }
+    const nameCheck = nameEditable ? checkEditedName(editedName) : {};
+    if (nameCheck.error) {
+      setErrors((prev) => ({ ...prev, fullName: nameCheck.error! }));
+      return;
     }
+    const fullName = nameCheck.fullName;
 
     const answers = buildCustomAnswersFromFormState(
       customQuestions,
@@ -240,42 +223,20 @@ export function CustomQuestionsForm({
             </div>
           )}
           <div className="flex-1 min-w-0 space-y-0.5">
-            {nameEditable && editedName !== null ? (
-              <input
-                ref={nameInputRef}
-                value={editedName}
-                onChange={(e) => {
-                  setEditedName(e.target.value);
+            {nameEditable ? (
+              <EditableName
+                displayName={displayName ?? ''}
+                initialName={userName}
+                editedName={editedName}
+                onEditedNameChange={(value) => {
+                  setEditedName(value);
                   if (errors.fullName) {
                     setErrors(({ fullName: _removed, ...rest }) => rest);
                   }
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
-                    e.preventDefault();
-                    setEditedName(null);
-                    setErrors(({ fullName: _removed, ...rest }) => rest);
-                  }
-                }}
-                maxLength={PROFILE_NAME_MAX}
-                autoComplete="name"
-                aria-label="Your full name"
-                aria-invalid={!!errors.fullName || undefined}
-                placeholder="Your full name"
+                invalid={!!errors.fullName}
                 disabled={isSubmitting}
-                className="-mx-2 h-8 w-[calc(100%+1rem)] rounded-md border border-input bg-background px-2 font-semibold outline-none transition-[border-color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive"
               />
-            ) : nameEditable ? (
-              <button
-                type="button"
-                onClick={() => setEditedName(userName?.trim() || '')}
-                aria-label="Edit your name"
-                title="Edit your name"
-                className="group/name -mx-1 flex max-w-full items-center gap-1.5 rounded-md px-1 text-left transition-[background-color,transform] duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-muted"
-              >
-                <span className="truncate font-semibold">{displayName}</span>
-                <Pencil className="size-3.5 shrink-0 text-muted-foreground transition-colors [@media(hover:hover)_and_(pointer:fine)]:group-hover/name:text-foreground" />
-              </button>
             ) : (
               <span className="font-semibold">{displayName}</span>
             )}

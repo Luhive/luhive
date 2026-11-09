@@ -8,6 +8,7 @@ import { isUuid } from "~/modules/events/utils/event-slug";
 import { logHackathon, logHackathonResponse } from "~/modules/events/server/hackathon-log.server";
 import { createClient } from "~/shared/lib/supabase/server";
 import type { CustomQuestionJson } from "~/modules/events/model/event.types";
+import { updateOwnProfileName } from "~/modules/profile/server/update-profile-name.server";
 import type { Json } from "~/shared/models/database.types";
 
 export type TeamJoinLoaderData = {
@@ -31,6 +32,8 @@ export type TeamJoinLoaderData = {
   invitedEmail: string | null;
   /** Phone saved on the signed-in user's profile, to prefill the phone question. */
   userPhone: string | null;
+  /** Signed-in user's identity, shown above the form with an editable name. */
+  viewer: { fullName: string | null; email: string | null; avatarUrl: string | null } | null;
 };
 
 export async function loader({ request, params }: LoaderFunctionArgs): Promise<TeamJoinLoaderData> {
@@ -56,7 +59,11 @@ export async function loader({ request, params }: LoaderFunctionArgs): Promise<T
     : null;
 
   const { data: profile } = user
-    ? await supabase.from("profiles").select("metadata").eq("id", user.id).maybeSingle()
+    ? await supabase
+        .from("profiles")
+        .select("full_name, avatar_url, metadata")
+        .eq("id", user.id)
+        .maybeSingle()
     : { data: null };
   const profileMetadata =
     profile?.metadata && typeof profile.metadata === "object" && !Array.isArray(profile.metadata)
@@ -88,6 +95,13 @@ export async function loader({ request, params }: LoaderFunctionArgs): Promise<T
     inviteId: invite?.id ?? null,
     invitedEmail: invite?.email ?? null,
     userPhone,
+    viewer: user
+      ? {
+          fullName: profile?.full_name ?? null,
+          email: user.email ?? null,
+          avatarUrl: profile?.avatar_url ?? null,
+        }
+      : null,
   };
 }
 
@@ -128,6 +142,15 @@ async function joinTeam({ request, params }: ActionFunctionArgs) {
   const team = await Teams.findTeamByCode(code);
   if (!team) {
     return Response.json({ success: false, error: "This join link is not valid." }, { status: 404, headers });
+  }
+
+  // Teammates can correct their name (often taken from Google) on the join form.
+  const submittedName = formData.get("fullName");
+  if (typeof submittedName === "string") {
+    const nameResult = await updateOwnProfileName(supabase, user.id, submittedName);
+    if (!nameResult.success) {
+      return Response.json({ success: false, error: nameResult.error }, { status: 400, headers });
+    }
   }
 
   const inviteId = String(formData.get("teamInviteId") || "") || null;

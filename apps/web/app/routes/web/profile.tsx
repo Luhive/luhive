@@ -10,6 +10,7 @@ import { ProfileEditSheet } from "~/modules/profile/components/profile-edit-shee
 import { ProfileEventsTable } from "~/modules/profile/components/profile-events-table";
 import { ProfileHeader } from "~/modules/profile/components/profile-header";
 import { ProfileActivityCard } from "~/modules/profile/components/profile-activity-card";
+import { ProfileAchievements } from "~/modules/profile/components/profile-achievements";
 import {
   ProfileActivitySkeleton,
   ProfileActivityUnavailable,
@@ -50,7 +51,7 @@ export function shouldRevalidate({
 }
 
 export default function ProfilePage() {
-  const { user, communities, stats, events, activityWindow, activity } = useLoaderData<typeof loader>();
+  const { user, communities, stats, events, activityWindow, activity, achievements } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const actionData = useActionData<{ success?: boolean; justCompleted?: boolean; error?: string; message?: string }>();
   const tab = parseProfileTab(searchParams.get("tab"));
@@ -140,6 +141,11 @@ export default function ProfilePage() {
             </Await>
           </Suspense>
         </div>
+        <Suspense fallback={null}>
+          <Await resolve={achievements} errorElement={null}>
+            {(badges) => <ProfileAchievements badges={badges} />}
+          </Await>
+        </Suspense>
         <div>
           <div className="mb-3">
             <ProfileTabs

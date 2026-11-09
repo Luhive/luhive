@@ -7,13 +7,18 @@ import { useCurrentUserQuery } from "~/shared/hooks/use-current-user-query";
 type CurrentUserAccountActionsProps = {
   email: string | null;
   managedCommunities: Promise<ManagedCommunity[]>;
+  showCreateCommunity?: boolean;
 };
 
 /**
  * Account actions for pages under the top navigation layout. The profile comes from the
  * current-user cache, which sign-in flows update without a reload; managed communities stream in.
  */
-export function CurrentUserAccountActions({ email, managedCommunities }: CurrentUserAccountActionsProps) {
+export function CurrentUserAccountActions({
+  email,
+  managedCommunities,
+  showCreateCommunity,
+}: CurrentUserAccountActionsProps) {
   const { data: profile } = useCurrentUserQuery();
 
   const toViewer = (communities: ManagedCommunity[]): HubViewer | null =>
@@ -27,10 +32,14 @@ export function CurrentUserAccountActions({ email, managedCommunities }: Current
         }
       : null;
 
+  const actions = (communities: ManagedCommunity[]) => (
+    <HubAccountActions viewer={toViewer(communities)} showCreateCommunity={showCreateCommunity} />
+  );
+
   return (
-    <Suspense fallback={<HubAccountActions viewer={toViewer([])} />}>
-      <Await resolve={managedCommunities} errorElement={<HubAccountActions viewer={toViewer([])} />}>
-        {(communities) => <HubAccountActions viewer={toViewer(communities)} />}
+    <Suspense fallback={actions([])}>
+      <Await resolve={managedCommunities} errorElement={actions([])}>
+        {(communities) => actions(communities)}
       </Await>
     </Suspense>
   );

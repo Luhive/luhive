@@ -23,3 +23,6 @@ export function createNodeClient(
 }
 
 export type NodeClient = Kysely<DB>;
+
+/** Raw SQL for scripts that touch tables the generated types don't cover yet. */
+export { sql } from "kysely";

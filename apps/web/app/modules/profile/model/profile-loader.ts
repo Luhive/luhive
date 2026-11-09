@@ -1,4 +1,5 @@
 import type { Profile } from "~/shared/models/entity.types";
+import type { Badge } from "~/modules/certificates/model/certificate";
 import type { ActivityWindow, ProfileActivity } from "~/modules/profile/model/profile-activity";
 import type { ProfileCommunity } from "~/modules/profile/model/profile-community";
 import type { ProfileEvent } from "~/modules/profile/model/profile-event";
@@ -12,4 +13,5 @@ export type ProfileLoaderData = {
   events: Promise<ProfileEvent[]>;
   activityWindow: ActivityWindow;
   activity: Promise<ProfileActivity>;
+  achievements: Promise<Badge[]>;
 };

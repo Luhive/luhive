@@ -3,6 +3,7 @@ import { getProfileActivity } from "~/modules/profile/data/profile-activity-repo
 import { listProfileCommunities } from "~/modules/profile/data/profile-communities-repo.server";
 import { listProfileEvents } from "~/modules/profile/data/profile-events-repo.server";
 import * as HackathonTeams from "~/modules/events/server/hackathon-team.server";
+import * as Certificates from "~/modules/certificates/data/certificates-repo.server";
 import { getProfileStats } from "~/modules/profile/data/profile-stats-repo.server";
 import { activityWindow } from "~/modules/profile/model/profile-activity";
 import type { ProfileLoaderData } from "~/modules/profile/model/profile-loader";
@@ -34,6 +35,7 @@ export async function loader({ request, context }: LoaderFunctionArgs): Promise<
       events: Promise.resolve([]),
       activityWindow: activityRange,
       activity: Promise.resolve({ timezone, days: [] }),
+      achievements: Promise.resolve([]),
     };
   }
 
@@ -58,6 +60,7 @@ export async function loader({ request, context }: LoaderFunctionArgs): Promise<
       events: Promise.resolve([]),
       activityWindow: activityRange,
       activity: Promise.resolve({ timezone, days: [] }),
+      achievements: Promise.resolve([]),
     };
   }
 
@@ -74,6 +77,17 @@ export async function loader({ request, context }: LoaderFunctionArgs): Promise<
       return listed;
     }
   });
+  // Deferred, and never fails the page: linking first picks up certificates issued
+  // to this email before the account existed.
+  const achievements = (async () => {
+    try {
+      if (authUser.email) await Certificates.linkByEmail(authUser.id, authUser.email);
+      return await Certificates.listBadgesForUser(authUser.id);
+    } catch (error) {
+      console.error("Failed to load certificates for profile:", error);
+      return [];
+    }
+  })();
   // Deferred and bounded: never awaited here, so it can't hold back the page shell.
   const activity = withTimeout(
     getProfileActivity(supabase, timezone),
@@ -90,5 +104,6 @@ export async function loader({ request, context }: LoaderFunctionArgs): Promise<
     events,
     activityWindow: activityRange,
     activity,
+    achievements,
   };
 }

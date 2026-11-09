@@ -9,7 +9,7 @@ import { Input } from '~/shared/components/ui/input';
 import { Label } from '~/shared/components/ui/label';
 import { Save, FileText, Calendar, Eye, ExternalLink, Link as LinkIcon, Users } from 'lucide-react';
 import { EventCoverUpload } from '~/modules/events/components/event-form/event-cover-upload';
-import { EventDateTime } from '~/modules/events/components/event-form/fields/event-datetime';
+import { EventDateTime, carryEndDate, isEndBeforeStart } from '~/modules/events/components/event-form/fields/event-datetime';
 import { PhysicalLocationField } from '~/modules/events/components/event-form/fields/physical-location-field';
 import { createClient } from '~/shared/lib/supabase/client';
 import { ensureUniqueEventSlugClient } from '~/modules/events/data/events-repo.client';
@@ -39,6 +39,7 @@ interface ExternalEventFormProps {
   initialData?: {
     title?: string;
     startDate?: Date;
+    endDate?: Date;
     startTime?: string;
     endTime?: string;
     timezone?: string;
@@ -64,7 +65,18 @@ export function ExternalEventForm({
   const [title, setTitle] = useState(initialData?.title || '');
   const [startDate, setStartDate] = useState<Date | undefined>(initialData?.startDate);
   const [startTime, setStartTime] = useState(initialData?.startTime || '09:00');
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    initialData?.endDate ?? initialData?.startDate
+  );
   const [endTime, setEndTime] = useState(initialData?.endTime || '10:00');
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    setEndDate(carryEndDate(startDate, endDate, date));
+    setStartDate(date);
+  };
+
+  const effectiveEndDate = endDate ?? startDate;
+  const endsBeforeStart = isEndBeforeStart(startDate, startTime, effectiveEndDate, endTime);
   const [timezoneValue, setTimezoneValue] = useState(initialData?.timezone || 'Asia/Baku');
   const [location, setLocation] = useState<LocationValue | null>(initialData?.location ?? null);
   const [coverUrl, setCoverUrl] = useState(initialData?.coverUrl || '');
@@ -91,6 +103,7 @@ export function ExternalEventForm({
   const isValid = () => {
     if (!title.trim()) return false;
     if (!startDate) return false;
+    if (endsBeforeStart) return false;
     if (!startTime) return false;
     if (!externalRegistrationUrl.trim()) return false;
     if (!isValidExternalUrl(externalRegistrationUrl)) return false;
@@ -98,6 +111,10 @@ export function ExternalEventForm({
   };
 
   const handleSubmit = async (isDraft: boolean) => {
+    if (endsBeforeStart) {
+      toast.error('Event must end after it starts');
+      return;
+    }
     if (!isValid()) {
       toast.error('Please fill in all required fields');
       return;
@@ -123,7 +140,7 @@ export function ExternalEventForm({
 
       const endDateTime = endTime
         ? dayjs
-            .tz(`${dayjs(startDate).format('YYYY-MM-DD')}T${endTime}`, timezoneValue)
+            .tz(`${dayjs(effectiveEndDate).format('YYYY-MM-DD')}T${endTime}`, timezoneValue)
             .toISOString()
         : null;
 
@@ -367,10 +384,13 @@ export function ExternalEventForm({
               <EventDateTime
                 startDate={startDate}
                 startTime={startTime}
+                endDate={effectiveEndDate}
                 endTime={endTime}
+                endsBeforeStart={endsBeforeStart}
                 timezone={timezoneValue}
-                onStartDateChange={setStartDate}
+                onStartDateChange={handleStartDateChange}
                 onStartTimeChange={setStartTime}
+                onEndDateChange={setEndDate}
                 onEndTimeChange={setEndTime}
                 onTimezoneChange={setTimezoneValue}
               />

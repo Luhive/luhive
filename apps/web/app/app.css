@@ -306,6 +306,35 @@ body {
   animation: hub-fade 180ms var(--ease-out-strong) both;
 }
 
+/* Certificate: the stamp rises in, then the postmark lands on it once, like ink
+   pressed down. Seen rarely (a certificate is opened a handful of times), so it
+   can carry a little delight. `scale` composes with the ink's inline rotate. */
+@keyframes certificate-stamp {
+  from {
+    opacity: 0;
+    scale: 1.2;
+  }
+}
+
+.certificate-postmark {
+  animation: certificate-stamp 300ms var(--ease-out-strong) 260ms both;
+}
+
+/* Swap one icon for another inside a button: blur bridges the two states. */
+.icon-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms var(--ease-out-strong),
+    transform 200ms var(--ease-out-strong),
+    filter 200ms var(--ease-out-strong);
+}
+
+.icon-swap > [data-hidden="true"] {
+  opacity: 0;
+  transform: scale(0.6);
+  filter: blur(2px);
+}
+
 @keyframes profile-tab-in {
   from {
     opacity: 0;
@@ -444,6 +473,16 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .certificate-postmark {
+    animation-name: hub-fade;
+    animation-duration: 200ms;
+  }
+
+  .icon-swap > [data-hidden="true"] {
+    transform: none;
+    filter: none;
+  }
+
   .animate-hub-rise {
     animation-name: hub-fade;
     animation-duration: 200ms;
@@ -1097,5 +1136,61 @@ select:-webkit-autofill:active {
   .landing-mobile-nav,
   .landing-mobile-nav-panel {
     transition: none;
+  }
+}
+
+/* Expanded description editor: overlay fades, panel rises out of a slight scale + blur.
+   Exit is faster than enter so closing feels instant. */
+@keyframes expand-editor-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes expand-editor-overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes expand-editor-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+    filter: blur(4px);
+  }
+}
+
+@keyframes expand-editor-out {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+    filter: blur(2px);
+  }
+}
+
+.expand-editor-overlay[data-state="open"] {
+  animation: expand-editor-overlay-in 220ms var(--ease-out-strong);
+}
+
+.expand-editor-overlay[data-state="closed"] {
+  animation: expand-editor-overlay-out 150ms var(--ease-out-strong);
+}
+
+.expand-editor-content[data-state="open"] {
+  animation: expand-editor-in 280ms var(--ease-out-strong);
+}
+
+.expand-editor-content[data-state="closed"] {
+  animation: expand-editor-out 150ms var(--ease-out-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expand-editor-content[data-state="open"] {
+    animation: expand-editor-overlay-in 180ms ease;
+  }
+
+  .expand-editor-content[data-state="closed"] {
+    animation: expand-editor-overlay-out 120ms ease;
   }
 }

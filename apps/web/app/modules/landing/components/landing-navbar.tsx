@@ -32,7 +32,7 @@ const SOCIAL_LINKS = [
   {
     id: 'instagram',
     icon: '/landing/Instagram.svg',
-    href: 'https://instagram.com/luhive',
+    href: 'https://www.instagram.com/luhivecom/',
     label: 'Instagram',
   },
 ];

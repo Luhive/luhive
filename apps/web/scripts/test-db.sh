@@ -4,6 +4,9 @@
 #
 #   pnpm test-db team <event-slug>      teams, members, invites, people without a team
 #   pnpm test-db person <email>         that person's registrations and team for every event
+#   pnpm test-db emails <event-slug> [approved|pending|rejected|all]  registrant emails as CSV
+#   pnpm test-db applicants <event-slug> [status]  hackathon applicants CSV for the screener
+#   pnpm test-db certificates <event-slug>  certificates: emailed, shares by channel, visitor views
 #   pnpm test-db sql "select …"         any single read-only SELECT
 #
 # `pnpm test-db` uses the TEST database (VALIDATION_DATABASE_URL).
@@ -81,6 +84,107 @@ where lower(u.email) = lower(:'email')
 order by r.registered_at desc;
 SQL
     ;;
+  emails)
+    # Registrant emails as CSV, one row per email, for Resend import. Verified and
+    # RSVP "going"; [status] filters approval: approved (default), pending,
+    # rejected, or all.
+    [[ -n "${2:-}" ]] || { echo "Usage: pnpm test-db emails <event-slug> [approved|pending|rejected|all] > list.csv" >&2; exit 1; }
+    STATUS="${3:-approved}"
+    [[ "$STATUS" =~ ^(approved|pending|rejected|all)$ ]] || { echo "✗ status must be approved, pending, rejected or all" >&2; exit 1; }
+    run --csv -v slug="$2" -v status="$STATUS" <<'SQL'
+select distinct on (lower(coalesce(u.email, r.anonymous_email)))
+  lower(coalesce(u.email, r.anonymous_email)) as email,
+  split_part(trim(coalesce(p.full_name, r.anonymous_name, '')), ' ', 1) as first_name,
+  trim(substr(trim(coalesce(p.full_name, r.anonymous_name, '')),
+    length(split_part(trim(coalesce(p.full_name, r.anonymous_name, '')), ' ', 1)) + 1)) as last_name,
+  r.approval_status as status,
+  r.is_attended as checked_in
+from event_registrations r
+join events e on e.id = r.event_id
+left join profiles p on p.id = r.user_id
+left join auth.users u on u.id = r.user_id
+where (e.slug = :'slug' or e.id::text = :'slug')
+  and r.is_verified and r.rsvp_status = 'going' 
+  and (:'status' = 'all' or r.approval_status::text = :'status')
+  and coalesce(u.email, r.anonymous_email) is not null
+order by lower(coalesce(u.email, r.anonymous_email));
+SQL
+    ;;
+  applicants)
+    # Hackathon applicants as CSV for the screener (name, team, plan, linkedin_url,
+    # email, status). Verified and RSVP "going"; [status] filters approval like `emails`
+    # (default pending: people already approved or rejected by hand are skipped). Plan is the team description, else the person's plan answer.
+    # LinkedIn is the registration answer, else the profile's social link.
+    [[ -n "${2:-}" ]] || { echo "Usage: pnpm test-db applicants <event-slug> [approved|pending|rejected|all] > attendees.csv" >&2; exit 1; }
+    STATUS="${3:-pending}"
+    [[ "$STATUS" =~ ^(approved|pending|rejected|all)$ ]] || { echo "✗ status must be approved, pending, rejected or all" >&2; exit 1; }
+    run --csv -v slug="$2" -v status="$STATUS" <<'SQL'
+select
+  trim(coalesce(nullif(trim(p.full_name), ''), r.anonymous_name, '')) as name,
+  coalesce(t.name, nullif(trim(r.custom_answers->>'hackathon_team_name'), ''), '(no team)') as team,
+  trim(coalesce(nullif(trim(t.description), ''), r.custom_answers->>'hackathon_team_plan', '')) as plan,
+  case
+    when li.v is null then ''
+    when li.v ~* 'linkedin\.com' then li.v
+    else 'https://www.linkedin.com/in/' || li.v
+  end as linkedin_url,
+  lower(coalesce(u.email, r.anonymous_email)) as email,
+  r.approval_status as status
+from event_registrations r
+join events e on e.id = r.event_id
+left join profiles p on p.id = r.user_id
+left join auth.users u on u.id = r.user_id
+left join event_team_members m on m.registration_id = r.id
+left join event_teams t on t.id = m.team_id
+cross join lateral (
+  select nullif(trim(coalesce(
+    nullif(trim(r.custom_answers->>'hackathon_linkedin'), ''),
+    p.metadata->'social_links'->>'linkedin'
+  )), '') as v
+) li
+where (e.slug = :'slug' or e.id::text = :'slug')
+  and r.is_verified and r.rsvp_status = 'going'
+  and (:'status' = 'all' or r.approval_status::text = :'status')
+order by team, name;
+SQL
+    ;;
+  certificates)
+    [[ -n "${2:-}" ]] || { echo "Usage: pnpm test-db certificates <event-slug>" >&2; exit 1; }
+    run -v slug="$2" <<'SQL'
+\echo '== Spread (people who shared at least once, and visits their shares brought)'
+select count(distinct c.code) as certificates,
+  count(distinct c.code) filter (where c.emailed_at is not null) as emailed,
+  count(distinct e.certificate_code) filter (where e.kind = 'share') as shared_by,
+  count(*) filter (where e.kind = 'view') as visitor_views
+from event_certificates c
+join events ev on ev.id = c.event_id
+left join event_certificate_events e on e.certificate_code = c.code
+where ev.slug = :'slug' and c.revoked_at is null;
+\echo '== Shares by channel'
+select e.channel, count(*) as shares, count(distinct e.certificate_code) as people
+from event_certificate_events e
+join event_certificates c on c.code = e.certificate_code
+join events ev on ev.id = c.event_id
+where ev.slug = :'slug' and e.kind = 'share'
+group by 1 order by 2 desc;
+\echo '== Visitor views by source'
+select e.channel as source, count(*) as views
+from event_certificate_events e
+join event_certificates c on c.code = e.certificate_code
+join events ev on ev.id = c.event_id
+where ev.slug = :'slug' and e.kind = 'view'
+group by 1 order by 2 desc;
+\echo '== Per person'
+select c.recipient_name, c.award, c.team_name, c.code,
+  count(*) filter (where e.kind = 'share') as shares,
+  count(*) filter (where e.kind = 'view') as views
+from event_certificates c
+join events ev on ev.id = c.event_id
+left join event_certificate_events e on e.certificate_code = c.code
+where ev.slug = :'slug' and c.revoked_at is null
+group by 1, 2, 3, 4 order by views desc, shares desc, 1;
+SQL
+    ;;
   sql)
     [[ -n "${2:-}" ]] || { echo 'Usage: pnpm test-db sql "select …"' >&2; exit 1; }
     if ! grep -qiE '^[[:space:]]*(select|with)[[:space:]]' <<<"$2" ||
@@ -91,7 +195,7 @@ SQL
     run <<<"$2;"
     ;;
   *)
-    echo 'Usage: pnpm test-db <team <event-slug> | person <email> | sql "select …">' >&2
+    echo 'Usage: pnpm test-db <team <event-slug> | person <email> | emails <event-slug> | applicants <event-slug> | certificates <event-slug> | sql "select …">' >&2
     exit 1
     ;;
 esac

@@ -13,6 +13,8 @@ export default [
   layout("routes/web/layout.tsx", [
     route("hub-legacy", "routes/web/hub-legacy.tsx"),
     route("profile", "routes/web/profile.tsx"),
+    // Hackathon certificates (docs/hackathon-certificates.md)
+    route("certificate/:code", "routes/web/certificate.tsx"),
     route("c/:slug", "routes/web/community-layout.tsx", [
       index("routes/web/community-index.tsx"),
       route("announcements/new", "routes/web/announcement-new.tsx"),
@@ -115,6 +117,8 @@ export default [
   route("api/og/event/:slug/:eventSlug", "routes/api/og/event.tsx"),
   route("api/og/hub/:week", "routes/api/og/hub.tsx"),
   route("api/og/app", "routes/api/og/app.tsx"),
+  route("api/og/certificate/:code", "routes/api/og/certificate.tsx"),
+  route("api/certificates/share", "routes/api/certificates/share.tsx"),
 
   // Events API routes
   route("api/events/create", "routes/api/events/create.tsx"),

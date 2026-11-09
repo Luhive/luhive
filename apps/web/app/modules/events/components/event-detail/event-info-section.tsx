@@ -141,7 +141,12 @@ export function EventInfoSection({
             </p>
             <p className="text-sm text-muted-foreground">
               {eventDate.format("h:mm A")}
-              {eventEndDate && ` - ${eventEndDate.format("h:mm A")}`}{" "}
+              {eventEndDate &&
+                ` - ${
+                  eventEndDate.isSame(eventDate, "day")
+                    ? eventEndDate.format("h:mm A")
+                    : eventEndDate.format("ddd, MMM D, h:mm A")
+                }`}{" "}
               {event.timezone}
             </p>
           </div>

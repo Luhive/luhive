@@ -9,6 +9,8 @@ type HubAccountActionsProps = {
   viewer: HubViewer | null;
   /** While the session resolves, hold the slot instead of flashing "Sign in". */
   isViewerPending?: boolean;
+  /** Off on pages that aren't about running a community, like a certificate. */
+  showCreateCommunity?: boolean;
 };
 
 const pillPress =
@@ -21,22 +23,28 @@ function rememberReturnPath() {
   );
 }
 
-export function HubAccountActions({ viewer, isViewerPending = false }: HubAccountActionsProps) {
+export function HubAccountActions({
+  viewer,
+  isViewerPending = false,
+  showCreateCommunity = true,
+}: HubAccountActionsProps) {
   const bookingUrl = useCalBookingUrl();
 
   return (
     <div className="flex items-center gap-[10px] md:gap-2">
-      <a
-        href={bookingUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-hub-control
-        className={`flex h-11 items-center justify-center gap-1.5 overflow-hidden rounded-[44px] bg-black px-4 text-[15px] font-medium leading-normal text-white hover:bg-[#262626] md:h-9 md:text-[13px] ${pillPress}`}
-      >
-        <Plus className="size-4 sm:hidden" strokeWidth={2.25} aria-hidden />
-        <span className="sm:hidden">Create</span>
-        <span className="hidden sm:inline">Create a community</span>
-      </a>
+      {showCreateCommunity ? (
+        <a
+          href={bookingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-hub-control
+          className={`flex h-11 items-center justify-center gap-1.5 overflow-hidden rounded-[44px] bg-black px-4 text-[15px] font-medium leading-normal text-white hover:bg-[#262626] md:h-9 md:text-[13px] ${pillPress}`}
+        >
+          <Plus className="size-4 sm:hidden" strokeWidth={2.25} aria-hidden />
+          <span className="sm:hidden">Create</span>
+          <span className="hidden sm:inline">Create a community</span>
+        </a>
+      ) : null}
 
       {isViewerPending ? (
         <span aria-hidden className="size-11 rounded-full bg-[#95959522] md:size-9" />

@@ -133,11 +133,15 @@ export default function EditEventPage() {
   }
 
   const eventStart = dayjs(event.start_time).tz(event.timezone);
-  const startDate = event.start_time ? eventStart.toDate() : undefined;
+  const startDate = event.start_time
+    ? new Date(eventStart.year(), eventStart.month(), eventStart.date())
+    : undefined;
   const startTime = event.start_time ? eventStart.format('HH:mm') : '09:00';
 
   const eventEnd = event.end_time ? dayjs(event.end_time).tz(event.timezone) : null;
   const endTime = eventEnd ? eventEnd.format('HH:mm') : undefined;
+  // Local-midnight Date for the end's calendar day in the event timezone (the form only reads Y-M-D).
+  const endDate = eventEnd ? new Date(eventEnd.year(), eventEnd.month(), eventEnd.date()) : undefined;
 
   // Get reminder data from event_reminders relation
   const eventReminders = (event as any).event_reminders;
@@ -151,6 +155,7 @@ export default function EditEventPage() {
     description: event.description ?? '',
     startDate,
     startTime,
+    endDate,
     endTime,
     timezone: event.timezone,
     eventType: event.event_type,

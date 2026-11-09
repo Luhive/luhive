@@ -1099,3 +1099,59 @@ select:-webkit-autofill:active {
     transition: none;
   }
 }
+
+/* Expanded description editor: overlay fades, panel rises out of a slight scale + blur.
+   Exit is faster than enter so closing feels instant. */
+@keyframes expand-editor-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes expand-editor-overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes expand-editor-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+    filter: blur(4px);
+  }
+}
+
+@keyframes expand-editor-out {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+    filter: blur(2px);
+  }
+}
+
+.expand-editor-overlay[data-state="open"] {
+  animation: expand-editor-overlay-in 220ms var(--ease-out-strong);
+}
+
+.expand-editor-overlay[data-state="closed"] {
+  animation: expand-editor-overlay-out 150ms var(--ease-out-strong);
+}
+
+.expand-editor-content[data-state="open"] {
+  animation: expand-editor-in 280ms var(--ease-out-strong);
+}
+
+.expand-editor-content[data-state="closed"] {
+  animation: expand-editor-out 150ms var(--ease-out-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expand-editor-content[data-state="open"] {
+    animation: expand-editor-overlay-in 180ms ease;
+  }
+
+  .expand-editor-content[data-state="closed"] {
+    animation: expand-editor-overlay-out 120ms ease;
+  }
+}

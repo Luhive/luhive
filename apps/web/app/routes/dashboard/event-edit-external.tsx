@@ -89,15 +89,19 @@ export default function EditExternalEventPage() {
   }
 
   const eventStart = dayjs(event.start_time).tz(event.timezone);
-  const startDate = event.start_time ? eventStart.toDate() : undefined;
+  const startDate = event.start_time
+    ? new Date(eventStart.year(), eventStart.month(), eventStart.date())
+    : undefined;
   const startTime = event.start_time ? eventStart.format('HH:mm') : '09:00';
 
   const eventEnd = event.end_time ? dayjs(event.end_time).tz(event.timezone) : null;
   const endTime = eventEnd ? eventEnd.format('HH:mm') : undefined;
+  const endDate = eventEnd ? new Date(eventEnd.year(), eventEnd.month(), eventEnd.date()) : undefined;
 
   const initialData = {
     title: event.title ?? '',
     startDate,
+    endDate,
     startTime,
     endTime,
     timezone: event.timezone,

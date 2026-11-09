@@ -30,7 +30,11 @@ import { EventPrice } from '~/modules/events/components/event-form/fields/event-
 import { EventPaymentInstructions } from '~/modules/events/components/event-form/fields/event-payment-instructions';
 import { EventCoverUpload } from '~/modules/events/components/event-form/event-cover-upload';
 import { EventBasicInfo } from '~/modules/events/components/event-form/fields/event-basic-info';
-import { EventDateTime } from '~/modules/events/components/event-form/fields/event-datetime';
+import {
+  EventDateTime,
+  carryEndDate,
+  isEndBeforeStart,
+} from '~/modules/events/components/event-form/fields/event-datetime';
 import { EventLocation } from '~/modules/events/components/event-form/fields/event-location';
 import { EventCapacity } from '~/modules/events/components/event-form/fields/event-capacity';
 import { EventHackathon } from '~/modules/events/components/event-form/fields/event-hackathon';
@@ -62,6 +66,8 @@ interface EventFormData {
   description: string;
   startDate?: Date;
   startTime: string;
+  /** Calendar day the event ends on; defaults to startDate (multi-day events like hackathons). */
+  endDate?: Date;
   endTime?: string;
   timezone: string;
   eventType: EventType;
@@ -124,7 +130,19 @@ export function EventForm({
   const [description, setDescription] = useState(initialData?.description || '');
   const [startDate, setStartDate] = useState<Date | undefined>(initialData?.startDate);
   const [startTime, setStartTime] = useState(initialData?.startTime || '09:00');
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    initialData?.endDate ?? initialData?.startDate
+  );
   const [endTime, setEndTime] = useState(initialData?.endTime || '10:00');
+
+  // Moving the start date carries the end date along, keeping a multi-day span intact.
+  const handleStartDateChange = (date: Date | undefined) => {
+    setEndDate(carryEndDate(startDate, endDate, date));
+    setStartDate(date);
+  };
+
+  const effectiveEndDate = endDate ?? startDate;
+  const endsBeforeStart = isEndBeforeStart(startDate, startTime, effectiveEndDate, endTime);
   const [timezone, setTimezone] = useState(initialData?.timezone || 'Asia/Baku');
   const [eventType, setEventType] = useState<EventType>(initialData?.eventType || 'in-person');
   const [location, setLocation] = useState<LocationValue | null>(initialData?.location ?? null);
@@ -197,6 +215,7 @@ export function EventForm({
     if (needsPaymentInstructions && !paymentInstructions.trim()) return false;
     if (!startDate) return false;
     if (!startTime) return false;
+    if (endsBeforeStart) return false;
     
     // Check event type specific validations
     const hasPhysicalLocation = !!location || !!initialData?.locationAddress;
@@ -419,6 +438,7 @@ export function EventForm({
     const scheduleChanged =
       !sameDate(initial.startDate, startDate) ||
       !sameOrDefault(initial.startTime, startTime, '09:00') ||
+      !sameDate(initial.endDate ?? initial.startDate, effectiveEndDate) ||
       !sameOrDefault(initial.endTime, endTime, '10:00') ||
       (initial.location?.placeId ?? initial.locationAddress ?? '') !==
         (location?.placeId ?? initial.locationAddress ?? '') ||
@@ -428,6 +448,10 @@ export function EventForm({
   };
 
   const handleSubmit = async (isDraft: boolean) => {
+    if (endsBeforeStart) {
+      toast.error('Event must end after it starts');
+      return;
+    }
     if (!isValid()) {
       toast.error('Please fill in all required fields');
       return;
@@ -443,7 +467,7 @@ export function EventForm({
 
       const endDateTime = endTime
         ? dayjs.tz(
-            `${dayjs(startDate).format('YYYY-MM-DD')}T${endTime}`,
+            `${dayjs(effectiveEndDate).format('YYYY-MM-DD')}T${endTime}`,
             timezone
           ).toISOString()
         : null;
@@ -504,7 +528,7 @@ export function EventForm({
 
       const endDateTime = endTime
         ? dayjs.tz(
-            `${dayjs(startDate).format('YYYY-MM-DD')}T${endTime}`,
+            `${dayjs(effectiveEndDate).format('YYYY-MM-DD')}T${endTime}`,
             timezone
           ).toISOString()
         : null;
@@ -625,7 +649,8 @@ export function EventForm({
       <Separator />
 
       {/* Event Cover + Event Details side by side */}
-      <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[auto_1fr]">
+      {/* On lg the cover alone sets the row height; the details card is pinned to it and the description scrolls inside. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[auto_1fr]">
         <div className="w-full max-w-xs shrink-0 self-start lg:w-96 lg:max-w-none">
           <EventCoverUpload
             communitySlug={communitySlug}
@@ -636,22 +661,24 @@ export function EventForm({
           />
         </div>
 
-        <Card className="flex h-full min-h-0 min-w-0 flex-col">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Event Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col min-h-0">
-            <EventBasicInfo
-              title={title}
-              description={description}
-              onTitleChange={setTitle}
-              onDescriptionChange={setDescription}
-            />
-          </CardContent>
-        </Card>
+        <div className="relative min-w-0">
+          <Card className="flex min-h-0 flex-col lg:absolute lg:inset-0">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Event Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col min-h-0">
+              <EventBasicInfo
+                title={title}
+                description={description}
+                onTitleChange={setTitle}
+                onDescriptionChange={setDescription}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Date & Time */}
@@ -666,10 +693,13 @@ export function EventForm({
           <EventDateTime
             startDate={startDate}
             startTime={startTime}
+            endDate={effectiveEndDate}
             endTime={endTime}
+            endsBeforeStart={endsBeforeStart}
             timezone={timezone}
-            onStartDateChange={setStartDate}
+            onStartDateChange={handleStartDateChange}
             onStartTimeChange={setStartTime}
+            onEndDateChange={setEndDate}
             onEndTimeChange={setEndTime}
             onTimezoneChange={setTimezone}
           />
@@ -1046,7 +1076,12 @@ export function EventForm({
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {startTime || 'No time set'}
-                    {endTime && ` – ${endTime}`}
+                    {endTime &&
+                      ` – ${
+                        effectiveEndDate && startDate && !dayjs(effectiveEndDate).isSame(startDate, 'day')
+                          ? `${dayjs(effectiveEndDate).format('MMM D')}, `
+                          : ''
+                      }${endTime}`}
                   </p>
                 </div>
 

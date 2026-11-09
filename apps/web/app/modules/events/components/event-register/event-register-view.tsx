@@ -143,7 +143,10 @@ export function EventRegisterView({
     navigateAfterRegistration();
   };
 
-  const handleCustomQuestionsSubmit = (answers: Record<string, unknown>) => {
+  const handleCustomQuestionsSubmit = (
+    answers: Record<string, unknown>,
+    fullName?: string,
+  ) => {
     lastSubmittedIntentRef.current = isInviteMode
       ? "accept-invite"
       : "register";
@@ -151,6 +154,7 @@ export function EventRegisterView({
     const formData = new FormData();
     formData.append("intent", isInviteMode ? "accept-invite" : "register");
     formData.append("custom_answers", JSON.stringify(answers));
+    if (fullName && !isInviteMode) formData.append("fullName", fullName);
 
     if (isInviteMode && inviteData?.inviteToken) {
       formData.append("inviteToken", inviteData.inviteToken);
@@ -202,6 +206,7 @@ export function EventRegisterView({
       userEmail={inviteDisplayEmail}
       userAvatarUrl={userProfile?.avatar_url || undefined}
       userPhone={userPhone ?? undefined}
+      nameEditable={!isInviteMode && Boolean(user)}
       onSubmit={handleCustomQuestionsSubmit}
       isSubmitting={isSubmitting}
       variant="overlay"

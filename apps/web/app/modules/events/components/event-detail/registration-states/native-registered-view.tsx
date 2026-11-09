@@ -53,13 +53,10 @@ interface RegisteredStateViewProps {
 function useRegistrationIdentity(
 	user: RegisteredStateViewProps["user"],
 	userProfile: RegisteredStateViewProps["userProfile"],
-	isPastEvent: boolean,
 ) {
 	const displayName = getRegistrationDisplayName(userProfile, user);
 	const avatarInitials = getRegistrationAvatarInitials(userProfile, user);
-	// Attendees can still fix their name until the event is over.
-	const editable = user && !isPastEvent ? { fullName: userProfile?.full_name ?? null } : undefined;
-	return { displayName, avatarInitials, editable };
+	return { displayName, avatarInitials };
 }
 
 const DEFAULT_ACTIONS_CLASSNAME =
@@ -69,7 +66,6 @@ function RegisteredAttendeeLayout({
 	displayName,
 	avatarUrl,
 	avatarInitials,
-	editable,
 	timeFormatted,
 	statusLine,
 	actions,
@@ -79,7 +75,6 @@ function RegisteredAttendeeLayout({
 	displayName: string;
 	avatarUrl?: string | null;
 	avatarInitials?: string;
-	editable?: React.ComponentProps<typeof RegistrationIdentityRow>["editable"];
 	timeFormatted?: string | null;
 	statusLine: React.ReactNode;
 	actions?: React.ReactNode;
@@ -92,7 +87,6 @@ function RegisteredAttendeeLayout({
 				displayName={displayName}
 				avatarUrl={avatarUrl}
 				avatarInitials={avatarInitials}
-				editable={editable}
 				trailing={
 					<Activity mode={timeFormatted ? "visible" : "hidden"}>
 						<EventStartCountdownBadge formatted={timeFormatted} />
@@ -136,18 +130,13 @@ function ApprovedRegisteredView({
 		event.timezone,
 		isPastEvent,
 	);
-	const { displayName, avatarInitials, editable } = useRegistrationIdentity(
-		user,
-		userProfile,
-		isPastEvent,
-	);
+	const { displayName, avatarInitials } = useRegistrationIdentity(user, userProfile);
 
 	return (
 		<RegisteredAttendeeLayout
 			displayName={displayName}
 			avatarUrl={userProfile?.avatar_url}
 			avatarInitials={avatarInitials}
-			editable={editable}
 			timeFormatted={timeUntilStart?.formatted}
 			isUnregistering={isUnregistering}
 			actionsClassName="flex flex-col gap-2 w-full sm:flex-row sm:justify-between sm:items-center"
@@ -220,18 +209,13 @@ function PendingRegisteredView({
 		event.timezone,
 		isPastEvent,
 	);
-	const { displayName, avatarInitials, editable } = useRegistrationIdentity(
-		user,
-		userProfile,
-		isPastEvent,
-	);
+	const { displayName, avatarInitials } = useRegistrationIdentity(user, userProfile);
 
 	return (
 		<RegisteredAttendeeLayout
 			displayName={displayName}
 			avatarUrl={userProfile?.avatar_url}
 			avatarInitials={avatarInitials}
-			editable={editable}
 			timeFormatted={timeUntilStart?.formatted}
 			isUnregistering={isUnregistering}
 			statusLine={
@@ -270,18 +254,13 @@ function PendingPaymentView({
 		event.timezone,
 		isPastEvent,
 	);
-	const { displayName, avatarInitials, editable } = useRegistrationIdentity(
-		user,
-		userProfile,
-		isPastEvent,
-	);
+	const { displayName, avatarInitials } = useRegistrationIdentity(user, userProfile);
 
 	return (
 		<RegisteredAttendeeLayout
 			displayName={displayName}
 			avatarUrl={userProfile?.avatar_url}
 			avatarInitials={avatarInitials}
-			editable={editable}
 			timeFormatted={timeUntilStart?.formatted}
 			isUnregistering={isUnregistering}
 			statusLine={
@@ -333,18 +312,13 @@ function PendingManualPaymentView({
 		event.timezone,
 		isPastEvent,
 	);
-	const { displayName, avatarInitials, editable } = useRegistrationIdentity(
-		user,
-		userProfile,
-		isPastEvent,
-	);
+	const { displayName, avatarInitials } = useRegistrationIdentity(user, userProfile);
 
 	return (
 		<RegisteredAttendeeLayout
 			displayName={displayName}
 			avatarUrl={userProfile?.avatar_url}
 			avatarInitials={avatarInitials}
-			editable={editable}
 			timeFormatted={timeUntilStart?.formatted}
 			isUnregistering={isUnregistering}
 			statusLine={
@@ -385,18 +359,13 @@ function RejectedRegisteredView({
 		event.timezone,
 		isPastEvent,
 	);
-	const { displayName, avatarInitials, editable } = useRegistrationIdentity(
-		user,
-		userProfile,
-		isPastEvent,
-	);
+	const { displayName, avatarInitials } = useRegistrationIdentity(user, userProfile);
 
 	return (
 		<RegisteredAttendeeLayout
 			displayName={displayName}
 			avatarUrl={userProfile?.avatar_url}
 			avatarInitials={avatarInitials}
-			editable={editable}
 			timeFormatted={timeUntilStart?.formatted}
 			isUnregistering={isUnregistering}
 			statusLine={

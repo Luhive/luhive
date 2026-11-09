@@ -169,10 +169,15 @@ export function NativeCanRegisterView({
                 displayName={displayName}
                 avatarUrl={userProfile?.avatar_url}
                 avatarInitials={avatarInitials}
-                editable={{
-                  fullName: userProfile?.full_name ?? null,
-                  askToConfirm: userData.needsNameConfirmation,
-                }}
+                // Events with a registration form edit the name there; one-click events have no form.
+                editable={
+                  hasCustomQuestions
+                    ? undefined
+                    : {
+                        fullName: userProfile?.full_name ?? null,
+                        askToConfirm: userData.needsNameConfirmation,
+                      }
+                }
                 trailing={
                   <Activity mode={timeUntilStart ? "visible" : "hidden"}>
                     <EventStartCountdownBadge

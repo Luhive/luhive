@@ -25,7 +25,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "~/shared/components/ui/sidebar"
-import { Link } from "react-router";
+import { Link, useSubmit } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { clearEventRegistrationSessionState } from "~/modules/events/hooks/use-event-registration-query";
+import { useSetCurrentUserCache } from "~/shared/hooks/use-current-user-query";
 import { Routes } from "~/shared/lib/routing/routes";
 
 export function NavUser({
@@ -38,6 +41,17 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const submit = useSubmit()
+  const queryClient = useQueryClient()
+  const setCurrentUserCache = useSetCurrentUserCache()
+
+  // Same sign-out as the hub menu: clear cached user state, then post to /logout.
+  // The dashboard needs a session, so land on the hub afterwards.
+  function handleSignOut() {
+    setCurrentUserCache(null, false)
+    clearEventRegistrationSessionState(queryClient, { revalidate: false })
+    submit({ returnTo: "/hub" }, { method: "post", action: Routes.logout })
+  }
 
   return (
     <SidebarMenu>
@@ -105,7 +119,7 @@ export function NavUser({
               </DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer">
               <IconLogout />
               Log out
             </DropdownMenuItem>

@@ -23,6 +23,7 @@ export function SocialHandleField({
   const [value, setValue] = useState(() => controlledValue ?? ProfileLinks.handle(id, links?.[id] ?? null));
   const previewUrl = ProfileLinks.url(id, value);
   const previewHandle = ProfileLinks.usernameFromPaste(id, value);
+  const prefix = ProfileLinks.prefix(id, value);
 
   useEffect(() => {
     if (controlledValue !== undefined) setValue(controlledValue);
@@ -35,8 +36,9 @@ export function SocialHandleField({
 
   function keepUsername(event: ClipboardEvent<HTMLInputElement>) {
     const pasted = event.clipboardData.getData("text");
-    const username = ProfileLinks.usernameFromPaste(id, pasted);
-    if (!username || username === pasted) return;
+    const url = ProfileLinks.url(id, pasted);
+    const username = url ? ProfileLinks.handle(id, url) : ProfileLinks.usernameFromPaste(id, pasted);
+    if (!username || username === pasted.trim()) return;
 
     event.preventDefault();
     const input = event.currentTarget;
@@ -50,7 +52,7 @@ export function SocialHandleField({
       <label className="flex h-11 min-w-0 overflow-hidden rounded-xl border border-black/[0.08] bg-white transition-[border-color,box-shadow] duration-150 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30">
         <span className="flex shrink-0 items-center gap-2 border-r border-black/[0.06] bg-white px-3 text-[13px] text-[#8c8e9a]">
           <ProfileSocialLogo id={id} className="size-3.5" />
-          {ProfileLinks.prefix(id)}
+          {prefix}
         </span>
         <input
           name={onValueChange ? undefined : id}
@@ -64,7 +66,7 @@ export function SocialHandleField({
         />
       </label>
       <a
-        href={previewUrl ?? ProfileLinks.findUrl(id)}
+        href={previewUrl ?? ProfileLinks.findUrl(id, value)}
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex max-w-full items-center gap-1 px-1 text-[12px] text-[#8c8e9a] outline-none hover:text-[#111] focus-visible:text-[#111]"

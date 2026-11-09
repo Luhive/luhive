@@ -103,6 +103,7 @@ export function ProfileEditSheet({
             <div className="flex flex-col gap-3">
               <SocialHandleField id="instagram" links={socialLinks} disabled={isSubmitting} />
               <SocialHandleField id="x" links={socialLinks} disabled={isSubmitting} />
+              <SocialHandleField id="omicron" links={socialLinks} disabled={isSubmitting} />
               <SocialHandleField id="linkedin" links={socialLinks} disabled={isSubmitting} />
             </div>
           </div>

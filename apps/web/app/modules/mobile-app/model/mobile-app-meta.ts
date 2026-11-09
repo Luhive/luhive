@@ -27,7 +27,7 @@ const STRUCTURED_DATA = {
       sameAs: [
         "https://www.linkedin.com/company/luhive",
         "https://twitter.com/luhive_",
-        "https://instagram.com/luhive",
+        "https://www.instagram.com/luhivecom/",
         "https://t.me/luhive",
       ],
     },

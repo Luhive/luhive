@@ -63,7 +63,7 @@ export async function handleAcceptInviteAction({
   }
 
   if (event.custom_questions && customAnswers) {
-    const { validateCustomAnswers } = await import(
+    const { validateCustomAnswers, toE164Phone } = await import(
       "~/modules/events/utils/custom-questions"
     );
     const validation = validateCustomAnswers(
@@ -74,10 +74,13 @@ export async function handleAcceptInviteAction({
     if (!validation.valid) {
       return {
         success: false,
-        error: "Please fill in all required fields.",
+        error: validation.errors.phone ?? "Please fill in all required fields.",
         validationErrors: validation.errors,
       };
     }
+
+    const canonicalPhone = customAnswers.phone ? toE164Phone(customAnswers.phone) : null;
+    if (canonicalPhone) customAnswers = { ...customAnswers, phone: canonicalPhone };
   } else if (event.custom_questions) {
     return { success: false, error: "Please fill in all required fields." };
   }

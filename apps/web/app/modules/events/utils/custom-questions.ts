@@ -7,6 +7,7 @@ import type {
 import { ProfileLinks } from '~/modules/profile/model/profile-social-links';
 import type { Database } from '~/shared/models/database.types';
 import { MAX_ANSWER_LENGTH } from './custom-questions-constants';
+import { parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js/min';
 
 type EventRegistration = Database['public']['Tables']['event_registrations']['Row'];
 
@@ -77,51 +78,60 @@ export function createNewSocialQuestion(order: number, network: ProfileLinks.Id 
   };
 }
 
-/**
- * Validates phone number in E.164 format
- * E.164 format: +[country code][number] (e.g., +994501234567)
- */
+/** Numbers typed without a country code ("050 123 45 67") are read as Azerbaijani. */
+const DEFAULT_PHONE_COUNTRY: CountryCode = 'AZ';
+
+export const PHONE_INVALID_MESSAGE =
+  'Enter a valid phone number, e.g. 050 123 45 67 or +994 50 123 45 67';
+
+function parsePhone(phone: string) {
+  const trimmed = phone.trim();
+  if (!trimmed) return undefined;
+  // "00" is the international dialing prefix ("00994…" = "+994…").
+  const withPlus = trimmed.startsWith('00') ? `+${trimmed.slice(2)}` : trimmed;
+  return parsePhoneNumberFromString(withPlus, DEFAULT_PHONE_COUNTRY);
+}
+
+/** The number in E.164 ("+994501234567"), or null when it is not a valid phone number. */
+export function toE164Phone(phone: string): string | null {
+  const parsed = parsePhone(phone);
+  return parsed?.isValid() ? parsed.number : null;
+}
+
+/** Accepts local Azerbaijani ("050…"), "00…" and "+…" numbers; checks length per country. */
 export function isValidPhoneNumber(phone: string): boolean {
-  // E.164 format: starts with +, followed by 1-15 digits
-  const e164Regex = /^\+[1-9]\d{1,14}$/;
-  return e164Regex.test(phone.trim());
+  return toE164Phone(phone) !== null;
+}
+
+/** Error text for a phone field on blur/submit, or null when empty or valid. */
+export function phoneInputError(phone: string): string | null {
+  return phone.trim() && !isValidPhoneNumber(phone) ? PHONE_INVALID_MESSAGE : null;
 }
 
 /**
- * Formats phone number for display
- * Converts +994501234567 to +994 50 123 45 67
+ * Readable international form: "+994 50 123 45 67".
+ * Falls back to the input for numbers it cannot parse (e.g. old stored answers).
  */
 export function formatPhoneNumber(phone: string): string {
   if (!phone) return '';
-
-  // Remove all non-digit characters except +
-  const cleaned = phone.replace(/[^\d+]/g, '');
-
-  // If it doesn't start with +, return as is
-  if (!cleaned.startsWith('+')) {
-    return phone;
-  }
-
-  // Extract country code (first 1-3 digits after +)
-  const match = cleaned.match(/^\+(\d{1,3})(\d+)$/);
-  if (!match) return phone;
-
-  const [, countryCode, number] = match;
-
-  // Format the number part with spaces every 2 digits
-  const formattedNumber = number.match(/.{1,2}/g)?.join(' ') || number;
-
-  return `+${countryCode} ${formattedNumber}`;
+  const parsed = parsePhone(phone);
+  return parsed?.isValid() ? parsed.formatInternational() : phone;
 }
 
+/**
+ * Filters what the user types without reformatting it, so the caret never jumps.
+ * Keeps digits, a leading "+", and the separators people naturally type.
+ */
 export function normalizePhoneInput(value: string): string {
-  let cleaned = value.replace(/[^\d+]/g, "");
+  const kept = value.replace(/[^\d+\s()-]/g, '');
+  const leadingPlus = kept.trimStart().startsWith('+');
+  return (leadingPlus ? '+' : '') + kept.replace(/\+/g, '').slice(0, 24);
+}
 
-  if (cleaned && !cleaned.startsWith("+")) {
-    cleaned = "+" + cleaned.replace(/\+/g, "");
-  }
-
-  return cleaned;
+/** On blur: tidy a valid number into international form; leave anything else for the user to fix. */
+export function formatPhoneInputOnBlur(value: string): string {
+  const parsed = parsePhone(value);
+  return parsed?.isValid() ? parsed.formatInternational() : value.trim();
 }
 
 export function buildCustomAnswersFromFormState(
@@ -136,7 +146,8 @@ export function buildCustomAnswersFromFormState(
   }
 
   if (customQuestions.phone.enabled && phone.trim()) {
-    answers.phone = phone.trim();
+    // Store one canonical form so organizers' exports and dedupes stay consistent.
+    answers.phone = toE164Phone(phone) ?? phone.trim();
   }
 
   if (customQuestions.custom && customQuestions.custom.length > 0) {
@@ -186,10 +197,10 @@ export function validateCustomAnswers(
     if (!answers.phone || !answers.phone.trim()) {
       errors.phone = 'Phone number is required';
     } else if (!isValidPhoneNumber(answers.phone)) {
-      errors.phone = 'Please enter a valid phone number in international format (e.g., +994501234567)';
+      errors.phone = PHONE_INVALID_MESSAGE;
     }
   } else if (config.phone.enabled && answers.phone && !isValidPhoneNumber(answers.phone)) {
-    errors.phone = 'Please enter a valid phone number in international format (e.g., +994501234567)';
+    errors.phone = PHONE_INVALID_MESSAGE;
   }
 
   // Validate custom questions

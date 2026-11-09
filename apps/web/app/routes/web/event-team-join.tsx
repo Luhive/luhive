@@ -7,8 +7,15 @@ import {
   CustomQuestionFields,
   type CustomQuestionFormAnswers,
 } from "~/modules/events/components/registration/custom-question-fields";
-import { buildCustomAnswersFromFormState, validateCustomAnswers } from "~/modules/events/utils/custom-questions";
+import {
+  buildCustomAnswersFromFormState,
+  formatPhoneInputOnBlur,
+  normalizePhoneInput,
+  phoneInputError,
+  validateCustomAnswers,
+} from "~/modules/events/utils/custom-questions";
 import { Button } from "~/shared/components/ui/button";
+import type { DropdownOption } from "~/modules/events/model/event.types";
 import { Routes } from "~/shared/lib/routing/routes";
 import type { loader as teamJoinLoader } from "~/modules/events/server/event-team-join.server";
 
@@ -20,6 +27,11 @@ export default function EventTeamJoinPage() {
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<CustomQuestionFormAnswers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [phone, setPhone] = useState(data.userPhone ?? "");
+
+  function clearError(key: string) {
+    setErrors(({ [key]: _removed, ...rest }) => rest);
+  }
   // Fixed at first render. Signing in through the code reloads this page's data
   // as signed in; switching forms then would flash the join form right before
   // the redirect.
@@ -78,7 +90,7 @@ export default function EventTeamJoinPage() {
           className="mt-6 space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-            const built = buildCustomAnswersFromFormState(data.questions, "", answers);
+            const built = buildCustomAnswersFromFormState(data.questions, phone, answers);
             const validation = validateCustomAnswers(built, data.questions);
             setErrors(validation.errors);
             if (!validation.valid) return;
@@ -90,14 +102,39 @@ export default function EventTeamJoinPage() {
         >
           <CustomQuestionFields
             customQuestions={data.questions}
-            phone=""
+            phone={phone}
             customAnswers={answers}
             errors={errors}
-            onPhoneChange={() => undefined}
-            onAnswerChange={(questionId, value) =>
-              setAnswers((current) => ({ ...current, [questionId]: value }))
-            }
-            onMultiCheckboxChange={() => undefined}
+            onPhoneChange={(value) => {
+              setPhone(normalizePhoneInput(value));
+              clearError("phone");
+            }}
+            onPhoneBlur={() => {
+              const error = phoneInputError(phone);
+              if (error) {
+                setErrors((current) => ({ ...current, phone: error }));
+              } else {
+                setPhone(formatPhoneInputOnBlur(phone));
+              }
+            }}
+            onAnswerChange={(questionId, value) => {
+              setAnswers((current) => ({ ...current, [questionId]: value }));
+              clearError(questionId);
+            }}
+            onMultiCheckboxChange={(questionId, option, checked) => {
+              setAnswers((current) => {
+                const selected = Array.isArray(current[questionId])
+                  ? (current[questionId] as DropdownOption[])
+                  : [];
+                return {
+                  ...current,
+                  [questionId]: checked
+                    ? [...selected, option]
+                    : selected.filter((item) => item.id !== option.id),
+                };
+              });
+              clearError(questionId);
+            }}
             isSubmitting={fetcher.state !== "idle"}
           />
           {fetcher.data?.error ? <p className="text-sm text-destructive">{fetcher.data.error}</p> : null}

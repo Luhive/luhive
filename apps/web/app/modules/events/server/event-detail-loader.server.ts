@@ -46,6 +46,8 @@ export interface UserData {
   isOwnerOrAdmin: boolean;
   isCommunityMember: boolean;
   pendingTicketPayment: PendingTicketPayment | null;
+  /** OAuth sign-ups got their name from the provider; ask them once to confirm it before registering. */
+  needsNameConfirmation: boolean;
 }
 
 export interface EventDetailLoaderData {
@@ -223,6 +225,17 @@ export async function loader({
     now < registrationDeadline &&
     (!event.capacity || (regCount || 0) < event.capacity);
 
+  const profileMetadata =
+    userProfile?.metadata && typeof userProfile.metadata === "object" && !Array.isArray(userProfile.metadata)
+      ? (userProfile.metadata as { name_confirmed?: boolean })
+      : null;
+  const needsNameConfirmation =
+    !!u &&
+    !isUserRegistered &&
+    !!u.provider &&
+    u.provider !== "email" &&
+    !profileMetadata?.name_confirmed;
+
   const userData: UserData = {
     registrationCount: regCount || 0,
     isUserRegistered,
@@ -234,6 +247,7 @@ export async function loader({
     isOwnerOrAdmin,
     isCommunityMember,
     pendingTicketPayment,
+    needsNameConfirmation,
   };
 
   const pageUserState: EventPageUserState = {

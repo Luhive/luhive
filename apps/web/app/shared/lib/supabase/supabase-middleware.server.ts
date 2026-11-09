@@ -31,7 +31,12 @@ function hasSessionCookie(request: Request) {
 async function readAuthUser(supabase: ReturnType<typeof createClient>["supabase"]) {
   const { data } = await supabase.auth.getClaims();
   if (!data) return null;
-  return { id: data.claims.sub, email: data.claims.email };
+  const provider = data.claims.app_metadata?.provider;
+  return {
+    id: data.claims.sub,
+    email: data.claims.email,
+    provider: typeof provider === "string" ? provider : undefined,
+  };
 }
 
 /**

@@ -44,14 +44,33 @@ export async function findHackathon(db: NodeClient, slug: string): Promise<Hacka
   return rows[0];
 }
 
-/** Case, accents, punctuation and spacing don't count: "Team  Uno!" = "team uno". */
+/** Case, accents, punctuation and spacing don't count: "Team  Uno!" = "team uno", "Narıncı" = "narinci". */
 export function normalizeName(name: string): string {
   return name
+    // Azerbaijani/Turkish letters NFKD can't split into a base letter and an accent.
+    .replace(/[ıİ]/g, "i")
+    .replace(/[əƏ]/g, "e")
     .normalize("NFKD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
+}
+
+/**
+ * A name as it goes on a certificate: spaces collapsed, and an all-caps or
+ * all-lowercase full name capitalized ("ELCAN MANAFLI" → "Elcan Manafli"). Mixed case
+ * and single words are left alone, since that's how the person chose to write them.
+ */
+export function tidyName(name: string): string {
+  const clean = name.replace(/\s+/g, " ").trim();
+  // One word is likely a nickname ("zhmdff"); keep it exactly as typed.
+  if (!clean.includes(" ")) return clean;
+  if (clean !== clean.toUpperCase() && clean !== clean.toLowerCase()) return clean;
+  return clean
+    .toLowerCase()
+    .replace(/\u0307/g, "") // "İ".toLowerCase() leaves a combining dot
+    .replace(/(^|[\s-])(\p{L})/gu, (_, gap: string, letter: string) => gap + letter.toUpperCase());
 }
 
 /** Dice coefficient on letter pairs, 0–1. Good enough to suggest, never to decide. */

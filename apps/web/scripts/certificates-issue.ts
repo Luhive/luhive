@@ -13,7 +13,7 @@ import { randomInt } from "node:crypto";
 import { sql, type NodeClient } from "@luhive/db/node";
 import * as Certificate from "../app/modules/certificates/model/certificate";
 import { fail, readFlags } from "./test-env";
-import { findHackathon, loadAppEnv, openDb, readCsv } from "./certificates-lib";
+import { findHackathon, loadAppEnv, openDb, readCsv, tidyName } from "./certificates-lib";
 
 const CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789"; // no 0/o, 1/l
 const SEND_GAP_MS = 600; // stays under Resend's per-second limit
@@ -86,7 +86,7 @@ async function loadRecipients(db: NodeClient, eventId: string, teamIds: string[]
       .map((r) => `  ${r.team_name}: registration ${r.registration_id}`)
       .join("\n")}`);
   }
-  return rows;
+  return rows.map((r) => ({ ...r, name: tidyName(r.name!) }));
 }
 
 function printPlan(recipients: Recipient[], awards: Map<string, Certificate.Award>) {

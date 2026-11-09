@@ -1702,13 +1702,14 @@ export async function sendHackathonCertificateEmail(data: {
   communityName: string;
   teamName: string;
   recipientName: string;
-  awardLabel: string;
+  /** 1, 2 or 3 for a placement; null for a participant. */
+  place: number | null;
   certificateLink: string;
   recipientEmail: string;
 }) {
   const result = await sendEmail({
     to: data.recipientEmail,
-    subject: `Your certificate for ${data.eventTitle}`,
+    subject: `Sertifikatınız hazırdır: ${data.eventTitle}`,
     from: fromCommunity(data.communityName),
     react: HackathonCertificateEmail(data),
     metadata: {

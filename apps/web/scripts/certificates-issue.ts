@@ -174,7 +174,7 @@ async function send(db: NodeClient, eventId: string) {
         communityName: row.community_name,
         teamName: row.team_name,
         recipientName: row.recipient_name,
-        awardLabel: Certificate.label(row.award),
+        place: row.award === "participant" ? null : Number(row.award.replace("place_", "")),
         certificateLink: `${origin}/certificate/${row.code}?k=${CertificateOwner.key(row.code)}`,
         recipientEmail: row.recipient_email,
       });

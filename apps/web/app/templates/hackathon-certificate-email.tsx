@@ -10,57 +10,62 @@ import {
 	emailColors,
 } from "./components/email-layout";
 
+// Azerbaijani: the hackathons that issue certificates are run for Azerbaijani-speaking
+// participants.
+
 interface HackathonCertificateEmailProps {
 	eventTitle: string;
 	communityName: string;
 	teamName: string;
 	recipientName: string;
-	/** "1st Place", "2nd Place", "3rd Place" or "Participant". */
-	awardLabel: string;
+	/** 1, 2 or 3 for a placement; null for a participant. */
+	place: number | null;
 	certificateLink: string;
 	recipientEmail: string;
+}
+
+/** "1-ci", "2-ci", "3-cü": the Azerbaijani ordinal suffix follows the number's vowel. */
+function ordinal(place: number): string {
+	return `${place}-${place === 3 ? "cü" : "ci"}`;
 }
 
 export const HackathonCertificateEmail = ({
 	eventTitle = "Spring Hackathon",
 	communityName = "Tech Community",
 	teamName = "Team Uno",
-	recipientName = "Aysel Mammadova",
-	awardLabel = "1st Place",
+	recipientName = "Aysel Məmmədova",
+	place = 1,
 	certificateLink = "https://luhive.com/certificate/abcd1234ef",
 	recipientEmail = "aysel@example.com",
 }: HackathonCertificateEmailProps) => {
-	const placed = awardLabel !== "Participant";
+	const team = <strong style={{ color: emailColors.heading }}>{teamName}</strong>;
 	return (
-		<EmailLayout preview={`Your certificate for ${eventTitle}`}>
+		<EmailLayout preview={`${eventTitle}: sertifikatınız hazırdır`}>
 			<Eyebrow>{eventTitle}</Eyebrow>
-			<EmailTitle>{placed ? `${awardLabel}, ${recipientName}!` : `Thanks for building, ${recipientName}`}</EmailTitle>
+			<EmailTitle>{place ? `Təbriklər, ${recipientName}!` : `Təşəkkürlər, ${recipientName}!`}</EmailTitle>
 			<Divider />
 			<Paragraph>
-				{placed ? (
+				{place ? (
 					<>
-						Your team <strong style={{ color: emailColors.heading }}>{teamName}</strong> won{" "}
-						{awardLabel} at {eventTitle}, hosted by {communityName}.
+						Komandanız {team} «{eventTitle}» yarışında {ordinal(place)} yeri tutdu.
 					</>
 				) : (
 					<>
-						You took part in {eventTitle} with{" "}
-						<strong style={{ color: emailColors.heading }}>{teamName}</strong>, hosted by{" "}
-						{communityName}.
+						{team} komandası ilə «{eventTitle}» yarışında iştirak etdiyiniz üçün təşəkkür edirik.
 					</>
 				)}{" "}
-				Your certificate is ready, with your name on it.
+				Tədbiri {communityName} təşkil edib. Adınıza yazılmış sertifikatınız hazırdır.
 			</Paragraph>
 			<Paragraph>
-				Add it to your LinkedIn profile in one step, or share it to your Instagram story and tag{" "}
-				<strong style={{ color: emailColors.heading }}>@luhivecom</strong>. We repost every one. It
-				also shows as a badge on your Luhive profile.
+				Onu bir kliklə LinkedIn profilinizə əlavə edin və ya Instagram story-də paylaşıb{" "}
+				<strong style={{ color: emailColors.heading }}>@luhivecom</strong>-u tag edin, hamısını repost
+				edirik. Sertifikat Luhive profilinizdə nişan kimi də görünür.
 			</Paragraph>
-			<CtaButton href={certificateLink}>View your certificate →</CtaButton>
+			<CtaButton href={certificateLink}>Sertifikatıma bax →</CtaButton>
 			<FinePrint>
-				Name spelled wrong? Fix it on your Luhive profile and reply to this email, and we'll update
-				your certificate. Anyone with the link can see your name, team and award. Sent to{" "}
-				{recipientEmail}.
+				Adınız səhv yazılıb? Luhive profilinizdə düzəldin və bu məktuba cavab yazın, sertifikatı
+				yeniləyəcəyik. Linki olan hər kəs adınızı, komandanızı və nəticənizi görə bilər. Bu məktub{" "}
+				{recipientEmail} ünvanına göndərildi.
 			</FinePrint>
 		</EmailLayout>
 	);

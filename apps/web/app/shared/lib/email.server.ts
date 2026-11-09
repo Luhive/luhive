@@ -18,6 +18,7 @@ import { HackathonTeamInviteEmail } from "~/templates/hackathon-team-invite-emai
 import { CommunityAdminInviteEmail } from "~/templates/community-admin-invite-email";
 import { HackathonTeammateJoinedEmail } from "~/templates/hackathon-teammate-joined-email";
 import { HackathonRemovedFromTeamEmail } from "~/templates/hackathon-removed-from-team-email";
+import { HackathonCertificateEmail } from "~/templates/hackathon-certificate-email";
 import { CollaborationAcceptedEmail } from "~/templates/collaboration-accepted-email";
 import { NewEventNotificationEmail } from "~/templates/new-event-notification-email";
 import { NewCollaborationEventEmail } from "~/templates/new-collaboration-event-email";
@@ -1690,6 +1691,36 @@ export async function sendHackathonRemovedFromTeamEmail(data: {
   if (!result.success) {
     throw new Error(
       `Failed to send removed from team email: ${result.error?.message || "Unknown error"}`,
+    );
+  }
+
+  return { success: true, data: { id: result.id } };
+}
+
+export async function sendHackathonCertificateEmail(data: {
+  eventTitle: string;
+  communityName: string;
+  teamName: string;
+  recipientName: string;
+  awardLabel: string;
+  certificateLink: string;
+  recipientEmail: string;
+}) {
+  const result = await sendEmail({
+    to: data.recipientEmail,
+    subject: `Your certificate for ${data.eventTitle}`,
+    from: fromCommunity(data.communityName),
+    react: HackathonCertificateEmail(data),
+    metadata: {
+      template: "HackathonCertificateEmail",
+      eventTitle: data.eventTitle,
+      communityName: data.communityName,
+    },
+  });
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to send certificate email: ${result.error?.message || "Unknown error"}`,
     );
   }
 

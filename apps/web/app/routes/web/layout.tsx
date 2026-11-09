@@ -73,8 +73,9 @@ export default function TopNavigationLayout() {
 			typeof m.id === "string" &&
 			(m.id.includes("announcement-new") || m.id.includes("event-register")),
 	);
-	const pageWidthClassName =
-		location.pathname === Routes.profile ? hubWidthClassName : layoutWidthClassName;
+	const isCertificate = location.pathname.startsWith(Routes.certificate(""));
+	const usesHubWidth = location.pathname === Routes.profile || isCertificate;
+	const pageWidthClassName = usesHubWidth ? hubWidthClassName : layoutWidthClassName;
 
 	if (location.pathname === Routes.hubLegacy) {
 		return (
@@ -100,6 +101,7 @@ export default function TopNavigationLayout() {
 							<CurrentUserAccountActions
 								email={viewerEmail}
 								managedCommunities={managedCommunities}
+								showCreateCommunity={!isCertificate}
 							/>
 						}
 					/>

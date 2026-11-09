@@ -306,6 +306,35 @@ body {
   animation: hub-fade 180ms var(--ease-out-strong) both;
 }
 
+/* Certificate: the stamp rises in, then the postmark lands on it once, like ink
+   pressed down. Seen rarely (a certificate is opened a handful of times), so it
+   can carry a little delight. `scale` composes with the ink's inline rotate. */
+@keyframes certificate-stamp {
+  from {
+    opacity: 0;
+    scale: 1.2;
+  }
+}
+
+.certificate-postmark {
+  animation: certificate-stamp 300ms var(--ease-out-strong) 260ms both;
+}
+
+/* Swap one icon for another inside a button: blur bridges the two states. */
+.icon-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms var(--ease-out-strong),
+    transform 200ms var(--ease-out-strong),
+    filter 200ms var(--ease-out-strong);
+}
+
+.icon-swap > [data-hidden="true"] {
+  opacity: 0;
+  transform: scale(0.6);
+  filter: blur(2px);
+}
+
 @keyframes profile-tab-in {
   from {
     opacity: 0;
@@ -444,6 +473,16 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .certificate-postmark {
+    animation-name: hub-fade;
+    animation-duration: 200ms;
+  }
+
+  .icon-swap > [data-hidden="true"] {
+    transform: none;
+    filter: none;
+  }
+
   .animate-hub-rise {
     animation-name: hub-fade;
     animation-duration: 200ms;

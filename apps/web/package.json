@@ -16,7 +16,9 @@
     "prod-db": "bash scripts/test-db.sh --prod",
     "team-stats": "bash scripts/team-stats.sh",
     "prod-team-stats": "bash scripts/team-stats.sh --prod",
-    "prod-logs": "tsx scripts/prod-logs.ts"
+    "prod-logs": "tsx scripts/prod-logs.ts",
+    "certificates:match": "tsx scripts/certificates-match.ts",
+    "certificates:issue": "tsx scripts/certificates-issue.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

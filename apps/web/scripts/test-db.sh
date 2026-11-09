@@ -6,6 +6,7 @@
 #   pnpm test-db person <email>         that person's registrations and team for every event
 #   pnpm test-db emails <event-slug> [approved|pending|rejected|all]  registrant emails as CSV
 #   pnpm test-db applicants <event-slug> [status]  hackathon applicants CSV for the screener
+#   pnpm test-db certificates <event-slug>  certificates: emailed, shares by channel, visitor views
 #   pnpm test-db sql "select …"         any single read-only SELECT
 #
 # `pnpm test-db` uses the TEST database (VALIDATION_DATABASE_URL).
@@ -147,6 +148,43 @@ where (e.slug = :'slug' or e.id::text = :'slug')
 order by team, name;
 SQL
     ;;
+  certificates)
+    [[ -n "${2:-}" ]] || { echo "Usage: pnpm test-db certificates <event-slug>" >&2; exit 1; }
+    run -v slug="$2" <<'SQL'
+\echo '== Spread (people who shared at least once, and visits their shares brought)'
+select count(distinct c.code) as certificates,
+  count(distinct c.code) filter (where c.emailed_at is not null) as emailed,
+  count(distinct e.certificate_code) filter (where e.kind = 'share') as shared_by,
+  count(*) filter (where e.kind = 'view') as visitor_views
+from event_certificates c
+join events ev on ev.id = c.event_id
+left join event_certificate_events e on e.certificate_code = c.code
+where ev.slug = :'slug' and c.revoked_at is null;
+\echo '== Shares by channel'
+select e.channel, count(*) as shares, count(distinct e.certificate_code) as people
+from event_certificate_events e
+join event_certificates c on c.code = e.certificate_code
+join events ev on ev.id = c.event_id
+where ev.slug = :'slug' and e.kind = 'share'
+group by 1 order by 2 desc;
+\echo '== Visitor views by source'
+select e.channel as source, count(*) as views
+from event_certificate_events e
+join event_certificates c on c.code = e.certificate_code
+join events ev on ev.id = c.event_id
+where ev.slug = :'slug' and e.kind = 'view'
+group by 1 order by 2 desc;
+\echo '== Per person'
+select c.recipient_name, c.award, c.team_name, c.code,
+  count(*) filter (where e.kind = 'share') as shares,
+  count(*) filter (where e.kind = 'view') as views
+from event_certificates c
+join events ev on ev.id = c.event_id
+left join event_certificate_events e on e.certificate_code = c.code
+where ev.slug = :'slug' and c.revoked_at is null
+group by 1, 2, 3, 4 order by views desc, shares desc, 1;
+SQL
+    ;;
   sql)
     [[ -n "${2:-}" ]] || { echo 'Usage: pnpm test-db sql "select …"' >&2; exit 1; }
     if ! grep -qiE '^[[:space:]]*(select|with)[[:space:]]' <<<"$2" ||
@@ -157,7 +195,7 @@ SQL
     run <<<"$2;"
     ;;
   *)
-    echo 'Usage: pnpm test-db <team <event-slug> | person <email> | emails <event-slug> | applicants <event-slug> | sql "select …">' >&2
+    echo 'Usage: pnpm test-db <team <event-slug> | person <email> | emails <event-slug> | applicants <event-slug> | certificates <event-slug> | sql "select …">' >&2
     exit 1
     ;;
 esac

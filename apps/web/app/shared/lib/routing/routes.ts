@@ -31,6 +31,7 @@ export class Routes {
   static mobileApp = "/app";
   static createCommunity = "/create-community";
   static createCommunitySuccess = "/create-community/success";
+  static certificate = (code: string) => `/certificate/${code}`;
 
   static auth = {
     emailSentVerify: `${AUTH_BASE}/email-sent/verify`,
@@ -107,9 +108,19 @@ export class Routes {
     event: (communitySlug: string, eventSlug: string) =>
       `${API_BASE}/og/event/${communitySlug}/${eventSlug}`,
     mobileApp: `${API_BASE}/og/app`,
+    /** `version` (the row's updated_at) changes the URL when a certificate is corrected. */
+    certificate: (code: string, version: string) =>
+      `${API_BASE}/og/certificate/${code}?v=${encodeURIComponent(version)}`,
+    /** 1080×1920, for Instagram stories. */
+    certificateStory: (code: string, version: string) =>
+      `${API_BASE}/og/certificate/${code}?format=story&v=${encodeURIComponent(version)}`,
   };
 
   static api = {
+    certificates: {
+      /** POST code + channel: the owner pressed a share action. */
+      share: `${API_BASE}/certificates/share`,
+    },
     events: {
       attendersEmails: `${API_BASE}/events/attenders-emails`,
       attendersList: `${API_BASE}/events/attenders-list`,

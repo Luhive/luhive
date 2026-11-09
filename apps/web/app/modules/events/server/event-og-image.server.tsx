@@ -6,7 +6,7 @@ import {
   OG_IMAGE_HEIGHT,
   OG_IMAGE_WIDTH,
 } from "~/shared/lib/og/og-factory";
-import type { OgFont } from "~/shared/lib/og/og-types";
+import { loadOgFonts, loadOgMark, truncateOgText as truncate } from "~/shared/lib/og/og-assets.server";
 import { publicOrigin } from "~/shared/lib/http/public-origin.server";
 
 const IMAGE_CACHE_HEADERS: Record<string, string> = {
@@ -24,53 +24,6 @@ const LUHIVE_INK = "#141414";
 
 const DEFAULT_OG_IMAGE = "/ogimage.png";
 const LUHIVE_FALLBACK_COVER = "/LuhiveLogoBackground.png";
-const LUHIVE_MARK = "/og/luhive-mark.svg";
-
-// Warm-function caches keyed by origin (fonts/mark are immutable per deploy).
-const fontsCache = new Map<string, Promise<OgFont[]>>();
-const markCache = new Map<string, Promise<string>>();
-
-function loadFonts(origin: string): Promise<OgFont[]> {
-  let cached = fontsCache.get(origin);
-  if (!cached) {
-    cached = Promise.all([
-      fetch(`${origin}/fonts/geologica-medium.woff`).then((r) => r.arrayBuffer()),
-      fetch(`${origin}/fonts/geologica-medium-ext.woff`).then((r) =>
-        r.arrayBuffer(),
-      ),
-    ]).then(([latin, latinExt]) => [
-      { name: "Geologica", data: latin, weight: 500, style: "normal" } as OgFont,
-      {
-        name: "Geologica",
-        data: latinExt,
-        weight: 500,
-        style: "normal",
-      } as OgFont,
-    ]);
-    fontsCache.set(origin, cached);
-  }
-  return cached;
-}
-
-function loadMark(origin: string): Promise<string> {
-  let cached = markCache.get(origin);
-  if (!cached) {
-    cached = fetch(`${origin}${LUHIVE_MARK}`)
-      .then((r) => r.arrayBuffer())
-      .then(
-        (buf) =>
-          `data:image/svg+xml;base64,${Buffer.from(buf).toString("base64")}`,
-      );
-    markCache.set(origin, cached);
-  }
-  return cached;
-}
-
-function truncate(value: string, max: number): string {
-  const trimmed = value.trim();
-  if (trimmed.length <= max) return trimmed;
-  return `${trimmed.slice(0, max - 1).trimEnd()}…`;
-}
 
 async function fallbackImageResponse(origin: string): Promise<Response> {
   const buffer = await fetch(`${origin}${DEFAULT_OG_IMAGE}`).then((r) =>
@@ -234,8 +187,8 @@ export async function generateEventOgImage(
 
     const { event, community } = resolved;
     const [fonts, markUrl] = await Promise.all([
-      loadFonts(origin),
-      loadMark(origin),
+      loadOgFonts(origin),
+      loadOgMark(origin),
     ]);
 
     const coverUrl =

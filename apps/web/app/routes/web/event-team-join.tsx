@@ -15,6 +15,11 @@ import {
   validateCustomAnswers,
 } from "~/modules/events/utils/custom-questions";
 import { Button } from "~/shared/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "~/shared/components/ui/avatar";
+import {
+  EditableName,
+  checkEditedName,
+} from "~/modules/events/components/registration/editable-name";
 import type { DropdownOption } from "~/modules/events/model/event.types";
 import { Routes } from "~/shared/lib/routing/routes";
 import type { loader as teamJoinLoader } from "~/modules/events/server/event-team-join.server";
@@ -28,6 +33,7 @@ export default function EventTeamJoinPage() {
   const [answers, setAnswers] = useState<CustomQuestionFormAnswers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [phone, setPhone] = useState(data.userPhone ?? "");
+  const [editedName, setEditedName] = useState<string | null>(null);
 
   function clearError(key: string) {
     setErrors(({ [key]: _removed, ...rest }) => rest);
@@ -37,6 +43,8 @@ export default function EventTeamJoinPage() {
   // the redirect.
   const [joinSignedIn] = useState(data.signedIn);
   const location = useLocation();
+  const viewerName =
+    data.viewer?.fullName?.trim() || data.viewer?.email?.split("@")[0] || "You";
   const registeredEventUrl = `${Routes.community.event(data.communitySlug, data.eventSlug)}?registered=1`;
 
   function showRegisteredEvent() {
@@ -90,16 +98,51 @@ export default function EventTeamJoinPage() {
           className="mt-6 space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
+            const nameCheck = checkEditedName(editedName);
+            if (nameCheck.error) {
+              setErrors((current) => ({ ...current, fullName: nameCheck.error! }));
+              return;
+            }
             const built = buildCustomAnswersFromFormState(data.questions, phone, answers);
             const validation = validateCustomAnswers(built, data.questions);
             setErrors(validation.errors);
             if (!validation.valid) return;
             const body = new FormData();
             body.set("customAnswers", JSON.stringify(built));
+            if (nameCheck.fullName) body.set("fullName", nameCheck.fullName);
             if (data.inviteId) body.set("teamInviteId", data.inviteId);
             fetcher.submit(body, { method: "post" });
           }}
         >
+          {data.viewer ? (
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={data.viewer.avatarUrl ?? undefined} alt="" />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {viewerName.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <EditableName
+                    displayName={viewerName}
+                    initialName={data.viewer.fullName ?? undefined}
+                    editedName={editedName}
+                    onEditedNameChange={(value) => {
+                      setEditedName(value);
+                      clearError("fullName");
+                    }}
+                    invalid={!!errors.fullName}
+                    disabled={fetcher.state !== "idle"}
+                  />
+                  {data.viewer.email ? (
+                    <p className="truncate text-sm text-muted-foreground">{data.viewer.email}</p>
+                  ) : null}
+                </div>
+              </div>
+              {errors.fullName ? <p className="text-xs text-destructive">{errors.fullName}</p> : null}
+            </div>
+          ) : null}
           <CustomQuestionFields
             customQuestions={data.questions}
             phone={phone}

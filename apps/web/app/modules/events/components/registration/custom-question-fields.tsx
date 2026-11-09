@@ -16,7 +16,6 @@ import type {
   CustomQuestionJson,
   DropdownOption,
 } from "~/modules/events/model/event.types";
-import { formatPhoneNumber } from "~/modules/events/utils/custom-questions";
 import { MAX_ANSWER_LENGTH } from "~/modules/events/utils/custom-questions-constants";
 import { cn } from "~/shared/lib/utils/cn";
 
@@ -90,10 +89,12 @@ export function CustomQuestionFields({
               id={phoneInputId}
               name="phone"
               type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               value={phone}
               onChange={(e) => onPhoneChange(e.target.value)}
               onBlur={onPhoneBlur}
-              placeholder="+994501234567"
+              placeholder="e.g. 050 123 45 67"
               required={customQuestions.phone.required}
               disabled={isSubmitting}
               className={cn(
@@ -105,9 +106,9 @@ export function CustomQuestionFields({
           {errors.phone && (
             <p className="text-xs text-destructive">{errors.phone}</p>
           )}
-          {phone && !errors.phone && (
+          {!errors.phone && (
             <p className="text-xs text-muted-foreground">
-              {formatPhoneNumber(phone)}
+              Local numbers are read as Azerbaijani. Abroad? Start with + and your country code.
             </p>
           )}
         </div>

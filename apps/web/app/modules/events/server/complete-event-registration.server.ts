@@ -27,6 +27,7 @@ import * as CommunitySettings from "@luhive/domain/v1/community-settings";
 import { placeHackathonRegistration } from "~/modules/events/server/hackathon-team.server";
 import { logHackathon } from "~/modules/events/server/hackathon-log.server";
 import { publicOrigin } from "~/shared/lib/http/public-origin.server";
+import { toE164Phone } from "~/modules/events/utils/custom-questions";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,6 +39,33 @@ type EventRegistrationUser = {
   email?: string | null;
   user_metadata?: Record<string, unknown> | null;
 };
+
+/**
+ * Saves the phone on the profile so the next registration form is prefilled.
+ * Best effort: a failure here must not fail the registration.
+ */
+async function rememberProfilePhone(
+  serviceClient: ReturnType<typeof createServiceRoleClient>,
+  userId: string,
+  phone: string,
+) {
+  const { data: profile } = await serviceClient
+    .from("profiles")
+    .select("metadata")
+    .eq("id", userId)
+    .maybeSingle();
+  const metadata =
+    profile?.metadata && typeof profile.metadata === "object" && !Array.isArray(profile.metadata)
+      ? (profile.metadata as Record<string, unknown>)
+      : {};
+  if (metadata.phone === phone) return;
+
+  const { error } = await serviceClient
+    .from("profiles")
+    .update({ metadata: { ...metadata, phone } as import("~/shared/models/database.types").Json })
+    .eq("id", userId);
+  if (error) console.error("Failed to save phone to profile:", error);
+}
 
 function metadataName(user: EventRegistrationUser) {
   const value = user.user_metadata?.full_name ?? user.user_metadata?.name;
@@ -276,9 +304,18 @@ export async function completeEventRegistration({
     if (!validation.valid) {
       return {
         success: false,
-        error: "Please fill in all required fields",
+        // A bad phone number is the common failure; say so instead of a generic message.
+        error: validation.errors.phone ?? "Please fill in all required fields",
       };
     }
+  }
+
+  // Store the phone in one canonical form (E.164), whatever format the client sent.
+  const submittedPhone =
+    customAnswers && typeof customAnswers.phone === "string" ? customAnswers.phone : null;
+  const canonicalPhone = submittedPhone ? toE164Phone(submittedPhone) : null;
+  if (customAnswers && canonicalPhone) {
+    customAnswers = { ...customAnswers, phone: canonicalPhone };
   }
 
   const resolvedCommunity = await resolveCommunity(supabase, event, community);
@@ -404,6 +441,10 @@ export async function completeEventRegistration({
       success: false,
       error: "Failed to create registration. Please try again.",
     };
+  }
+
+  if (canonicalPhone) {
+    await rememberProfilePhone(serviceClient, user.id, canonicalPhone);
   }
 
   const hackathonPlacement = await placeHackathonRegistration({

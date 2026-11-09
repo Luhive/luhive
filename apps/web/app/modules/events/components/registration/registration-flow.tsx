@@ -24,8 +24,9 @@ import {
 } from "~/modules/events/utils/event-session-tracker";
 import {
   buildCustomAnswersFromFormState,
-  isValidPhoneNumber,
+  formatPhoneInputOnBlur,
   normalizePhoneInput,
+  phoneInputError,
   validateCustomAnswers,
 } from "~/modules/events/utils/custom-questions";
 import { cn } from "~/shared/lib/utils/cn";
@@ -350,12 +351,11 @@ export function RegistrationFlow({
   };
 
   const handlePhoneBlur = () => {
-    if (phone && !isValidPhoneNumber(phone)) {
-      setQuestionErrors((prev) => ({
-        ...prev,
-        phone:
-          "Please enter a valid phone number in international format (e.g., +994501234567)",
-      }));
+    const error = phoneInputError(phone);
+    if (error) {
+      setQuestionErrors((prev) => ({ ...prev, phone: error }));
+    } else {
+      setPhone(formatPhoneInputOnBlur(phone));
     }
   };
 

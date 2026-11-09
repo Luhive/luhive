@@ -29,6 +29,8 @@ export type TeamJoinLoaderData = {
   /** Set when the link came from an invite email and the invite is still open. */
   inviteId: string | null;
   invitedEmail: string | null;
+  /** Phone saved on the signed-in user's profile, to prefill the phone question. */
+  userPhone: string | null;
 };
 
 export async function loader({ request, params }: LoaderFunctionArgs): Promise<TeamJoinLoaderData> {
@@ -53,6 +55,15 @@ export async function loader({ request, params }: LoaderFunctionArgs): Promise<T
     ? await HackathonTeams.findRegistrationIdForUser(resolved.event.id, user.id)
     : null;
 
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("metadata").eq("id", user.id).maybeSingle()
+    : { data: null };
+  const profileMetadata =
+    profile?.metadata && typeof profile.metadata === "object" && !Array.isArray(profile.metadata)
+      ? (profile.metadata as { phone?: unknown })
+      : null;
+  const userPhone = typeof profileMetadata?.phone === "string" ? profileMetadata.phone : null;
+
   const inviteParam = new URL(request.url).searchParams.get("invite");
   const found = inviteParam && isUuid(inviteParam) ? await Teams.findTeamInvite(inviteParam) : null;
   const invite = found?.team_id === team.id ? found : null;
@@ -76,6 +87,7 @@ export async function loader({ request, params }: LoaderFunctionArgs): Promise<T
     teamCode: code,
     inviteId: invite?.id ?? null,
     invitedEmail: invite?.email ?? null,
+    userPhone,
   };
 }
 

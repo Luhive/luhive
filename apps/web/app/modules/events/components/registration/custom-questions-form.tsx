@@ -25,8 +25,9 @@ import type {
 } from '~/modules/events/model/event.types';
 import {
   buildCustomAnswersFromFormState,
-  isValidPhoneNumber,
+  formatPhoneInputOnBlur,
   normalizePhoneInput,
+  phoneInputError,
   validateCustomAnswers,
 } from '~/modules/events/utils/custom-questions';
 import { Form } from 'react-router';
@@ -124,11 +125,11 @@ export function CustomQuestionsForm({
   };
 
   const handlePhoneBlur = () => {
-    if (phone && !isValidPhoneNumber(phone)) {
-      setErrors((prev) => ({
-        ...prev,
-        phone: 'Please enter a valid phone number in international format (e.g., +994501234567)',
-      }));
+    const error = phoneInputError(phone);
+    if (error) {
+      setErrors((prev) => ({ ...prev, phone: error }));
+    } else {
+      setPhone(formatPhoneInputOnBlur(phone));
     }
   };
 

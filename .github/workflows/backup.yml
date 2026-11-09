@@ -1,0 +1,70 @@
+name: Backup Storage
+
+# Daily mirror of every Supabase Storage bucket to Cloudflare R2. Supabase Pro
+# backs up the database, including storage.objects metadata, but not the files.
+# Only changed files cross the wire. Files deleted or overwritten in Supabase
+# move to storage-deleted/<date>/ and are kept for KEEP_DAYS, so a wiped bucket
+# does not erase its own backup the next night.
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-storage
+  cancel-in-progress: false
+
+env:
+  # Matches the 7 days of database backups on Pro.
+  KEEP_DAYS: 7
+  R2_BUCKET: ${{ secrets.R2_BUCKET }}
+  RCLONE_S3_NO_CHECK_BUCKET: "true"
+  RCLONE_CONFIG_R2_TYPE: s3
+  RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+  RCLONE_CONFIG_R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+  RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+  RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+  RCLONE_CONFIG_SUPA_TYPE: s3
+  RCLONE_CONFIG_SUPA_PROVIDER: Other
+  RCLONE_CONFIG_SUPA_ENDPOINT: https://${{ secrets.SUPABASE_PROJECT_REF }}.storage.supabase.co/storage/v1/s3
+  RCLONE_CONFIG_SUPA_REGION: ${{ secrets.SUPABASE_STORAGE_REGION }}
+  RCLONE_CONFIG_SUPA_FORCE_PATH_STYLE: "true"
+  RCLONE_CONFIG_SUPA_ACCESS_KEY_ID: ${{ secrets.SUPABASE_STORAGE_ACCESS_KEY_ID }}
+  RCLONE_CONFIG_SUPA_SECRET_ACCESS_KEY: ${{ secrets.SUPABASE_STORAGE_SECRET_ACCESS_KEY }}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq rclone
+
+      # Every bucket becomes a folder under storage/.
+      - name: Mirror Storage buckets
+        run: |
+          today=$(date -u +%F)
+          rclone sync supa: "r2:$R2_BUCKET/storage" \
+            --backup-dir "r2:$R2_BUCKET/storage-deleted/$today" \
+            --fast-list --transfers 8
+
+      - name: Prune deleted files past retention
+        run: |
+          cutoff=$(date -u -d "$KEEP_DAYS days ago" +%F)
+          rclone lsf "r2:$R2_BUCKET/storage-deleted" --dirs-only 2>/dev/null | while read -r dir; do
+            day=${dir%/}
+            if [[ "$day" < "$cutoff" ]]; then
+              rclone purge "r2:$R2_BUCKET/storage-deleted/$day"
+            fi
+          done
+
+      - name: Summary
+        run: |
+          {
+            echo "### Storage backup $(date -u +%F)"
+            echo '```'
+            rclone size "r2:$R2_BUCKET/storage"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

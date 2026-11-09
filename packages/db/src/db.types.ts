@@ -145,6 +145,34 @@ export interface CommunityVisits {
   visited_at: Generated<Timestamp | null>;
 }
 
+export interface EventCertificateEvents {
+  certificate_code: string;
+  channel: string;
+  created_at: Generated<Timestamp>;
+  id: Generated<Int8>;
+  kind: string;
+}
+
+export interface EventCertificates {
+  award: string;
+  code: string;
+  community_name: string;
+  community_slug: string;
+  emailed_at: Timestamp | null;
+  event_date: Timestamp;
+  event_id: string;
+  event_title: string;
+  id: Generated<string>;
+  issued_at: Generated<Timestamp>;
+  recipient_email: string;
+  recipient_name: string;
+  registration_id: string | null;
+  revoked_at: Timestamp | null;
+  team_name: string;
+  updated_at: Generated<Timestamp>;
+  user_id: string | null;
+}
+
 export interface EventCollaborations {
   accepted_at: Timestamp | null;
   community_id: string;
@@ -517,6 +545,8 @@ export interface DB {
   community_invites: CommunityInvites;
   community_members: CommunityMembers;
   community_visits: CommunityVisits;
+  event_certificate_events: EventCertificateEvents;
+  event_certificates: EventCertificates;
   event_collaborations: EventCollaborations;
   event_payment_instructions: EventPaymentInstructions;
   event_registrations: EventRegistrations;

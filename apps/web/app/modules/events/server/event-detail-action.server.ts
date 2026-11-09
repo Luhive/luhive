@@ -14,6 +14,7 @@ import { completeEventRegistration } from "~/modules/events/server/complete-even
 import type { EventRegistrationState } from "~/modules/events/model/event-detail-view.types";
 import { releaseTicketOrderForCancellation } from "~/modules/events/server/release-ticket-order-for-cancellation.server";
 import * as HackathonTeams from "~/modules/events/server/hackathon-team.server";
+import { updateOwnProfileName } from "~/modules/profile/server/update-profile-name.server";
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const { supabase } = createClient(request);
@@ -154,6 +155,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
         customAnswers = JSON.parse(customAnswersStr);
       } catch (e) {
         console.error("Error parsing custom_answers:", e);
+      }
+    }
+
+    // The registration form lets signed-in users correct their name (e.g. one taken from Google).
+    // Save it first so the confirmation email and attendee list use the corrected name.
+    const submittedName = formData.get("fullName");
+    if (typeof submittedName === "string") {
+      const nameResult = await updateOwnProfileName(supabase, user.id, submittedName);
+      if (!nameResult.success) {
+        return { success: false, error: nameResult.error };
       }
     }
 

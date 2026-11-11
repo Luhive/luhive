@@ -19,7 +19,9 @@ function SelectGroup({
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />
+  // translate="no": page translators rewrite this text, and React crashes
+  // when the value swaps in for the placeholder.
+  return <SelectPrimitive.Value data-slot="select-value" translate="no" {...props} />
 }
 
 function SelectTrigger({

@@ -9,6 +9,10 @@
 export const LUHIVE_CREATE_COMMUNITY_BOOKING_URL =
   "https://cal.com/luhive/30min?user=luhive";
 
+/** WhatsApp chat with the founder, for a call or a product question. */
+export const LUHIVE_FOUNDER_WHATSAPP_URL =
+  "https://wa.me/message/LGGJHQTL6E3HK1";
+
 /**
  * Builds the Cal.com booking URL, appending `source` when first-touch
  * attribution from free tools is present.

@@ -41,7 +41,7 @@
   transform: scale(1.8) translate(150%);
 }
 
-/* "Book a Call" slides out to the right, delayed 300ms so the avatar animates first */
+/* The label slides out to the right, delayed 300ms so the avatar animates first */
 .label {
   transition: transform 500ms ease;
   transition-delay: 300ms;

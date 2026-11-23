@@ -20,12 +20,13 @@
     "signIn": "Sign in"
   },
   "hero": {
-    "title": "You're running a community",
-    "titleHighlight": "You should be running a",
+    "title": "Community",
+    "titleHighlight": "Intelligence",
     "subtitle": "Your community data disappears after every event. Luhive captures it automatically, building member history, engagement data, and sponsor proof",
     "ctaDiscover": "Discover Communities",
     "ctaDiscoverCount": "Explore {{count}} communities",
     "ctaSeparator": "or",
+    "ctaSetupNote": "We'll talk and set up a community for your needs.",
     "ctaCreate": "Create community",
     "tagline": "Build communities that matter",
     "newBadge": "New",

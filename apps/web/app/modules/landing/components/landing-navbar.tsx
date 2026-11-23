@@ -10,7 +10,7 @@ import {
   AvatarImage,
 } from "~/shared/components/ui/avatar";
 import { createClient } from '~/shared/lib/supabase/client';
-import { useCalBookingUrl } from "~/shared/hooks/use-cal-booking-url";
+import { LUHIVE_FOUNDER_WHATSAPP_URL } from "~/shared/lib/utils/url";
 import { Routes } from "~/shared/lib/routing/routes";
 import { LandingAccountLink } from "~/modules/landing/components/landing-account-link";
 import * as LandingAnalytics from "~/modules/landing/utils/landing-analytics";
@@ -52,7 +52,6 @@ export function LandingNavbar({
 }: LandingNavbarProps = {}) {
   const { t } = useTranslation('landing');
   const isOnMobileApp = useLocation().pathname === Routes.mobileApp;
-  const bookingUrl = useCalBookingUrl();
   const [user, setUser] = useState<UserData | null>(null);
   const [, setIsLoadingUser] = useState(true);
   const [scrolled, setScrolled] = useState(false);
@@ -311,7 +310,7 @@ export function LandingNavbar({
                   </Link>
                 ) : (
                   <a
-                    href={bookingUrl}
+                    href={LUHIVE_FOUNDER_WHATSAPP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => {
@@ -320,7 +319,7 @@ export function LandingNavbar({
                     }}
                     className="block text-[1.35rem] font-medium leading-none tracking-tight text-foreground/55 transition-colors hover:text-foreground/80"
                   >
-                    Book a Call
+                    Create Community
                   </a>
                 )}
 
@@ -396,7 +395,7 @@ export function LandingNavbar({
                 <LandingAccountLink fullName={user.full_name} avatarUrl={user.avatar_url} scrolled={scrolled} />
               ) : (
                 <a
-                  href={bookingUrl}
+                  href={LUHIVE_FOUNDER_WHATSAPP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => LandingAnalytics.trackBookDemoClicked("header")}
@@ -410,7 +409,7 @@ export function LandingNavbar({
                     <AvatarImage src="/landing/ali-founder.png" alt="" />
                     <AvatarFallback className="text-[9px] font-medium">A</AvatarFallback>
                   </Avatar>
-                  Book a Call
+                  Create Community
                 </a>
               )}
             </div>

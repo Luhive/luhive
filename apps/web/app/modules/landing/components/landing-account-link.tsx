@@ -12,7 +12,7 @@ import { cn } from "~/shared/lib/utils/cn";
 type LandingAccountLinkProps = {
   fullName: string | null;
   avatarUrl: string | null;
-  /** Matches the Book a Call pill it replaces, which turns orange once the page scrolls. */
+  /** Matches the Create Community pill it replaces, which turns orange once the page scrolls. */
   scrolled: boolean;
 };
 
@@ -26,7 +26,7 @@ function getNameInitials(fullName: string | null) {
     .slice(0, 2);
 }
 
-/** Signed-in visitors already have a community, so the navbar offers their profile instead of Book a Call. */
+/** Signed-in visitors already have a community, so the navbar offers their profile instead of Create Community. */
 export function LandingAccountLink({ fullName, avatarUrl, scrolled }: LandingAccountLinkProps) {
   const { t } = useTranslation("landing");
 

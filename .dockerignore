@@ -3,7 +3,6 @@
 **/build
 **/.turbo
 **/.react-router
-**/.netlify
 
 .git
 .github

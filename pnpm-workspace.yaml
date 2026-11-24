@@ -25,7 +25,7 @@ onlyBuiltDependencies:
 
 # @hookform/resolvers/zod imports `zod/v4/core` but declares no zod peer, so it
 # only resolves when zod happens to be hoisted above it. Moving the app into
-# apps/web changed that hoisting and broke the Netlify build. Declaring the peer
+# apps/web changed that hoisting and broke the build. Declaring the peer
 # links zod into the package directly, independent of layout.
 #
 # `pnpm add` rewrites this file and strips comments. If these are gone, restore

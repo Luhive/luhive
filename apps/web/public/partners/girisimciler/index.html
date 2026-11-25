@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luhive · Community Intelligence</title>
+<meta name="description" content="Luhive nedir, hangi sorunu çözer ve Community Intelligence ne sunar">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap">
+<script defer src="/stats.js" data-website-id="f5c72579-b361-4002-bda5-bd5ffb7e247d" data-host-url="https://luhive.com" data-tag="partners" data-domains="luhive.com"></script>
+<style>
+  /* Luhive tokens, from apps/web/app/app.css */
+  :root {
+    --orange: #FF6D23;
+    --orange-text: #C2480A;
+    --ink: #242424;
+    --black: #141414;
+    --muted: #6B6B6B;
+    --line: #E6E6E6;
+    --bg: #FFFFFF;
+    --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 18px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { display: block; }
+  a { color: inherit; }
+  h1, h2, h3, p, ul { margin: 0; }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* Top bar */
+  .bar { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.88); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid transparent; transition: border-color 300ms var(--ease); }
+  .bar.scrolled { border-bottom-color: var(--line); }
+  .bar .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--black); text-decoration: none; }
+  .brand img { width: 30px; height: 30px; object-fit: contain; }
+  .bar a.site { font-size: 15px; font-weight: 600; color: var(--muted); text-decoration: none; }
+  .bar a.site:hover { color: var(--ink); }
+
+  section { padding: 112px 0; }
+
+  .eyebrow { font-size: 14px; font-weight: 800; color: var(--orange-text); letter-spacing: 2.5px; text-transform: uppercase; }
+  h2 { margin-top: 16px; font-size: clamp(32px, 4.6vw, 52px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: var(--black); max-width: 900px; }
+  .lead { margin-top: 24px; font-size: clamp(19px, 2vw, 23px); color: var(--muted); line-height: 1.55; max-width: 780px; }
+
+  /* Hero */
+  .hero { padding: 120px 0 128px; }
+  .hero img { width: 64px; height: 64px; object-fit: contain; margin-bottom: 44px; }
+  .hero h1 { font-size: clamp(44px, 8.4vw, 104px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; color: var(--black); }
+  .hero h1 span { color: var(--orange); }
+  .hero .lead { margin-top: 32px; max-width: 720px; }
+  .hero .scroll { display: inline-flex; align-items: center; gap: 10px; margin-top: 56px; font-size: 15px; font-weight: 600; color: var(--muted); text-decoration: none; }
+  .hero .scroll span { display: inline-block; animation: nudge 2.4s var(--ease) infinite; }
+  @keyframes nudge { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(4px); } }
+
+  /* Three plain columns */
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; margin-top: 72px; }
+  .col .n { font-size: 14px; font-weight: 800; color: var(--orange-text); letter-spacing: 2px; }
+  .col h3 { margin-top: 12px; font-size: 22px; font-weight: 800; color: var(--black); line-height: 1.3; }
+  .col p.t { margin-top: 10px; font-size: 17px; color: var(--muted); line-height: 1.6; }
+
+  /* Flow */
+  .flow { display: grid; grid-template-columns: 1fr 56px 1.2fr 56px 1fr; align-items: center; gap: 24px; margin-top: 72px; }
+  .flow .stack { display: flex; flex-direction: column; gap: 22px; }
+  .flow .item b { display: block; font-size: 19px; font-weight: 800; color: var(--black); line-height: 1.35; }
+  .flow .item span { display: block; font-size: 16px; color: var(--muted); }
+  .flow .arrow { height: 2px; background: var(--orange); position: relative; transform-origin: left center; }
+  .flow .arrow::after { content: ""; position: absolute; right: 0; top: -4px; width: 8px; height: 8px; border-top: 2px solid var(--orange); border-right: 2px solid var(--orange); transform: rotate(45deg); }
+  .flow .record .tag { font-size: 14px; font-weight: 800; color: var(--orange-text); letter-spacing: 2.5px; }
+  .flow .record h3 { margin-top: 8px; font-size: clamp(26px, 3vw, 34px); font-weight: 800; color: var(--black); letter-spacing: -0.02em; line-height: 1.15; }
+  .flow .record p { margin-top: 12px; font-size: 17px; color: var(--muted); line-height: 1.6; }
+
+  /* Intelligence */
+  .intel { display: grid; grid-template-columns: 1fr 1fr; gap: 88px; margin-top: 72px; }
+  .intel .status { font-size: 14px; font-weight: 800; letter-spacing: 1px; }
+  .intel .status.live { color: var(--orange-text); }
+  .intel .status.soon { color: var(--muted); }
+  .intel h3 { margin-top: 8px; font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; color: var(--black); letter-spacing: -0.02em; line-height: 1.15; }
+  .intel p.t { margin-top: 14px; font-size: 18px; color: var(--muted); line-height: 1.6; }
+  .intel ul { margin-top: 20px; padding-left: 20px; font-size: 17px; color: var(--ink); }
+  .intel li { margin: 10px 0; }
+  .intel li::marker { color: var(--orange); }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: 64px; }
+  .stat b { display: block; font-size: clamp(40px, 5vw, 60px); font-weight: 800; color: var(--orange); letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat span { display: block; margin-top: 10px; font-size: 16px; color: var(--muted); }
+  .names { margin-top: 48px; font-size: 16px; color: var(--muted); }
+  .names b { color: var(--ink); }
+
+  /* Closing */
+  .closing { padding: 112px 0 128px; }
+  .closing .col h3 { font-size: 24px; }
+
+  footer { padding: 32px 0 48px; border-top: 1px solid var(--line); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+  footer a { text-decoration: none; font-weight: 600; }
+  footer a:hover { color: var(--ink); }
+
+  /* Reveal on scroll */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); transition-delay: calc(var(--d, 0) * 90ms); }
+  .reveal.in { opacity: 1; transform: none; }
+  .hero .reveal { transition-duration: 900ms; }
+  .flow .arrow.reveal { transform: scaleX(0); }
+  .flow .arrow.reveal.in { transform: scaleX(1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal, .flow .arrow.reveal { opacity: 1; transform: none; transition: none; }
+    .hero .scroll span { animation: none; }
+  }
+
+  /* Phone */
+  @media (max-width: 760px) {
+    section { padding: 72px 0; }
+    .hero { padding: 64px 0 80px; }
+    .hero img { width: 52px; height: 52px; margin-bottom: 32px; }
+    .cols { grid-template-columns: 1fr; gap: 36px; margin-top: 48px; }
+    .flow { grid-template-columns: 1fr; gap: 28px; margin-top: 48px; }
+    .flow .arrow { width: 2px; height: 36px; margin-left: 6px; transform-origin: center top; }
+    .flow .arrow::after { right: -3px; top: auto; bottom: 0; transform: rotate(135deg); }
+    .flow .arrow.reveal { transform: scaleY(0); }
+    .flow .arrow.reveal.in { transform: scaleY(1); }
+    .intel { grid-template-columns: 1fr; gap: 56px; margin-top: 48px; }
+    .stats { grid-template-columns: 1fr 1fr; gap: 32px 24px; margin-top: 48px; }
+    .closing { padding: 72px 0 88px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar" id="bar">
+  <div class="wrap">
+    <a class="brand" href="https://luhive.com"><img src="/LogoLuhive.svg" alt="">Luhive</a>
+    <a class="site" href="https://luhive.com">luhive.com</a>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="wrap">
+      <img class="reveal" style="--d:0" src="/LogoLuhive.svg" alt="Luhive logosu">
+      <h1 class="reveal" style="--d:1">Topluluklar için <span>Community Intelligence</span></h1>
+      <p class="lead reveal" style="--d:2">Luhive, etkinlik kayıtlarından yaşayan bir üye kaydı oluşturur. Böylece topluluğunuzu tanır, doğru kişilere ulaşır ve büyümenizi veriyle gösterirsiniz.</p>
+      <a class="scroll reveal" style="--d:3" href="#sorun">Devam et <span aria-hidden="true">↓</span></a>
+    </div>
+  </section>
+
+  <section id="sorun">
+    <div class="wrap">
+      <p class="eyebrow reveal">Sorun</p>
+      <h2 class="reveal" style="--d:1">Her etkinlikten sonra topluluk hafızasını kaybeder</h2>
+      <p class="lead reveal" style="--d:2">Kayıt bir formda, liste bir tabloda, iletişim WhatsApp’ta durur. Bu araçlar birbirini tanımaz ve hiçbir şeyi hatırlamaz.</p>
+      <div class="cols">
+        <div class="col reveal" style="--d:1"><p class="n">01</p><h3>Veri dağınık</h3><p class="t">Her etkinlik için yeni bir form, yeni bir tablo açılır. Kimin kaçıncı kez geldiğini kimse bilmez.</p></div>
+        <div class="col reveal" style="--d:2"><p class="n">02</p><h3>Her seferinde sıfırdan</h3><p class="t">Etkinlik bitince liste bir kenarda kalır. Bir sonraki duyuru yine herkese, aynı mesajla gider.</p></div>
+        <div class="col reveal" style="--d:3"><p class="n">03</p><h3>Sponsora kanıt yok</h3><p class="t">“Kime ulaşıyorsunuz?” sorusunun cevabı veri değil, tahmindir. Topluluğun değeri görünmez kalır.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="luhive">
+    <div class="wrap">
+      <p class="eyebrow reveal">Luhive nedir</p>
+      <h2 class="reveal" style="--d:1">Kayıt anını yaşayan bir üye kaydına çevirir</h2>
+      <p class="lead reveal" style="--d:2">Üyeleriniz her zamanki gibi kayıt olur. Arka planda Luhive, her kayıttan ve katılımdan topluluğunuzun hafızasını oluşturur.</p>
+      <div class="flow">
+        <div class="stack reveal" style="--d:1">
+          <div class="item"><b>Kayıt</b><span>Google ile hızlı giriş</span></div>
+          <div class="item"><b>Katılım</b><span>QR kod ile check-in</span></div>
+          <div class="item"><b>İletişim</b><span>Bülten ve hatırlatmalar</span></div>
+        </div>
+        <div class="arrow reveal" style="--d:2" aria-hidden="true"></div>
+        <div class="record reveal" style="--d:3">
+          <p class="tag">LUHIVE</p>
+          <h3>Yaşayan üye kaydı</h3>
+          <p>Kim kayıt oldu, kim geldi, kim geri döndü. Hepsi tek bir yerde ve kendiliğinden birikir.</p>
+        </div>
+        <div class="arrow reveal" style="--d:4" aria-hidden="true"></div>
+        <div class="stack reveal" style="--d:5">
+          <div class="item"><b>Doğru kişileri geri çağırın</b></div>
+          <div class="item"><b>Hafızayı ekibinizle paylaşın</b></div>
+          <div class="item"><b>Sponsora veriyle konuşun</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="intelligence">
+    <div class="wrap">
+      <p class="eyebrow reveal">Community Intelligence</p>
+      <h2 class="reveal" style="--d:1">Veriyi toplamak yetmez, onu anlamak gerekir</h2>
+      <div class="intel">
+        <div class="reveal" style="--d:1">
+          <p class="status live">Bugün yayında</p>
+          <h3>Event Intelligence</h3>
+          <p class="t">Her etkinlik topluluğunuz hakkında bir şey söyler. Luhive bunu sizin için okur.</p>
+          <ul>
+            <li>Kim ilk kez geldi, kim düzenli katılıyor</li>
+            <li>Kaç kişi kayıt oldu, kaçı gerçekten geldi</li>
+            <li>Hangi etkinlikler topluluğu büyütüyor</li>
+          </ul>
+        </div>
+        <div class="reveal" style="--d:3">
+          <p class="status soon">Yakında</p>
+          <h3>Newsletter Intelligence</h3>
+          <p class="t">Bülten sadece duyuru değildir. Her açılma ve her tıklama, kitlenizin neye ilgi duyduğunu gösterir.</p>
+          <ul>
+            <li>Hangi konular ilgi görüyor, hangileri görmüyor</li>
+            <li>Üyelerin ilgisi zamanla nasıl değişiyor</li>
+            <li>Topluluk verinizi tanıyan yapay zekâ, kime ne yazacağınızı önerir</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="azerbaycan">
+    <div class="wrap">
+      <p class="eyebrow reveal">Azerbaycan’da nasıl yayıldık</p>
+      <h2 class="reveal" style="--d:1">Sıfır reklam bütçesiyle yaklaşık 40 topluluk</h2>
+      <div class="stats reveal" style="--d:2">
+        <div class="stat"><b data-count="2700" data-format="tr">2.700</b><span>kayıtlı kişi</span></div>
+        <div class="stat"><b data-count="40" data-prefix="~">~40</b><span>topluluk</span></div>
+        <div class="stat"><b data-count="60" data-suffix="+">60+</b><span>etkinlik</span></div>
+        <div class="stat"><b data-count="50" data-prefix="~">~50</b><span>organizatör</span></div>
+      </div>
+      <div class="cols">
+        <div class="col reveal" style="--d:1"><h3>Kendi topluluğumuzla başladık</h3><p class="t">Cursor Baku etkinliklerini Luhive üzerinde düzenledik. Ürünü önce kendimiz kullandık.</p></div>
+        <div class="col reveal" style="--d:2"><h3>Her etkinlik yeni kişilere ulaştı</h3><p class="t">Luhive ile kayıt olan her katılımcı ürünü görür. Yeni toplulukların tamamı bize kendisi yazdı.</p></div>
+        <div class="col reveal" style="--d:3"><h3>Yaptıklarımızı açıkça paylaştık</h3><p class="t">Kurucu olarak LinkedIn’de süreci anlattık. Guatemala’dan bir topluluk bizi oradan buldu.</p></div>
+      </div>
+      <p class="names reveal" style="--d:2"><b>Luhive üzerinde:</b> GDG Baku · Innovation Wednesday · Tech Connect Hackathon</p>
+    </div>
+  </section>
+
+  <section class="closing">
+    <div class="wrap">
+      <p class="eyebrow reveal">Sonraki adım</p>
+      <h2 class="reveal" style="--d:1">Önce sizi dinlemek istiyoruz</h2>
+      <p class="lead reveal" style="--d:2">Her topluluk farklı çalışır. Bugün nasıl ilerlediğinizi anlarsak size yanlış şeyi değil, işinize yarayacak olanı gösterebiliriz.</p>
+      <div class="cols">
+        <div class="col reveal" style="--d:1"><p class="n">01</p><h3>Etkinlikleri hangi araçlarla yönetiyorsunuz?</h3></div>
+        <div class="col reveal" style="--d:2"><p class="n">02</p><h3>Etkinlik bitince katılımcı verisine ne oluyor?</h3></div>
+        <div class="col reveal" style="--d:3"><p class="n">03</p><h3>Sponsorlarınıza bugün ne gösterebiliyorsunuz?</h3></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Luhive · Community Intelligence</span>
+    <a href="https://luhive.com">luhive.com</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var bar = document.getElementById("bar");
+  function onScroll() { bar.classList.toggle("scrolled", window.scrollY > 8); }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  function countUp(el) {
+    var target = +el.getAttribute("data-count");
+    var prefix = el.getAttribute("data-prefix") || "";
+    var suffix = el.getAttribute("data-suffix") || "";
+    var tr = el.getAttribute("data-format") === "tr";
+    var fmt = function (n) { return prefix + (tr ? n.toLocaleString("tr-TR") : n) + suffix; };
+    if (reduce) { el.textContent = fmt(target); return; }
+    var start = null, dur = 1200;
+    function tick(t) {
+      if (!start) start = t;
+      var p = Math.min((t - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round(target * eased));
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    // Background tabs pause rAF; make sure the final number always lands.
+    setTimeout(function () { el.textContent = fmt(target); }, dur + 300);
+  }
+
+  var items = document.querySelectorAll(".reveal");
+  if (!("IntersectionObserver" in window)) {
+    items.forEach(function (el) { el.classList.add("in"); });
+    document.querySelectorAll("[data-count]").forEach(countUp);
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in");
+      e.target.querySelectorAll("[data-count]").forEach(countUp);
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+  items.forEach(function (el) { io.observe(el); });
+})();
+</script>
+</body>
+</html>
